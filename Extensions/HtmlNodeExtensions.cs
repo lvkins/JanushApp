@@ -48,6 +48,45 @@ namespace PromoSeeker
             return def;
         }
 
+        /// <summary>
+        /// Find closest <see cref="HtmlNode"/> that meets the given <paramref name="predicate"/> criteria.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="node"></param>
+        /// <param name="predicate"></param>
+        /// <returns>Found <see cref="HtmlNode"/> instance if succeeded, otherwise <see langword="null"/>.</returns>
+        public static HtmlNode FindClosest(this HtmlNode node, Func<HtmlNode, bool> predicate, int maxDepth = 50)
+        {
+            // Current depth value
+            var depth = 0;
+
+            // Iterate until we have parent...
+            while (node.ParentNode != null)
+            {
+                // Get parent node
+                node = node.ParentNode;
+
+                // If node meets given criteria...
+                if (predicate(node))
+                {
+                    // We've succeeded.
+                    return node;
+                }
+
+                // If maximum depth is reached...
+                if (++depth >= maxDepth)
+                {
+                    // Break the loop
+                    break;
+                }
+            }
+
+            Console.WriteLine($">> Fin depth {depth}");
+
+            // Node wasn't found - return null
+            return null;
+        }
+
 
         /// <summary>
         /// 

@@ -51,7 +51,7 @@ namespace PromoSeeker
         /// </summary>
         /// <param name="input">The string where to replace the ISO symbols.</param>
         /// <returns></returns>
-        public static string ISOSymbolToDefaultSymbol(string input)
+        public static string ReplaceISOSymbolToDefaultSymbol(string input)
         {
             // Iterate through the cultures...
             foreach (var symbol in CurrencySymbols.Values)
@@ -79,7 +79,7 @@ namespace PromoSeeker
         public static bool FindCultureByPriceEx(string input, out CultureInfo outCulture)
         {
             // Replace any ISO symbol
-            input = ISOSymbolToDefaultSymbol(input);
+            input = ReplaceISOSymbolToDefaultSymbol(input);
 
             // First, try the most obvious cultures
             // (because if we let the cultures loop do it, mostly likely it will return some different culture eg. for currencies like dollar).
@@ -134,15 +134,15 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// Fixes the price format (separators) accordingly to the given <paramref name="culture"/>.
+        /// Reads the price value from the <paramref name="input"/> string and formats it accordingly to the given <paramref name="culture"/>.
         /// </summary>
-        /// <param name="input">The price value to be formatted.</param>
+        /// <param name="input">The string that contains a price.</param>
         /// <param name="culture">The culture to format the input accordingly to.</param>
-        /// <returns>Returns a formatted price value.</returns>
-        public static string FixPriceFormat(string input, CultureInfo culture)
+        /// <returns>Returns a formatted and culture-specifically fixed price value.</returns>
+        public static PriceValue ReadPriceValue(string input, CultureInfo culture)
         {
-            // Trim any white-spaces characters
-            input = input.Trim();
+            // Trim any leading or trailing price separators as they shouldn't be there.
+            input = input.Trim(PriceSeparators);
 
             // Convert the price to char array
             var priceArray = input.ToCharArray();
@@ -152,6 +152,9 @@ namespace PromoSeeker
 
             // The last digit index
             var lastDigitId = Array.FindLastIndex(priceArray, _ => char.IsDigit(_));
+
+            // Create price object
+            var price = new PriceValue();
 
             // If we have the digit position...
             if (firstDigitId != -1)
@@ -165,6 +168,21 @@ namespace PromoSeeker
                 // Split the price by separators and remove empty entries
                 var pieces = priceValue.Split(PriceSeparators, StringSplitOptions.RemoveEmptyEntries);
 
+                // NOTE:
+                //  Special case for input like '1 570', '10 123 456'.
+                //  If there is only one separator in the input string that is a white space.
+                //  Then we assume it's a whole number - eg. '1570' - otherwise the output would be '1.570'
+                //
+                // If all separators in the input string are white spaces...
+                if (priceValue.Count(char.IsWhiteSpace) == pieces.Length - 1)
+                {
+                    // Concatenate pieces
+                    pieces = new string[] { string.Concat(pieces) };
+
+                    // Reset decimal index
+                    decimalIndex = -1;
+                }
+
                 // Join groups with group separator but skip the decimal
                 var newPriceValue = string.Join(culture.NumberFormat.CurrencyGroupSeparator, pieces, 0, decimalIndex != -1 ? pieces.Length - 1 : pieces.Length);
 
@@ -175,15 +193,31 @@ namespace PromoSeeker
                     newPriceValue += culture.NumberFormat.CurrencyDecimalSeparator + pieces.Last();
                 }
 
+                // Set return values
+                price.Original = priceValue;
+                price.Raw = newPriceValue;
+
                 // If the price value was changed...
                 if (priceValue != newPriceValue)
                 {
-                    // Remove old price and insert the new one
-                    input = input.Remove(firstDigitId, (lastDigitId + 1) - firstDigitId).Insert(firstDigitId, priceValue);
+                    // Remove old price and insert a new one
+                    input = input.Remove(firstDigitId, (lastDigitId + 1) - firstDigitId).Insert(firstDigitId, newPriceValue);
+                }
+
+                // Price is valid if can be parsed as decimal in the specified culture
+                price.Valid = decimal.TryParse(input, NumberStyles.Any, culture, out var output);
+                price.Decimal = output;
+
+                // If price considered valid and currency symbol is found in the input...
+                if (price.Valid && FindCurrencySymbol(input, out var symbol, out var _))
+                {
+                    // Set currency symbol
+                    price.CurrencySymbol = symbol;
                 }
             }
 
-            return input;
+            // Return the price
+            return price;
         }
 
         /// <summary>
@@ -268,9 +302,10 @@ namespace PromoSeeker
         /// Gets any currency symbol from the given <paramref name="price"/> value.
         /// </summary>
         /// <param name="price">The value to search for the currency symbol.</param>
-        /// <param name="result">If succeeded, contains the currency symbol found in the given price, otherwise null.</param>
-        /// <returns><see langword="true"/> if the currency symbol was found in the <paramref name="price"/> value, otherwise, <see langword="false"/>.</returns>
-        public static bool FindCurrencySymbol(string price, out string result)
+        /// <param name="symbol">If succeeded, contains the currency symbol found in the given price, otherwise null.</param>
+        /// <param name="culture">If succeeded, contains the culture using found symbol, otherwise null.</param>
+        /// <returns><see langword="true"/> if a valid currency symbol was found in the <paramref name="price"/> value, otherwise, <see langword="false"/>.</returns>
+        public static bool FindCurrencySymbol(string price, out string symbol, out CultureInfo culture)
         {
             // Basic idea is to remove anything between the first and last digit in the string (so, basically the price, including any decimal and group separators).
             // The leftover is our currency symbol.
@@ -288,14 +323,21 @@ namespace PromoSeeker
             if (firstDigitId != -1)
             {
                 // Remove anything between first & last digit, trim any white-space characters
-                result = price.Remove(firstDigitId, (lastDigitId - firstDigitId) + 1).Trim();
+                var part = price.Remove(firstDigitId, (lastDigitId - firstDigitId) + 1).Trim();
 
-                // We have the symbol if the result is not empty
-                return !string.IsNullOrEmpty(result);
+                // If remaining part is not empty and there is culture using such symbol...
+                if (!string.IsNullOrEmpty(part) && FindCultureByCurrencySymbol(part, out culture))
+                {
+                    // We have a valid symbol
+                    symbol = part;
+                    return true;
+                }
             }
 
             // Not found
-            result = default(string);
+
+            symbol = default(string);
+            culture = null;
 
             return false;
         }
@@ -348,26 +390,6 @@ namespace PromoSeeker
             // Not found, return default
             result = null;
             return false;
-        }
-
-        /// <summary>
-        /// Attempts to find the <see cref="CultureInfo"/> using which the <paramref name="price"/> value was formatted, by parsing it's currency symbol.
-        /// </summary>
-        /// <param name="price">The full price value that includes the currency symbol.</param>
-        /// <param name="result">If succeeded, contains the <see cref="CultureInfo"/> info found, otherwise, null.</param>
-        /// <returns><see langword="true"/> if culture was found, otherwise, <see langword="false"/>.</returns>
-        public static bool FindCultureByPrice(string price, out CultureInfo result)
-        {
-            // Find the price currency symbol
-            if (!FindCurrencySymbol(price, out var symbol))
-            {
-                // No symbol was found. Return with the default value.
-                result = null;
-                return false;
-            }
-
-            // Get culture by found currency symbol and return.
-            return FindCultureByCurrencySymbol(symbol, out result);
         }
 
         #endregion

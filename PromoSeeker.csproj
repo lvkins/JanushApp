@@ -87,6 +87,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\PriceValue.cs" />
     <Compile Include="Models\PriceSource.cs" />
     <Compile Include="Models\StringAnalyze.cs" />
     <Compile Include="Parser.cs" />
