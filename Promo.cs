@@ -269,7 +269,7 @@ namespace PromoSeeker
                 var prevCount = 0;
 
                 // Reduce page title by one word until we find the valid product title
-                for (var i = pieces.Length - 1; i != 0; i--)
+                for (var i = pieces.Length; i != 0; i--)
                 {
                     // Get possible title
                     var result = string.Join(" ", pieces, 0, i).TrimEnd(',', '.');
