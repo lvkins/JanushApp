@@ -1,5 +1,28 @@
-﻿namespace PromoSeeker
+﻿using HtmlAgilityPack;
+
+namespace PromoSeeker
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum PriceSourceType
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        PriceSourceAttribute,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        PriceSourceJavascript,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        PriceSourceText,
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -8,7 +31,7 @@
         /// <summary>
         /// 
         /// </summary>
-        public string XPath { get; set; }
+        public PriceSourceType Source { get; set; }
 
         /// <summary>
         /// 
@@ -18,21 +41,16 @@
         /// <summary>
         /// 
         /// </summary>
-        public string SourceText { get; set; }
+        public HtmlNode SourceNode { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public decimal Price { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int Score { get; set; } = 0;
+        public PriceValue Price { get; set; }
 
         public override string ToString()
         {
-            return Price.ToString("N");
+            return Price.Decimal.ToString("N");
         }
     }
 }

@@ -72,7 +72,7 @@ function pseeker__setSizes()
                 return true;
             };
 
-            PostResponse = (HttpWebRequest request, HttpWebResponse response) =>
+            PostResponse += (HttpWebRequest request, HttpWebResponse response) =>
             {
                 ;
             };

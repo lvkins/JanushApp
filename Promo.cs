@@ -33,7 +33,7 @@ namespace PromoSeeker
         /// <summary>
         /// The product name.
         /// </summary>
-        public string Product { get; set; }
+        public string ProductName { get; set; }
 
         /// <summary>
         /// The product price.
@@ -74,8 +74,8 @@ namespace PromoSeeker
                 throw new NullReferenceException("Culture not set");
             }
 
-            // Find the product title
-            SetTitle();
+            // Find the product name
+            SetName();
 
             // Find the product price
             SetPrice();
@@ -122,7 +122,7 @@ namespace PromoSeeker
                 .Select(_ =>
                 {
                     // Prepare text
-                    ParseText(_.InnerText, out var result);
+                    ParseNodeText(_.InnerText, out var result);
                     return new { Text = result, Node = _ };
                 })
                 // Where the value is price-like.
@@ -132,8 +132,8 @@ namespace PromoSeeker
                 // Get the culture
                 .Select(_ =>
                 {
-                    // Find culture and price
-                    CurrencyHelpers.FindCultureByPrice(_.Text, out var result);
+                    // Get culture from the price currency symbol
+                    CurrencyHelpers.FindCurrencySymbol(_.Text, out var _, out var result);
 
                     return new
                     {
@@ -208,16 +208,15 @@ namespace PromoSeeker
 
             #endregion
 
-
             // Failure
             return false;
         }
 
         /// <summary>
-        /// Attempts to extract and set the displaying product title from the <see cref="mHtmlDocument"/>.
+        /// Attempts to extract and set the displaying product name from the <see cref="mHtmlDocument"/>.
         /// </summary>
-        /// <returns><see langword="true"/> if the title was extracted and set successfully, otherwise <see langword="false"/>.</returns>
-        private bool SetTitle()
+        /// <returns><see langword="true"/> if the product name was extracted and set successfully, otherwise <see langword="false"/>.</returns>
+        private bool SetName()
         {
             // We assume that the product name is always defined in the page title.
             // Otherwise we are dealing with some badly set e-commerce site, which we don't care about right now.
@@ -232,7 +231,7 @@ namespace PromoSeeker
             }
 
             // Format the page title properly
-            ParseText(titleValue, out var pageTitle);
+            ParseNodeText(titleValue, out var pageTitle);
 
             // Get nodes that can potentially contain the product title
             var contents = mHtmlDocument.DocumentNode.Descendants()
@@ -242,7 +241,7 @@ namespace PromoSeeker
                 .Select(_ =>
                 {
                     // Parse
-                    ParseText(_.InnerText, out var text);
+                    ParseNodeText(_.InnerText, out var text);
 
                     // Some shops can format the page title like so:
                     // The Product Name, SiteName.com
@@ -288,14 +287,17 @@ namespace PromoSeeker
                 }
             }
 
-            // Set title
-            Title = pageTitle;
+            // Set product name
+            ProductName = pageTitle;
+
+            // Set product site title
+            Title = titleValue;
 
             // Leave a message
-            Console.WriteLine($"> Setting product title: {Title}");
+            Console.WriteLine($"> Setting product name: {ProductName}");
 
             // Setting the title was successful if it's not empty
-            return !string.IsNullOrWhiteSpace(Title);
+            return !string.IsNullOrWhiteSpace(ProductName);
         }
 
         /// <summary>
@@ -303,7 +305,7 @@ namespace PromoSeeker
         /// </summary>
         /// <param name="input">The input string to be formatted.</param>
         /// <param name="result">When this method returns, contains the formatted <see cref="string"/> value of the <paramref name="input"/>.</param>
-        private void ParseText(string input, out string result) => result = Regex.Replace(HttpUtility.HtmlDecode(input), @"\s+", " ").Trim();
+        private void ParseNodeText(string input, out string result) => result = Regex.Replace(HttpUtility.HtmlDecode(input), @"\s+", " ").Trim();
 
         /// <summary>
         /// 
@@ -321,13 +323,13 @@ namespace PromoSeeker
                 var node = mHtmlDocument.DocumentNode.SelectSingleNode(source.Key);
 
                 // If node exists...
-                if (node != null && CurrencyHelpers.ExtractPrice(node.GetAttributeValue(source.Value, default(string)), out var price, mCulture))
+                if (node != null && ReadPrice(node.GetAttributeValue(source.Value, default(string)), out var price)) //CurrencyHelpers.ExtractPrice(node.GetAttributeValue(source.Value, default(string)), out var price, mCulture))
                 {
                     // Read from value attribute and store the price source
                     ret.Add(new PriceSource
                     {
                         Price = price,
-                        XPath = source.Key,
+                        SourceNode = node,
                     });
                 }
             }
@@ -337,98 +339,232 @@ namespace PromoSeeker
 
             // Get all document descendants
             var docDescendants = mHtmlDocument.DocumentNode.Descendants();
+            var docHtml = mHtmlDocument.DocumentNode.InnerHtml;
 
-            // Get values from attributes named price-like
-            var attrValues = docDescendants
+            ;
+
+            // Failed ideas of getting a valid product price:
+            //
+            // * Get counts of a raw, single price in the document and order by sum (of counts). [Not accurate results]
+            //
+
+            var ProductNameRegex = new Regex($@"\b{Regex.Escape(ProductName)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var PricesInJavaScriptRegex = new Regex(@"\b[\""\']?(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\'\s]?\:[\""\'\s]?([\d\.\,\ ]+)[\""\']?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            // We extract the prices in three ways:
+            //
+            //  1. The Javascript objects values, if the key contains 'price' keyword.
+            //     Some e-commerce sites declare the prices in the Javascript objects.
+            //     
+            //     Will match those:
+            //
+            //      *word boundary*
+            //      'mightBeAPriceIHope' : 1234,
+            //      "price" : 4321,
+            //      *word boundary*
+            //
+            //  2. The values from attributes named after price, eg. data-my-price="1234".
+            //     Some e-commerce sites declare the prices in the tag attributes. Accurate or not,
+            //     this is a worthy method to validate the price.
+            //
+            //
+            //  3. Parse most nested nodes inner text that display the price on the screen.
+            //     Every e-commerce site has to print the price to the user.
+            //     Despite some cases where the price is shown through images/drawing. This is a really good source of information.
+            //
+
+            /*  Price extraction progress:
+             *  
+             *  
+             * 
+             */
+
+            // Extract price values in the Javascript objects declared in the document
+            var pricesInJavaScript = PricesInJavaScriptRegex
+                .Matches(mHtmlDocument.DocumentNode.InnerText)
+                .Cast<Match>()
+                .Select(m => new { IsPrice = ReadPrice(m.Groups[1].Value, out var price), Price = price })
+                .Where(_ => _.IsPrice && _.Price.Decimal > 0)
+                .Select(_ => new PriceSource
+                {
+                    Price = _.Price,
+                    Source = PriceSourceType.PriceSourceJavascript,
+                });
+
+            // Extract price values from attributes named after prices.
+            var pricesInAttributeValues = docDescendants
                 .Where(_ => _.HasAttributes)
                 .SelectMany(_ => _.Attributes
-                    .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) && IsPriceFormat(a.DeEntitizeValue))
+                    .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES))
+                    .Select(a => new { IsPrice = ReadPrice(a.DeEntitizeValue, out var price), Price = price, Attribute = a })
+                    .Where(a => a.IsPrice && a.Price.Decimal > 0)
                     .Select(a =>
                     {
-                        CurrencyHelpers.ExtractPrice(a.Value, out var price, mCulture);
-
                         return new PriceSource
                         {
-                            Price = price,
-                            AttributeName = a.Name,
-                            XPath = _.XPath
+                            Price = a.Price,
+                            Source = PriceSourceType.PriceSourceAttribute,
+                            AttributeName = a.Attribute.Name,
+                            SourceNode = _,
                         };
                     })
                 )
                 .ToList();
 
-            var commonPriceLike = docDescendants
-                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.InnerText) && IsPriceFormat(_.InnerText))
-                .Select(_ =>
+            // Extract price values from most nested nodes
+            var pricesInNodes = docDescendants
+                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.InnerText))
+                .Select(_ => new
                 {
-                    CurrencyHelpers.ExtractPrice(_.InnerText, out var price, mCulture);
-
-                    if (_.InnerText.Contains(mCulture.NumberFormat.CurrencySymbol))
-                    {
-                        ;
-                    }
-
-                    return new PriceSource
+                    IsPrice = ReadPrice(_.InnerText, out var price),
+                    PriceSource = new PriceSource
                     {
                         Price = price,
-                        SourceText = _.InnerText,
-                        XPath = _.XPath,
-                    };
+                        Source = PriceSourceType.PriceSourceText,
+                        SourceNode = _,
+                    }
                 })
-                .Concat(attrValues)
-                .Where(_ => _.Price > 0)
-                // Group entries by the price
-                .GroupBy(_ => _.Price)
-                // Select price & entries count
-                .Select(_ => new { Price = _.Key, Source = _.ToList(), AllValIsAttr = _.All(s => !string.IsNullOrEmpty(s.AttributeName)), Count = _.Count() })
-                .Where(_ => !_.Source.All(s => !string.IsNullOrEmpty(s.AttributeName)))
-                // Order by group count
-                .OrderByDescending(_ => _.Count)
-                .ToList();
+                .Where(_ => _.IsPrice && _.PriceSource.Price.Decimal > 0)
+                .Select(_ => _.PriceSource);
 
-
-            ;
-
-            // Guess price
-            // TODO: Can make it point based, eg. if string contains currency symbol (zł, PLN, €, $) then such string is placed higher
-
-            var attrValues1 = docDescendants
-                .Where(_ => _.HasAttributes)
-                .SelectMany(_ => _.Attributes
-                    .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) && IsPriceFormat(a.DeEntitizeValue))
-                    .Select(a => a.Value)
-                )
-                .ToList();
-
-            var commonPriceLike1 = docDescendants
-                .Where(_ =>
-                {
-                    return !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.InnerText) && IsPriceFormat(_.InnerText);
-                })
-                // Boil down to node content
-                .Select(_ => _.InnerText)
-                // Join attribute values that might contain price
-                .Concat(attrValues1)
-                // Extract price
+            // Get best prices
+            var bestPrices = pricesInJavaScript
+                // Append prices found in attributes
+                .Concat(pricesInAttributeValues)
+                .Concat(pricesInNodes)
+                // Attempt to find a currency symbol in each price
                 .Select(_ =>
                 {
-                    // Get decimal price formatted accordingly to the culture
-                    CurrencyHelpers.ExtractPrice(_, out var price, mCulture);
+                    // Distance from the price node stream position to the closest product name node stream position.
+                    int? nameDistance = null;
 
-                    // Return the anonymous type
-                    return new { Price = price, Text = _ };
-                })
-                // Ensure valid price
-                .Where(_ =>
-                {
-                    return _.Price > 0;
+                    // If price has a source node and source price is a price found in the node text (node that *could be* displayed to user)...
+                    if (_.SourceNode != null && _.Source == PriceSourceType.PriceSourceText)
+                    {
+                        // Find closest product name position
+                        var distanceToProductName = _.SourceNode.FindClosest(n =>
+                        {
+                            return ProductNameRegex.IsMatch(n.InnerText);
+                            //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
+                        }, 30)?.StreamPosition;
+
+                        // Set the distance to the node
+                        nameDistance = _.SourceNode.StreamPosition - distanceToProductName;
+                    }
+
+                    // Pass the anonymous type
+                    return new
+                    {
+                        PriceSource = _,
+                        NameDistance = nameDistance,
+                    };
                 })
                 // Group entries by the price
-                .GroupBy(_ => _.Price)
+                .GroupBy(_ => _.PriceSource.Price.Decimal)
                 // Select price & entries count
-                .Select(_ => new { Price = _.Key, Source = _.ToList(), Count = _.Count() })
-                // Order by group count
-                .OrderByDescending(_ => _.Count)
+                .Select(_ =>
+                {
+                    // Count of the same prices in this group
+                    var count = _.Count();
+
+                    // Particular counts
+                    int inAttrCount = 0, inJSCount = 0, inNodeCount = 0;
+
+                    // Get particular prices by source count
+                    foreach (var item in _)
+                    {
+                        if (item.PriceSource.Source == PriceSourceType.PriceSourceAttribute)
+                        {
+                            ++inAttrCount;
+                        }
+                        else if (item.PriceSource.Source == PriceSourceType.PriceSourceJavascript)
+                        {
+                            ++inJSCount;
+                        }
+                        else if (item.PriceSource.Source == PriceSourceType.PriceSourceText)
+                        {
+                            ++inNodeCount;
+                        }
+                    }
+
+                    // Get the closest distance of a price to the product name in this group
+                    var closestNameDistance = _.Min(p => p.NameDistance);
+
+                    // Check if any price in this group occurs with the currency symbol in the document...
+                    // Depending on the website and how the price is presented to the user, at least once price should have a currency symbol.
+                    var hasSymbol = _.Any(p => !string.IsNullOrEmpty(p.PriceSource.Price.CurrencySymbol));
+
+                    #region Compute Price Group Score
+
+                    // Base score
+                    var groupScore = count;
+
+                    // Bonus score for prices found in the JS code...
+                    groupScore += inJSCount * 3;
+
+                    // Bonus score for prices found in the JS code...
+                    groupScore += inAttrCount * 2;
+
+                    // If all prices comes from attributes or JS...
+                    if (inAttrCount == count)
+                    {
+                        // Weak source penalty
+                        groupScore -= (inAttrCount + 20);
+                    }
+                    else if (inJSCount == count)
+                    {
+                        // Weak source penalty
+                        groupScore -= (inJSCount + 20);
+                    }
+                    else if (inAttrCount == 0 && inJSCount == 0)
+                    {
+                        // Weak source penalty
+                        groupScore -= 5;
+                    }
+
+                    // If there is a price with closest name...
+                    if (closestNameDistance != null)
+                    {
+                        // If the distance is relatively close...
+                        if (closestNameDistance > 0 && closestNameDistance <= 10000)
+                        {
+                            // Add bonus score
+                            groupScore += (10 - ((int)closestNameDistance / 1000));
+                        }
+                        // Otherwise, if the distance is long...
+                        else if (closestNameDistance > 50000)
+                        {
+                            // Long distance penalty
+                            groupScore -= (int)closestNameDistance / 10000;
+                        }
+                    }
+
+                    // If any price in this group occurs with a currency symbol in the document...
+                    if (hasSymbol)
+                    {
+                        // Add bonus points
+                        groupScore += 15;
+                    }
+
+                    #endregion
+
+                    return new
+                    {
+                        Price = _.Key,
+                        Count = count,
+                        InAttrCount = inAttrCount,
+                        InJSCount = inJSCount,
+                        Score = groupScore,
+                        NameDistance = closestNameDistance,
+                        HasSymbol = hasSymbol,
+                        Source = _,
+                    };
+                })
+                // Order by the group of prices score
+                .OrderByDescending(_ => _.Score)
+                // Take 10 best prices
+                .Take(10)
+                // Make list
                 .ToList();
 
             ;
@@ -448,21 +584,24 @@ namespace PromoSeeker
         /// </summary>
         /// <param name="input">The input to be parsed.</param>
         /// <returns><see langword="true"/> if the <paramref name="input"/> value can be parsed to <see cref="decimal"/> value, otherwise <see langword="false"/>.</returns>
-        private bool IsPriceFormat(string input)
+        private bool ReadPrice(string input, out PriceValue output)
         {
             // Ensure the proper input
-            ParseText(input, out var result);
+            ParseNodeText(input, out var result);
 
             // If result is empty...
             if (string.IsNullOrEmpty(result))
             {
                 // Not a price
+                output = default(PriceValue);
                 return false;
             }
 
-            // Price is valid if can be parsed as decimal in generic culture or the current site culture
-            return decimal.TryParse(result, NumberStyles.Any, CultureInfo.InvariantCulture, out var _) ||
-                   decimal.TryParse(result, NumberStyles.Any, mCulture, out var _);
+            // Fix price format (separators) accordingly to the current culture
+            output = CurrencyHelpers.ReadPriceValue(input, mCulture);
+
+            // Return with the price valid info
+            return output.Valid;
         }
 
         #endregion

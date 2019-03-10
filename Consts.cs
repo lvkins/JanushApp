@@ -53,7 +53,7 @@ namespace PromoSeeker
         /// <summary>
         /// Parts of attribute names in the document which values can contain a product price.
         /// </summary>
-        public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "value", "cost" };
+        public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "cost" };
 
     }
 }

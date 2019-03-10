@@ -1,9 +1,27 @@
-﻿namespace PromoSeeker
+﻿using HtmlAgilityPack;
+
+namespace PromoSeeker
 {
     public interface IPriceSource
     {
-        string XPath { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        PriceSourceType Source { get; set; }
 
-        decimal Price { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        string AttributeName { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        HtmlNode SourceNode { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        PriceValue Price { get; set; }
     }
 }
