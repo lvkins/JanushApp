@@ -5,6 +5,11 @@ namespace PromoSeeker
     public class Consts
     {
         /// <summary>
+        /// The fake user agent to use for the HTTP requests.
+        /// </summary>
+        public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36 OPR/58.0.3135.65";
+
+        /// <summary>
         /// The product title maximum length.
         /// </summary>
         public const int PRODUCT_TITLE_MAX_LENGTH = 96;
@@ -27,6 +32,7 @@ namespace PromoSeeker
             {"//meta[@itemprop='price']", "content"},
             {"//meta[@property='og:price:amount']", "content"},
             {"//meta[@property='product:price:amount']", "content"},
+            {"//meta[@name='twitter:data1']", "content"}, // Twitter product card - price definition
         };
 
         /// <summary>

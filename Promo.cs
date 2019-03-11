@@ -1,27 +1,29 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using HtmlAgilityPack;
 
 namespace PromoSeeker
 {
     public class Promo
     {
-        /// <summary>
-        /// Will match anything similar to price that is comma, dot, whitespace separated or is not separated at all, excluding leading zeros.
-        /// 00.1234 => 0.1234
-        /// </summary>
-        private readonly string mPriceRegex = @"(?!0+[^\.\, ])[0-9]+([\.\, ][0-9]{3})?([\.\, ][0-9]{1,3})?";
-        // \b((?![0\.\,\ ]+$)[0-9]+([\.\,\ ][0-9]{3})?([\.\,\ ][0-9]{1,3})?)\b
+        #region Private Members
 
+        /// <summary>
+        /// The HTML document of the current promotion.
+        /// </summary>
         private HtmlDocument mHtmlDocument;
 
+        /// <summary>
+        /// Detected culture for the current promotion website.
+        /// </summary>
         private CultureInfo mCulture;
 
+        #endregion
 
         #region Public Properties
 
@@ -54,14 +56,33 @@ namespace PromoSeeker
             // Store the promotion URL
             Url = url;
 
-            // Parse and store the HTML document
-            mHtmlDocument = Parser.Instance.Parse(url);
+            // Create HTML request
+            var request = new HtmlRequest();
 
+            // Load website URL
+            _ = request.LoadAsync(url);
+
+            #region Ensure Valid Response
+            
+            // If status code is any other than 200...
+            if (request.Response?.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                // Cannot continue
+                throw new Exception("Status code not OK");
+            } 
+
+            #endregion
+
+            // Store the HTML document
+            mHtmlDocument = request.Document;
+
+            #region Acquire Promotion Data
+            
             // Find language and set the culture
             if (SetCulture())
             {
                 // Leave a log message
-                Console.WriteLine($"Culture detected: {mCulture.EnglishName} ({mCulture.Name})");
+                Console.WriteLine($">> Culture detected: {mCulture.EnglishName} ({mCulture.Name})");
             }
             else
             {
@@ -78,7 +99,11 @@ namespace PromoSeeker
             SetName();
 
             // Find the product price
-            SetPrice();
+            SetPrice(); 
+
+            #endregion
+
+            ;
         }
 
         #endregion
@@ -94,6 +119,9 @@ namespace PromoSeeker
         {
             #region Detect Culture By Currency Meta Tag
 
+            // Leave a log message
+            Debug.WriteLine("> Attempt to detect culture by currency meta tag...");
+
             // Find the currency value in the pre-defined node sources
             var currencyValue = mHtmlDocument.DocumentNode.FindSourceContent(Consts.CURRENCY_SOURCES);
 
@@ -107,12 +135,12 @@ namespace PromoSeeker
                 return true;
             }
 
-            // Log failure
-            Debug.WriteLine("> [FAIL] Detect Culture By Currency Meta Tag");
-
             #endregion
 
             #region Detect Culture By Prices Currency
+
+            // Leave a log message
+            Debug.WriteLine("> Attempt to detect culture by prices currency...");
 
             // Take all prices in the document, lookup the currency symbol they use and try to find appropriate culture by the symbol.
             var topPricesCulture = mHtmlDocument.DocumentNode.Descendants()
@@ -162,12 +190,12 @@ namespace PromoSeeker
                 return true;
             }
 
-            // Log failure
-            Debug.WriteLine("> [FAIL] Detect Culture By Prices Currency");
-
             #endregion
 
             #region Detect Culture By Language Definition
+
+            // Leave a log message
+            Debug.WriteLine("> Attempt to detect culture by language definition...");
 
             // Last chance - not accurate - because website language doesn't necessarily mean currency.
             // Attempt to locate website culture in order to find which culture to use for price conversions etc.
@@ -187,7 +215,7 @@ namespace PromoSeeker
                     // If an attribute was found...
                     if (result != null)
                     {
-                        Console.WriteLine($"> Found language attribute ({result.Name}) -> [{result.Value}]");
+                        //Debug.WriteLine($"> Found language attribute ({result.Name}) -> [{result.Value}]");
 
                         // Check if such culture name can be found
                         var exists = CultureInfo.GetCultures(CultureTypes.AllCultures)
@@ -301,13 +329,6 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// Formats the input string by removing any line breaks, multiple whitespaces, then trims the output.
-        /// </summary>
-        /// <param name="input">The input string to be formatted.</param>
-        /// <param name="result">When this method returns, contains the formatted <see cref="string"/> value of the <paramref name="input"/>.</param>
-        private void ParseNodeText(string input, out string result) => result = Regex.Replace(HttpUtility.HtmlDecode(input), @"\s+", " ").Trim();
-
-        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
@@ -323,7 +344,7 @@ namespace PromoSeeker
                 var node = mHtmlDocument.DocumentNode.SelectSingleNode(source.Key);
 
                 // If node exists...
-                if (node != null && ReadPrice(node.GetAttributeValue(source.Value, default(string)), out var price)) //CurrencyHelpers.ExtractPrice(node.GetAttributeValue(source.Value, default(string)), out var price, mCulture))
+                if (node != null && ReadPrice(node.GetAttributeValue(source.Value, default(string)), out var price))
                 {
                     // Read from value attribute and store the price source
                     ret.Add(new PriceSource
@@ -337,18 +358,14 @@ namespace PromoSeeker
             // If the above failed, attempt to locate price by parsing the document.
             // Some e-commerce sites just make it hard sometimes and decide not to use the good practices.
 
-            // Get all document descendants
-            var docDescendants = mHtmlDocument.DocumentNode.Descendants();
-            var docHtml = mHtmlDocument.DocumentNode.InnerHtml;
-
-            ;
-
-            // Failed ideas of getting a valid product price:
-            //
-            // * Get counts of a raw, single price in the document and order by sum (of counts). [Not accurate results]
-            //
-
+            // Compiled regex to find a product name in the document.
             var ProductNameRegex = new Regex($@"\b{Regex.Escape(ProductName)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            // Compiled regex to find the Javascript objects values in the document, where key contains either a 'price' or 'cost' word.
+            // Sample matches:
+            //  ['myPrice' : 123.00,] -> 123.00
+            //  ['productCost' : 1234,] -> 1234
+            //  ["cost" : 100,] -> 100
             var PricesInJavaScriptRegex = new Regex(@"\b[\""\']?(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\'\s]?\:[\""\'\s]?([\d\.\,\ ]+)[\""\']?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // We extract the prices in three ways:
@@ -373,12 +390,6 @@ namespace PromoSeeker
             //     Despite some cases where the price is shown through images/drawing. This is a really good source of information.
             //
 
-            /*  Price extraction progress:
-             *  
-             *  
-             * 
-             */
-
             // Extract price values in the Javascript objects declared in the document
             var pricesInJavaScript = PricesInJavaScriptRegex
                 .Matches(mHtmlDocument.DocumentNode.InnerText)
@@ -390,6 +401,9 @@ namespace PromoSeeker
                     Price = _.Price,
                     Source = PriceSourceType.PriceSourceJavascript,
                 });
+
+            // Get all document descendants
+            var docDescendants = mHtmlDocument.DocumentNode.Descendants();
 
             // Extract price values from attributes named after prices.
             var pricesInAttributeValues = docDescendants
@@ -427,9 +441,8 @@ namespace PromoSeeker
                 .Where(_ => _.IsPrice && _.PriceSource.Price.Decimal > 0)
                 .Select(_ => _.PriceSource);
 
-            // Get best prices
+            // Get best prices by concatenating three source lists and scoring each price group.
             var bestPrices = pricesInJavaScript
-                // Append prices found in attributes
                 .Concat(pricesInAttributeValues)
                 .Concat(pricesInNodes)
                 // Attempt to find a currency symbol in each price
@@ -467,7 +480,7 @@ namespace PromoSeeker
                     // Count of the same prices in this group
                     var count = _.Count();
 
-                    // Particular counts
+                    // Particular source counts
                     int inAttrCount = 0, inJSCount = 0, inNodeCount = 0;
 
                     // Get particular prices by source count
@@ -502,7 +515,7 @@ namespace PromoSeeker
                     // Bonus score for prices found in the JS code...
                     groupScore += inJSCount * 3;
 
-                    // Bonus score for prices found in the JS code...
+                    // Bonus score for prices found in the attributes...
                     groupScore += inAttrCount * 2;
 
                     // If all prices comes from attributes or JS...
@@ -548,6 +561,7 @@ namespace PromoSeeker
 
                     #endregion
 
+                    // Return the anonymous type containing useful data
                     return new
                     {
                         Price = _.Key,
@@ -555,9 +569,9 @@ namespace PromoSeeker
                         InAttrCount = inAttrCount,
                         InJSCount = inJSCount,
                         Score = groupScore,
-                        NameDistance = closestNameDistance,
+                        MinNameDistance = closestNameDistance,
                         HasSymbol = hasSymbol,
-                        Source = _,
+                        Source = _.Select(s => s.PriceSource),
                     };
                 })
                 // Order by the group of prices score
@@ -567,7 +581,19 @@ namespace PromoSeeker
                 // Make list
                 .ToList();
 
-            ;
+            if (!bestPrices.Any())
+            {
+                Console.WriteLine("> Couldn't detect product price.");
+                return null;
+            }
+
+            Console.WriteLine("> Prices detected");
+
+            foreach (var item in bestPrices)
+            {
+                Console.WriteLine($" >> {item.Price} ({item.Score})");
+                ret.AddRange(item.Source);
+            }
 
             return ret;
         }
@@ -580,7 +606,14 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// Checks whether the input can be parsed to the <see cref="decimal"/> value using any culture <see cref="mCulture"/> or <see cref="CultureInfo.InvariantCulture"/>.
+        /// Formats the input string by removing any line breaks, multiple whitespaces, then trims the output.
+        /// </summary>
+        /// <param name="input">The input string to be formatted.</param>
+        /// <param name="result">When this method returns, contains the formatted <see cref="string"/> value of the <paramref name="input"/>.</param>
+        private void ParseNodeText(string input, out string result) => result = Regex.Replace(HttpUtility.HtmlDecode(input), @"\s+", " ").Trim();
+
+        /// <summary>
+        /// Checks whether the input can be parsed to the <see cref="decimal"/> value using the website detected culture <see cref="mCulture"/>.
         /// </summary>
         /// <param name="input">The input to be parsed.</param>
         /// <returns><see langword="true"/> if the <paramref name="input"/> value can be parsed to <see cref="decimal"/> value, otherwise <see langword="false"/>.</returns>

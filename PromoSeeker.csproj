@@ -90,7 +90,7 @@
     <Compile Include="Models\PriceValue.cs" />
     <Compile Include="Models\PriceSource.cs" />
     <Compile Include="Models\StringAnalyze.cs" />
-    <Compile Include="Parser.cs" />
+    <Compile Include="HtmlRequest.cs" />
     <Compile Include="Promo.cs" />
     <Compile Include="Seeker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

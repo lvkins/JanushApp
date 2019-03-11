@@ -3,6 +3,7 @@
     public class Seeker
     {
         private readonly string[] URLS = {
+            @"https://www.zalando.pl/polo-ralph-lauren-golf-fairway-czapka-z-daszkiem-po742l00d-k11.html",
             @"https://allegro.pl/oferta/nawiewnik-wrebowy-2-szt-kpl-zyj-zdrowo-bez-smogu-7705477010",
             @"https://mediamarkt.pl/rtv-i-telewizory/telewizor-lg-55uk7550mla",
             @"https://www.x-kom.pl/p/415102-smartfon-telefon-huawei-p20-pro-dual-sim-128gb-granatowy.html",
