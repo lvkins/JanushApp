@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace PromoSeeker.Algorithms
+namespace PromoSeeker.Core.Algorithms
 {
     /// <summary>
     /// MD5 cryptography hash helper methods.

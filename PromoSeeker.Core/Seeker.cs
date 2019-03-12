@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     public class Seeker
     {
@@ -16,11 +16,11 @@ namespace PromoSeeker
         };
 
         #region Public Events
-        
+
         /// <summary>
         /// 
         /// </summary>
-        public event Action<Promo> OnPriceChanged = (_) => { }; 
+        public event Action<Promo> OnPriceChanged = (_) => { };
 
         #endregion
 

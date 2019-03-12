@@ -1,4 +1,4 @@
-﻿namespace PromoSeeker
+﻿namespace PromoSeeker.Core
 {
     public sealed class StringAnalyze
     {

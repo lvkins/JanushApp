@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     public static class HtmlNodeExtensions
     {

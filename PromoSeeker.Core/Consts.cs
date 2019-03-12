@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     public class Consts
     {

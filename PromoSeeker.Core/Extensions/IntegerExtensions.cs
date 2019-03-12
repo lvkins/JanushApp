@@ -1,4 +1,4 @@
-﻿namespace PromoSeeker
+﻿namespace PromoSeeker.Core
 {
     /// <summary>
     /// The extensions for the <see cref="int"/> data type.

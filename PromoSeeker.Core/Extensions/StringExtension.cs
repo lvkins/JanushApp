@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     public static class StringExtension
     {

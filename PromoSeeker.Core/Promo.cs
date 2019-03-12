@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using PromoSeeker.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +8,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
+    /// <summary>
+    /// A main promotion class.
+    /// </summary>
     public class Promo
     {
         #region Private Members

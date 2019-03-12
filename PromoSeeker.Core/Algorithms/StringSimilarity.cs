@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PromoSeeker.Algorithms
+namespace PromoSeeker.Core.Algorithms
 {
     // Right off the https://github.com/feature23/StringSimilarity.NET
     // Test comparison algorithms here: https://asecuritysite.com/forensics/simstring

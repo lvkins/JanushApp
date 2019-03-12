@@ -3,9 +3,8 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     /// <summary>
     /// A wrapper around the <see cref="HtmlWeb"/> class.
@@ -57,8 +56,8 @@ namespace PromoSeeker
                 UseCookies = false,
                 UsingCache = false,
                 UsingCacheIfExists = false,
-                BrowserTimeout = TimeSpan.FromSeconds(10),
-                BrowserDelay = TimeSpan.FromSeconds(1),
+                //BrowserTimeout = TimeSpan.FromSeconds(10),
+                //BrowserDelay = TimeSpan.FromSeconds(1),
             };
 
             // Hook into pre-request event
@@ -110,7 +109,10 @@ namespace PromoSeeker
             Response = await mResponseTsk.Task;
         }
 
-        [Obsolete("Use LoadAsync method")]
+        /*
+         * NOTE: Requires Windows.Forms reference.
+         *
+         * [Obsolete("Use LoadAsync method")]
         public HtmlAgilityPack.HtmlDocument LoadWithBrowser(string url)
         {
             return mHtmlWeb.LoadFromBrowser(url, o =>
@@ -127,22 +129,23 @@ namespace PromoSeeker
                 webBrowser.ScriptErrorsSuppressed = true;
                 webBrowser.ScrollBarsEnabled = false;
 
-                /** Script injection
-                var elem = webBrowser.Document.CreateElement("script");
-                elem.SetAttribute("text", SCRIPT);
+                // Script injection
+                //var elem = webBrowser.Document.CreateElement("script");
+                //elem.SetAttribute("text", SCRIPT);
 
-                var body = webBrowser.Document.Body;
+                //var body = webBrowser.Document.Body;
 
                 // Insert the script
-                body.AppendChild(elem);
+                //body.AppendChild(elem);
 
                 // Invoke the script
-                webBrowser.Document.InvokeScript("pseeker__setSizes");
-                **/
+                //webBrowser.Document.InvokeScript("pseeker__setSizes");
+                
 
                 return true;
             });
-        } 
+        }
+        */
 
         #endregion
     }

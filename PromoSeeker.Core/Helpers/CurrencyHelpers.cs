@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     /// <summary>
     /// The currency symbols holder.

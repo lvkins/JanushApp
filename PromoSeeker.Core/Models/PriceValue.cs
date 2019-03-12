@@ -1,4 +1,4 @@
-﻿namespace PromoSeeker
+﻿namespace PromoSeeker.Core
 {
     /// <summary>
     /// The price object that is created during parsing a web document. Contains the informations about the parsed price.

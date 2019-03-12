@@ -1,6 +1,6 @@
 ﻿using HtmlAgilityPack;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     /// <summary>
     /// 
