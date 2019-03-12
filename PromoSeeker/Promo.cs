@@ -38,14 +38,24 @@ namespace PromoSeeker
         public string ProductName { get; set; }
 
         /// <summary>
-        /// The product price.
+        /// The current product price.
         /// </summary>
         public double Price { get; set; }
 
         /// <summary>
-        /// 
+        /// The promotion product price history.
+        /// </summary>
+        public List<double> PriceHistory { get; set; }
+
+        /// <summary>
+        /// The promotion site full title.
         /// </summary>
         public string Title { get; private set; }
+
+        /// <summary>
+        /// Whether to automatically setup the promotion.
+        /// </summary>
+        public bool AutoSetup { get; set; } = true;
 
         #endregion
 
@@ -76,8 +86,24 @@ namespace PromoSeeker
             // Store the HTML document
             mHtmlDocument = request.Document;
 
-            #region Acquire Promotion Data
-            
+            // Acquire Promotion Data
+            if (AutoSetup)
+            {
+                Setup();
+            }
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        #endregion
+
+        /// <summary>
+        /// Sets up the promotion product data.
+        /// </summary>
+        public void Setup()
+        {
             // Find language and set the culture
             if (SetCulture())
             {
@@ -99,14 +125,24 @@ namespace PromoSeeker
             SetName();
 
             // Find the product price
-            SetPrice(); 
-
-            #endregion
-
-            ;
+            SetPrice();
         }
 
-        #endregion
+        /// <summary>
+        /// Loads a previously stored promotion data.
+        /// </summary>
+        public void Load()
+        {
+
+        }
+
+        /// <summary>
+        /// Stored the promotion data for the next use.
+        /// </summary>
+        public void Save()
+        {
+
+        }
 
         #region Private Methods
 

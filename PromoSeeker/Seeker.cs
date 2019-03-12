@@ -1,4 +1,6 @@
-﻿namespace PromoSeeker
+﻿using System;
+
+namespace PromoSeeker
 {
     public class Seeker
     {
@@ -13,10 +15,23 @@
             @"https://www.mediaexpert.pl/aparaty-z-wymienna-optyka-bezlustrowce-/aparat-olympus-e-m10-mark-ii-czarny-plus-obiektyw-ez-14-42-mm-iir,id-706986",
         };
 
+        #region Public Events
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public event Action<Promo> OnPriceChanged = (_) => { }; 
+
+        #endregion
+
+        #region Constructor
+
         public Seeker()
         {
 
-        }
+        } 
+
+        #endregion
 
         internal void Work()
         {
@@ -28,6 +43,11 @@
             }
 
             //doc.Save("doc1.html");
+        }
+
+        public void CheckPrices()
+        {
+
         }
     }
 }

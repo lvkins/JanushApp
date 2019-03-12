@@ -10,10 +10,6 @@ namespace PromoSeeker
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
-            var p = new Seeker();
-            p.Work();
-
         }
     }
 }

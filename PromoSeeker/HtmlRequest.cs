@@ -103,10 +103,10 @@ namespace PromoSeeker
         {
             // TODO: handle exceptions
 
-            // Set the loaded document
+            // Store loaded document
             Document = mHtmlWeb.Load(url);
 
-            // Set the response
+            // Store a response
             Response = await mResponseTsk.Task;
         }
 
