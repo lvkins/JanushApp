@@ -6,7 +6,9 @@
         xmlns:local="clr-namespace:PromoSeeker"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    
     <Grid>
-        <TextBlock Text="Hello" HorizontalAlignment="Center" FontSize="25"/>
+        <TextBlock Style="{StaticResource HeaderText}" Text="Hello" />
     </Grid>
+    
 </Window>

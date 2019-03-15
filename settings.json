@@ -1,0 +1,31 @@
+{
+  "Promotions": [
+    {
+      "Name": "A great sample product",
+      "Price": 1337.0,
+      "PriceHistory": {
+        "1330": "2019-03-14T09:13:08.0142838+01:00"
+      },
+      "Url": "https://example.com/",
+      "Default": "I'm a default value."
+    },
+    {
+      "Name": "Another sample product",
+      "Price": 1337.0,
+      "PriceHistory": {
+        "1330": "2019-03-14T09:13:08.0172827+01:00"
+      },
+      "Url": "https://example.com/",
+      "Default": "I'm a default value."
+    },
+    {
+      "Name": "Last sample product",
+      "Price": 2000.0,
+      "PriceHistory": {
+        "1330": "2019-03-14T09:13:08.0172827+01:00"
+      },
+      "Url": "https://example.com/",
+      "Default": "I'm a default value."
+    }
+  ]
+}

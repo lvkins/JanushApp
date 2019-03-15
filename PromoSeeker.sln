@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.28705.295
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromoSeeker", "PromoSeeker\PromoSeeker.csproj", "{A2895E55-670C-4341-A856-45E9A315FE2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromoSeeker.Core", "PromoSeeker.Core\PromoSeeker.Core.csproj", "{457B18F9-670E-45A7-8ADE-98FCF8CEAE35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PromoSeeker.Core", "PromoSeeker.Core\PromoSeeker.Core.csproj", "{457B18F9-670E-45A7-8ADE-98FCF8CEAE35}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{DAAEE055-E360-4553-989A-9E92EC8563EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

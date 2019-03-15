@@ -10,6 +10,9 @@ namespace PromoSeeker
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Setup dependency injection
+            DI.Setup();
         }
     }
 }
