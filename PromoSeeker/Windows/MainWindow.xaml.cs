@@ -10,6 +10,9 @@ namespace PromoSeeker
         public MainWindow()
         {
             InitializeComponent();
+
+            // Link with the view model
+            DataContext = new WindowViewModel(this);
         }
     }
 }

@@ -1,11 +1,10 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:PromoSeeker">
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PromoSeeker">
 
-    <!-- Header -->
-    <Style
-        x:Key="HeaderText"
-        TargetType="{x:Type TextBlock}">
+    <!--  Header  -->
+    <Style x:Key="HeaderText" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="#000000" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Center" />

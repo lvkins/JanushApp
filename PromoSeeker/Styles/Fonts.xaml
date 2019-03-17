@@ -1,0 +1,15 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PromoSeeker"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--  Font sizes  -->
+    <system:Double x:Key="FontSizeSmaller">10</system:Double>
+    <system:Double x:Key="FontSizeSmall">12</system:Double>
+    <system:Double x:Key="FontSizeRegular">14</system:Double>
+    <system:Double x:Key="FontSizeLarge">18</system:Double>
+    <system:Double x:Key="FontSizeXLarge">22</system:Double>
+    <system:Double x:Key="FontSizeXXLarge">28</system:Double>
+
+</ResourceDictionary>

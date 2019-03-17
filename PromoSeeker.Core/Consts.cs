@@ -2,7 +2,7 @@
 
 namespace PromoSeeker.Core
 {
-    public class Consts
+    public static class Consts
     {
         /// <summary>
         /// The main application name.
