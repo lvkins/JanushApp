@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace PromoSeeker
 {
@@ -13,6 +15,9 @@ namespace PromoSeeker
 
             // Setup dependency injection
             DI.Setup();
+
+            // Log startup
+            DI.Logger.Info("Application started");
         }
     }
 }

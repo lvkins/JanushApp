@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 
@@ -17,6 +19,25 @@ namespace PromoSeeker
         public double WindowWidthMin { get; set; } = 100;
         public double WindowHeightMin { get; set; } = 100;
 
+        public ObservableCollection<ProductViewModel> Products { get; set; } = new ObservableCollection<ProductViewModel>
+        {
+            new ProductViewModel
+            {
+                Name = "Test Product",
+                PriceCurrent = 1337
+            },
+            new ProductViewModel
+            {
+                Name = "Test Product",
+                PriceCurrent = 1337
+            },
+            new ProductViewModel
+            {
+                Name = "Test Product",
+                PriceCurrent = 1337
+            },
+        };
+
         /// <summary>
         /// The height of the title bar.
         /// </summary>
@@ -24,12 +45,26 @@ namespace PromoSeeker
 
         #region Commands
 
-        public ICommand ConfigureCommand { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public ICommand ConfigureCommand { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ICommand OpenSettingsCommand { get; }
 
         #endregion
 
         public WindowViewModel(Window window)
         {
+            // Don't bother running in design time
+            if (window == null || DesignerProperties.GetIsInDesignMode(window))
+            {
+                return;
+            }
+
             mWindow = window;
 
             mWindow.MinWidth = WindowWidthMin;
@@ -40,6 +75,9 @@ namespace PromoSeeker
             // Create commands
 
             ConfigureCommand = new RelayCommand(() => mWindow.Close());
+            OpenSettingsCommand = new RelayCommand(() =>
+            {
+            });
         }
 
         private void MWindow_StateChanged(object sender, System.EventArgs e)

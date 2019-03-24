@@ -1,5 +1,4 @@
 ﻿using HtmlAgilityPack;
-using PromoSeeker.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +19,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The HTML document of the current promotion.
         /// </summary>
-        private HtmlDocument mHtmlDocument;
+        private readonly HtmlDocument mHtmlDocument;
 
         /// <summary>
         /// Detected culture for the current promotion website.
@@ -77,13 +76,13 @@ namespace PromoSeeker.Core
             _ = request.LoadAsync(url);
 
             #region Ensure Valid Response
-            
+
             // If status code is any other than 200...
             if (request.Response?.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 // Cannot continue
                 throw new Exception("Status code not OK");
-            } 
+            }
 
             #endregion
 

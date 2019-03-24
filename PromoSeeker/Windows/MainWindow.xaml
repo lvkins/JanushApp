@@ -9,6 +9,7 @@
     Title="MainWindow"
     Width="500"
     Height="450"
+    d:DataContext="{x:Static local:WindowDesignModel.Instance}"
     ShowInTaskbar="True"
     WindowStyle="None"
     mc:Ignorable="d">
@@ -81,7 +82,7 @@
 
                 <!--  Settings button  -->
                 <Button
-                    Command="{Binding ConfigureCommand}"
+                    Command="{Binding OpenSettingsCommand}"
                     Content="{StaticResource Vector.Cog}"
                     Style="{StaticResource WindowControl}"
                     ToolTip="Settings" />
@@ -115,7 +116,15 @@
             Grid.Row="2"
             Padding="10"
             Background="{StaticResource BackgroundMainBrush}">
-            <TextBlock>Content</TextBlock>
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding Products}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:ProductListItem />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </Border>
 
     </Grid>

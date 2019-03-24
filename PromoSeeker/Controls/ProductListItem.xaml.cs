@@ -3,11 +3,11 @@
 namespace PromoSeeker
 {
     /// <summary>
-    /// Interaction logic for PromoList.xaml
+    /// Interaction logic for ProductListItem.xaml
     /// </summary>
-    public partial class PromoList : UserControl
+    public partial class ProductListItem : UserControl
     {
-        public PromoList()
+        public ProductListItem()
         {
             InitializeComponent();
         }

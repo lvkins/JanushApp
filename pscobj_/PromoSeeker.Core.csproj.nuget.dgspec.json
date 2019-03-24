@@ -1,0 +1,68 @@
+{
+  "format": 1,
+  "restore": {
+    "E:\\MT2\\VSProjects\\PromoSeeker\\PromoSeeker.Core\\PromoSeeker.Core.csproj": {}
+  },
+  "projects": {
+    "E:\\MT2\\VSProjects\\PromoSeeker\\PromoSeeker.Core\\PromoSeeker.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "E:\\MT2\\VSProjects\\PromoSeeker\\PromoSeeker.Core\\PromoSeeker.Core.csproj",
+        "projectName": "PromoSeeker.Core",
+        "projectPath": "E:\\MT2\\VSProjects\\PromoSeeker\\PromoSeeker.Core\\PromoSeeker.Core.csproj",
+        "packagesPath": "C:\\Users\\samm\\.nuget\\packages\\",
+        "outputPath": "E:\\MT2\\VSProjects\\PromoSeeker\\PromoSeeker.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\PROGRAM FILES\\DOTNET\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\samm\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "dependencies": {
+            "HtmlAgilityPack": {
+              "target": "Package",
+              "version": "[1.9.2, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[12.0.1, )"
+            }
+          },
+          "imports": [
+            "net461"
+          ],
+          "assetTargetFallback": true,
+          "warn": true
+        }
+      }
+    }
+  }
+}

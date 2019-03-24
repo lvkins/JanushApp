@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using PromoSeeker.Core;
 using System;
+using System.IO;
+using System.Reflection;
 
 namespace PromoSeeker
 {
@@ -20,7 +23,17 @@ namespace PromoSeeker
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.
         /// </summary>
-        public static UserSettings UserSettings => Provider.GetService<IUserSettingsReader>().Settings;
+        public static UserSettings UserSettings => GetService<IUserSettingsReader>().Settings;
+
+        /// <summary>
+        /// A shortcut to access a singleton instance of the <see cref="PromoSeeker.Logger"/>.
+        /// </summary>
+        public static ILogger Logger => GetService<ILogger>();
+
+        /// <summary>
+        /// A shortcut to access a singleton instance of the app configuration <see cref="IConfiguration"/>.
+        /// </summary>
+        public static IConfiguration Configuration => GetService<IConfiguration>();
 
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="System.Random"/>.
@@ -39,13 +52,30 @@ namespace PromoSeeker
             // Create a service collection
             var serviceCollection = new ServiceCollection();
 
-            // Add services to be used in our application
+            // Add the application configuration
+            serviceCollection.AddConfiguration(configure =>
+            {
+                configure.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-            // A singleton user settings reader.
+                // Add environment variables
+                // configure.AddEnvironmentVariables();
+            });
+
+            #region Add application services to be used
+
+            // Add a singleton user settings reader.
             serviceCollection.AddSingleton<IUserSettingsReader, SettingsReader>();
 
+            // Add a singleton logger.
+            serviceCollection.AddSingleton<ILogger, Logger>(_ => new Logger("logs/application.log", new LoggerConfiguration
+            {
+                LogLevel = Configuration.GetValue("Logging:LogLevel", LogLevel.Info),
+            }));
+
             // Add singleton Random
-            //serviceCollection.AddSingleton<Random>();
+            //serviceCollection.AddSingleton<Random>(); 
+
+            #endregion
 
             // Build and store the provider
             Provider = serviceCollection.BuildServiceProvider();
