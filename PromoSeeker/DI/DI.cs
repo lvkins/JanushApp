@@ -20,6 +20,9 @@ namespace PromoSeeker
         /// </summary>
         public static IServiceProvider Provider { get; private set; }
 
+        internal static ApplicationViewModel Application => GetService<ApplicationViewModel>();
+        internal static AddProductViewModel AddPromotionViewModel => GetService<AddProductViewModel>();
+
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.
         /// </summary>
@@ -29,6 +32,11 @@ namespace PromoSeeker
         /// A shortcut to access a singleton instance of the <see cref="PromoSeeker.Logger"/>.
         /// </summary>
         public static ILogger Logger => GetService<ILogger>();
+
+        /// <summary>
+        /// A shortcut to access a singleton instance of the <see cref="PromoSeeker.UIManager"/>.
+        /// </summary>
+        public static IUIManager UIManager => GetService<IUIManager>();
 
         /// <summary>
         /// A shortcut to access a singleton instance of the app configuration <see cref="IConfiguration"/>.
@@ -63,8 +71,14 @@ namespace PromoSeeker
 
             #region Add application services to be used
 
+            // Add view model services
+            serviceCollection.AddViewModels();
+
             // Add a singleton user settings reader.
             serviceCollection.AddSingleton<IUserSettingsReader, SettingsReader>();
+
+            // Add a singleton UI manager object
+            serviceCollection.AddSingleton<IUIManager, UIManager>();
 
             // Add a singleton logger.
             serviceCollection.AddSingleton<ILogger, Logger>(_ => new Logger("logs/application.log", new LoggerConfiguration

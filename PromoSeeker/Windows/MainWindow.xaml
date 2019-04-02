@@ -87,7 +87,7 @@
 
                 <!--  Add button  -->
                 <Button
-                    Command="{Binding ConfigureCommand}"
+                    Command="{Binding AddPromotionCommand}"
                     Content="{StaticResource Vector.Plus}"
                     Style="{StaticResource WindowControl}"
                     ToolTip="Add" />

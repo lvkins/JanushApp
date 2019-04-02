@@ -64,9 +64,9 @@ namespace PromoSeeker
         #region Commands
 
         /// <summary>
-        /// The command ...
+        /// The command for adding a new promotion.
         /// </summary>
-        public ICommand ConfigureCommand { get; }
+        public ICommand AddPromotionCommand { get; }
 
         /// <summary>
         /// The command to open the <see cref="SettingsWindow"/>.
@@ -107,7 +107,10 @@ namespace PromoSeeker
             _window.MinHeight = WindowHeightMin;
             _window.ResizeMode = ResizeMode.NoResize;
             _window.WindowStartupLocation = WindowStartupLocation.Manual;
-            //_window.Hide();
+            _window.Deactivated += (s, e) =>
+            {
+                _window.Hide();
+            };
 
             var workingArea = SystemParameters.WorkArea;
             _window.Left = workingArea.Right - _window.Width - 16;
@@ -115,7 +118,7 @@ namespace PromoSeeker
 
             #region Create Commands
 
-            ConfigureCommand = new RelayCommand(() => _window.Close());
+            AddPromotionCommand = new RelayCommand(() => DI.AddPromotionViewModel.Open());
 
             ToggleSettingsPopupCommand = new RelayCommand(() =>
             {
@@ -154,7 +157,7 @@ namespace PromoSeeker
                 // Create new window
                 window = Activator.CreateInstance<T>();
                 window.Owner = _window;
-                window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 window.ResizeMode = ResizeMode.NoResize;
 
                 // If we have close callback...

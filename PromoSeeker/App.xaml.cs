@@ -24,7 +24,6 @@ namespace PromoSeeker
 
             // Log startup
             DI.Logger.Info("Application started");
-
         }
     }
 }

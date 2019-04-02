@@ -20,7 +20,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// 
         /// </summary>
-        public event Action<Promo> OnPriceChanged = (_) => { };
+        public event Action<Product> OnPriceChanged = (_) => { };
 
         #endregion
 
@@ -38,7 +38,7 @@ namespace PromoSeeker.Core
             foreach (var url in URLS)
             {
                 System.Console.WriteLine($"Currently seeking promo: {url}");
-                var promo = new Promo(url);
+                var promo = new Product(url);
                 ;
             }
 

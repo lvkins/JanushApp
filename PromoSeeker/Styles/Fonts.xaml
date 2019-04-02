@@ -12,4 +12,25 @@
     <system:Double x:Key="FontSizeXLarge">22</system:Double>
     <system:Double x:Key="FontSizeXXLarge">28</system:Double>
 
+    <!--  Base Styles  -->
+    <Style x:Key="BaseStyle" TargetType="{x:Type Control}">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
+    </Style>
+
+    <Style x:Key="BaseTextBlockStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
+        <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+    </Style>
+
+    <Style x:Key="HeaderTextBlockStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXXLarge}" />
+        <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+    </Style>
+
+    <!--  Apply base styles  -->
+    <Style BasedOn="{StaticResource BaseStyle}" TargetType="{x:Type Button}" />
+    <Style BasedOn="{StaticResource BaseStyle}" TargetType="{x:Type Label}" />
+    <Style BasedOn="{StaticResource BaseStyle}" TargetType="{x:Type TextBox}" />
+    <Style BasedOn="{StaticResource BaseTextBlockStyle}" TargetType="{x:Type TextBlock}" />
+
 </ResourceDictionary>

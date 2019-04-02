@@ -11,7 +11,6 @@ namespace PromoSeeker
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            Console.WriteLine((bool)value ? 1 : 0);
             if (parameter == null)
                 return (bool)value ? Visibility.Collapsed : Visibility.Visible;
             else

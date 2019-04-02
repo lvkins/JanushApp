@@ -441,7 +441,7 @@
                     <TextBlock Grid.Column="2" Text="{Binding PriceCurrent, FallbackValue=1234}" />
 
                     <Border Grid.Column="3">
-                        <Button Content="..." />
+                        <Button Padding="0" Content="..." />
                     </Border>
                 </Grid>
             </Expander.Header>

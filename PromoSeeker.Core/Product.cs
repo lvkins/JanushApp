@@ -5,21 +5,69 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace PromoSeeker.Core
 {
+    public enum ProductLoadResultType
+    {
+        /// <summary>
+        /// Product is found valid.
+        /// </summary>
+        Ok,
+
+        /// <summary>
+        /// Lack of the response occurred.
+        /// </summary>
+        NoResponse,
+
+        /// <summary>
+        /// Invalid response occurred.
+        /// </summary>
+        InvalidResponse,
+
+        /// <summary>
+        /// Detected no product at all.
+        /// </summary>
+        ProductNotDetected,
+
+        ProductUnknownName,
+        ProductUnknownPrice,
+        ProductUnknownCulture,
+
+        /// <summary>
+        /// Product was detected, but we wasn't able to acquire some of it's parameters.
+        /// </summary>
+        ProductParamNotFound,
+        ProductNeedValidPrice,
+    }
+
     /// <summary>
-    /// A main promotion class.
+    /// The product load result object.
     /// </summary>
-    public class Promo
+    public class ProductLoadResult
+    {
+        public bool Success { get; set; }
+
+        public ProductLoadResultType Error { get; set; }
+
+        public IList<IPriceSource> PricesDetected { get; set; }
+
+        public List<string> NamesDetected { get; set; }
+    }
+
+    /// <summary>
+    /// A main product class.
+    /// </summary>
+    public class Product
     {
         #region Private Members
 
         /// <summary>
         /// The HTML document of the current promotion.
         /// </summary>
-        private readonly HtmlDocument mHtmlDocument;
+        private HtmlDocument mHtmlDocument;
 
         /// <summary>
         /// Detected culture for the current promotion website.
@@ -38,7 +86,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The product name.
         /// </summary>
-        public string ProductName { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// The current product price.
@@ -46,29 +94,29 @@ namespace PromoSeeker.Core
         public double Price { get; set; }
 
         /// <summary>
-        /// The promotion product price history.
+        /// The product price history.
         /// </summary>
         public List<double> PriceHistory { get; set; }
 
         /// <summary>
-        /// The promotion site full title.
+        /// The product site full title.
         /// </summary>
         public string Title { get; private set; }
-
-        /// <summary>
-        /// Whether to automatically setup the promotion.
-        /// </summary>
-        public bool AutoSetup { get; set; } = true;
 
         #endregion
 
         #region Constructor
 
-        public Promo(string url)
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="url">The product URL.</param>
+        public Product(string url)
         {
             // Store the promotion URL
             Url = url;
 
+            /*
             // Create HTML request
             var request = new HtmlRequest();
 
@@ -94,13 +142,101 @@ namespace PromoSeeker.Core
             {
                 Setup();
             }
+            */
+        }
+
+        /// <summary>
+        /// Manual product constructor.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="url"></param>
+        /// <param name="priceXPath"></param>
+        /// <param name="culture"></param>
+        public Product(string name, string url, string priceXPath, CultureInfo culture)
+        {
+            //
         }
 
         #endregion
 
         #region Public Methods
 
-        #endregion
+        public async Task<ProductLoadResult> LoadAsync()
+        {
+            var result = new ProductLoadResult { Success = true };
+
+            // Create HTML request
+            var request = new HtmlRequest();
+
+            // Attempt to load HTML
+            await request.LoadAsync(Url);
+
+            // If status code is any other than 200...
+            if (request.Response?.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                // Load wasn't successful
+                result.Success = false;
+
+                // If we have no response at all...
+                if (request.Response == null)
+                {
+                    // No response result
+                    result.Error = ProductLoadResultType.NoResponse;
+                }
+
+                // Invalid status code
+                result.Error = ProductLoadResultType.InvalidResponse;
+
+                // Return with the result
+                return result;
+            }
+
+            // Store the HTML document
+            mHtmlDocument = request.Document;
+
+            // Once we have the HTML document, we can parse product properties
+
+            // If wasn't able to detect any product info...
+            // NOTE: Order is important
+
+            if (!DetectCulture())
+            {
+                result.Success = false;
+                result.Error = ProductLoadResultType.ProductUnknownCulture;
+            }
+            else if (!DetectName())
+            {
+                result.Success = false;
+                result.Error = ProductLoadResultType.ProductUnknownName;
+            }
+            else
+            {
+                // Detect prices
+                var prices = DetectPriceSources();
+
+                if (!prices.Any())
+                {
+                    result.Success = false;
+                    result.Error = ProductLoadResultType.ProductUnknownPrice;
+                }
+                // Else if we have more than one price detected...
+                // TODO: Check score
+                else if (prices.Count > 1)
+                {
+                    result.Success = false;
+
+                    // Threat is as an error - user should be prompted to pick a valid one.
+                    result.Error = ProductLoadResultType.ProductNeedValidPrice;
+
+                    // Add the prices detected to the result
+                    result.PricesDetected = prices;
+                }
+            }
+
+            // Return the result
+            return result;
+        }
+
 
         /// <summary>
         /// Sets up the promotion product data.
@@ -108,7 +244,7 @@ namespace PromoSeeker.Core
         public void Setup()
         {
             // Find language and set the culture
-            if (SetCulture())
+            if (DetectCulture())
             {
                 // Leave a log message
                 Console.WriteLine($">> Culture detected: {mCulture.EnglishName} ({mCulture.Name})");
@@ -125,10 +261,10 @@ namespace PromoSeeker.Core
             }
 
             // Find the product name
-            SetName();
+            DetectName();
 
             // Find the product price
-            SetPrice();
+            DetectPriceSources();
         }
 
         /// <summary>
@@ -140,12 +276,14 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Stored the promotion data for the next use.
+        /// Store the promotion data for the next use.
         /// </summary>
         public void Save()
         {
 
         }
+
+        #endregion
 
         #region Private Methods
 
@@ -154,7 +292,7 @@ namespace PromoSeeker.Core
         /// the default culture of <see cref="CultureInfo.CurrentCulture"/> will be set.
         /// </summary>
         /// <returns><see langword="true"/> if the culture was located in the <see cref="mHtmlDocument"/> and set, otherwise <see langword="false"/>.</returns>
-        private bool SetCulture()
+        private bool DetectCulture()
         {
             #region Detect Culture By Currency Meta Tag
 
@@ -283,7 +421,7 @@ namespace PromoSeeker.Core
         /// Attempts to extract and set the displaying product name from the <see cref="mHtmlDocument"/>.
         /// </summary>
         /// <returns><see langword="true"/> if the product name was extracted and set successfully, otherwise <see langword="false"/>.</returns>
-        private bool SetName()
+        private bool DetectName()
         {
             // We assume that the product name is always defined in the page title.
             // Otherwise we are dealing with some badly set e-commerce site, which we don't care about right now.
@@ -355,23 +493,23 @@ namespace PromoSeeker.Core
             }
 
             // Set product name
-            ProductName = pageTitle;
+            Name = pageTitle;
 
             // Set product site title
             Title = titleValue;
 
             // Leave a message
-            Console.WriteLine($"> Setting product name: {ProductName}");
+            Console.WriteLine($"> Setting product name: {Name}");
 
             // Setting the title was successful if it's not empty
-            return !string.IsNullOrWhiteSpace(ProductName);
+            return !string.IsNullOrWhiteSpace(Name);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        private IList<IPriceSource> FindPriceSources()
+        private IList<IPriceSource> DetectPriceSources()
         {
             // Found price sources
             var ret = new List<IPriceSource>();
@@ -398,7 +536,7 @@ namespace PromoSeeker.Core
             // Some e-commerce sites just make it hard sometimes and decide not to use the good practices.
 
             // Compiled regex to find a product name in the document.
-            var ProductNameRegex = new Regex($@"\b{Regex.Escape(ProductName)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var ProductNameRegex = new Regex($@"\b{Regex.Escape(Name)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // Compiled regex to find the Javascript objects values in the document, where key contains either a 'price' or 'cost' word.
             // Sample matches:
@@ -495,10 +633,10 @@ namespace PromoSeeker.Core
                     {
                         // Find closest product name position
                         var distanceToProductName = _.SourceNode.FindClosest(n =>
-                        {
-                            return ProductNameRegex.IsMatch(n.InnerText);
-                            //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                        }, 30)?.StreamPosition;
+                {
+                    return ProductNameRegex.IsMatch(n.InnerText);
+                    //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
+                }, 30)?.StreamPosition;
 
                         // Set the distance to the node
                         nameDistance = _.SourceNode.StreamPosition - distanceToProductName;
@@ -635,13 +773,6 @@ namespace PromoSeeker.Core
             }
 
             return ret;
-        }
-
-        private bool SetPrice()
-        {
-            var priceSources = FindPriceSources();
-
-            return true;
         }
 
         /// <summary>

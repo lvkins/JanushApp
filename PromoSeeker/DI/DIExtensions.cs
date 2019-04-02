@@ -25,5 +25,16 @@ namespace PromoSeeker
             // Build the configuration and add to the services
             services.AddSingleton<IConfiguration>(configurationBuilder.Build());
         }
+
+
+        /// <summary>
+        /// Adds the view model services into the <paramref name="services"/>.
+        /// </summary>
+        /// <param name="services"></param>
+        public static void AddViewModels(this IServiceCollection services)
+        {
+            services.AddSingleton<ApplicationViewModel>();
+            services.AddSingleton<AddProductViewModel>();
+        }
     }
 }
