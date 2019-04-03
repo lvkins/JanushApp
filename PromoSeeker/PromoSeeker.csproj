@@ -125,6 +125,7 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="Models\DialogBoxType.cs" />
     <Compile Include="UI\Controls\FormEntry.xaml.cs">
       <DependentUpon>FormEntry.xaml</DependentUpon>
     </Compile>
@@ -137,7 +138,9 @@
     <Compile Include="ViewModels\Core\ApplicationViewModel.cs" />
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
     <Compile Include="ViewModels\Design\AddProductDesignModel.cs" />
-    <Compile Include="ViewModels\DialogWindowViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\BaseDialogWindowViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\PromptDialogViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\MessageDialogViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Windows\AddProductWindow.xaml.cs">
       <DependentUpon>AddProductWindow.xaml</DependentUpon>
@@ -265,8 +268,6 @@
   <ItemGroup>
     <Resource Include="Assets\Application.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

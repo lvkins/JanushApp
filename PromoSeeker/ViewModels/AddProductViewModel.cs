@@ -193,9 +193,16 @@ namespace PromoSeeker
         {
             IsBusy = true;
 
-            await DI.UIManager.MessageAsync(new DialogWindowViewModel
+            var response = await DI.UIManager.ShowPromptMessageBoxAsync(new PromptDialogViewModel
             {
+                Message = "Informative dialog!",
+                Type = DialogBoxType.Error,
+                Placeholder = "Type something nice",
+                SubmitText = "Meh!"
             });
+
+
+            ;
 
             IsBusy = false;
         }

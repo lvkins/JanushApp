@@ -4,6 +4,13 @@ namespace PromoSeeker
 {
     public interface IUIManager
     {
-        Task MessageAsync(DialogWindowViewModel viewModel);
+        /// <summary>
+        /// Initializes the UI components.
+        /// </summary>
+        void Initialize();
+
+        Task ShowMessageBoxAsync(MessageDialogViewModel viewModel);
+
+        Task<string> ShowPromptMessageBoxAsync(PromptDialogViewModel viewModel);
     }
 }

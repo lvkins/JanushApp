@@ -4,7 +4,7 @@ using System.Windows;
 
 namespace PromoSeeker
 {
-    internal class ApplicationViewModel : BaseViewModel
+    public class ApplicationViewModel : BaseViewModel
     {
         #region Public Methods
 

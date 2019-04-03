@@ -20,8 +20,15 @@ namespace PromoSeeker
         /// </summary>
         public static IServiceProvider Provider { get; private set; }
 
-        internal static ApplicationViewModel Application => GetService<ApplicationViewModel>();
-        internal static AddProductViewModel AddPromotionViewModel => GetService<AddProductViewModel>();
+        /// <summary>
+        /// A shortcut to access a singleton instance of the <see cref="ApplicationViewModel"/>.
+        /// </summary>
+        public static ApplicationViewModel Application => GetService<ApplicationViewModel>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static AddProductViewModel AddPromotionViewModel => GetService<AddProductViewModel>();
 
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.

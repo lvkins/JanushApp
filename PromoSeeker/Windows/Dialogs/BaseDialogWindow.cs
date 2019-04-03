@@ -1,4 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,7 +32,6 @@ namespace PromoSeeker
         /// The icon for the dialog control.
         /// </summary>
         public ImageSource Icon { get; set; }
-            = Imaging.CreateBitmapSourceFromHIcon(SystemIcons.Information.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
 
         #endregion
 
@@ -49,6 +51,12 @@ namespace PromoSeeker
         /// </summary>
         public BaseDialogWindow()
         {
+            // Don't do this in design mode
+            if (DesignerProperties.GetIsInDesignMode(this))
+            {
+                return;
+            }
+
             // Create window instance
             _dialogWindow = new Window
             {
@@ -72,7 +80,7 @@ namespace PromoSeeker
         /// <param name="viewModel">The view model that controls this dialog control.</param>
         /// <returns></returns>
         public Task ShowDialog<T>(T viewModel)
-            where T : DialogWindowViewModel
+            where T : BaseDialogWindowViewModel
         {
             // Create an awaiting task for closing the dialog
             var tcs = new TaskCompletionSource<bool>();
@@ -85,19 +93,44 @@ namespace PromoSeeker
                 // Set the window title
                 _dialogWindow.Title = viewModel.Title;
 
-                // Set window content to this dialog control
-                _dialogWindow.Content = this;
-
                 // Set window dimensions
                 _dialogWindow.MinWidth = viewModel.WindowMinimumWidth;
                 _dialogWindow.MinHeight = viewModel.WindowMinimumHeight;
 
-                // Show in the center of the parent window
-                _dialogWindow.Owner = Application.Current.MainWindow;
+                // Show in the middle of the parent window (which is currently active, otherwise - main window)
+                _dialogWindow.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(_ => _.IsActive)
+                    ?? Application.Current.MainWindow;
+
+                // Set window content to this dialog control
+                _dialogWindow.Content = this;
 
                 // Bring window to the front
                 _dialogWindow.Topmost = true;
                 _dialogWindow.Topmost = false;
+
+                // Set the icon basing on the dialog type
+                var iconHandle = IntPtr.Zero;
+
+                // Question dialog
+                if (viewModel.Type == DialogBoxType.Question)
+                    iconHandle = SystemIcons.Question.Handle;
+                // Informative dialog
+                else if (viewModel.Type == DialogBoxType.Informative)
+                    iconHandle = SystemIcons.Information.Handle;
+                // Warning dialog
+                else if (viewModel.Type == DialogBoxType.Warning)
+                    iconHandle = SystemIcons.Exclamation.Handle;
+                // Error dialog
+                else if (viewModel.Type == DialogBoxType.Error)
+                    iconHandle = SystemIcons.Error.Handle;
+
+                // If we got an icon handle...
+                if (iconHandle != IntPtr.Zero)
+                {
+                    // Create bitmap icon from the handle
+                    Icon = Imaging.CreateBitmapSourceFromHIcon(iconHandle,
+                        Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                }
 
                 // Show dialog and block-wait until it's closed
                 _dialogWindow.ShowDialog();
