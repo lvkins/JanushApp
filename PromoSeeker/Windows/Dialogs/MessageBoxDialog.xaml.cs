@@ -1,11 +1,9 @@
-﻿using System.Windows;
-
-namespace PromoSeeker
+﻿namespace PromoSeeker
 {
     /// <summary>
     /// Interaction logic for MessageBoxDialog.xaml
     /// </summary>
-    public partial class MessageBoxDialog : Window
+    public partial class MessageBoxDialog : BaseDialogWindow
     {
         public MessageBoxDialog()
         {
