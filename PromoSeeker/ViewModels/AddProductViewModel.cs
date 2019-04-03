@@ -154,7 +154,7 @@ namespace PromoSeeker
         /// <summary>
         /// Closes a window.
         /// </summary>
-        public void Close() => DI.Application.CloseWindow<AddProductWindow>();
+        public void Close() => DI.Application.CloseAllWindow<AddProductWindow>();
 
         /// <summary>
         /// Adds a new product by specified <see cref="Url"/> to the tracker by automatically detecting it's properties.
@@ -195,7 +195,6 @@ namespace PromoSeeker
 
             await DI.UIManager.MessageAsync(new DialogWindowViewModel
             {
-                Title = "Works like a charm!"
             });
 
             IsBusy = false;

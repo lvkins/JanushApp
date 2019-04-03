@@ -14,7 +14,7 @@ namespace PromoSeeker
         {
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                return new DialogWindow().ShowDialog(viewModel);
+                return new PromptDialog().ShowDialog(viewModel);
             });
         }
     }

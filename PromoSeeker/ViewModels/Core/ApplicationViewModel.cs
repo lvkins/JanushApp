@@ -41,10 +41,10 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// 
+        /// Closes all windows of a given type.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        public void CloseWindow<T>()
+        /// <typeparam name="T">The type of a window to be closed.</typeparam>
+        public void CloseAllWindow<T>()
             where T : Window
         {
             Application.Current.Windows.OfType<T>().ToList().ForEach(_ => _.Close());

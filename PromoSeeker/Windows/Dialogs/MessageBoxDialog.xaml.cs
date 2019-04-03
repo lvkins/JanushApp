@@ -5,7 +5,11 @@ namespace PromoSeeker
     /// <summary>
     /// Interaction logic for MessageBoxDialog.xaml
     /// </summary>
-    public partial class MessageBoxDialog : DialogWindow
+    public partial class MessageBoxDialog : Window
     {
+        public MessageBoxDialog()
+        {
+            InitializeComponent();
+        }
     }
 }

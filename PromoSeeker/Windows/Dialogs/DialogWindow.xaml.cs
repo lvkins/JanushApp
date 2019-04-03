@@ -12,24 +12,5 @@ namespace PromoSeeker
         {
             InitializeComponent();
         }
-
-        public Task ShowDialog<T>(T viewModel)
-            where T : DialogWindowViewModel
-        {
-            var tcs = new TaskCompletionSource<bool>();
-
-            try
-            {
-                DataContext = viewModel;
-                ShowDialog();
-            }
-            finally
-            {
-                // Inform caller we've finished
-                tcs.TrySetResult(true);
-            }
-
-            return tcs.Task;
-        }
     }
 }
