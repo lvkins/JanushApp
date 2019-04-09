@@ -7,7 +7,7 @@
 
         Question,
 
-        Informative,
+        Information,
 
         Warning,
 

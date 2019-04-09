@@ -1,7 +1,7 @@
 ﻿namespace PromoSeeker.Core
 {
     /// <summary>
-    /// The price object that is created during parsing a web document. Contains the informations about the parsed price.
+    /// The <see cref="Product"/> price object. Contains the informations about the parsed price.
     /// </summary>
     public class PriceValue
     {
@@ -18,7 +18,7 @@
         public string Raw { get; set; }
 
         /// <summary>
-        /// The detected currency symbol of the price.
+        /// The price currency symbol found in the <see cref="Original"/> value.
         /// </summary>
         public string CurrencySymbol { get; set; }
 

@@ -133,12 +133,15 @@
     <Compile Include="UI\TrayIcon.cs" />
     <Compile Include="UI\UIManager.cs" />
     <Compile Include="ValueConverters\BaseValueConverter.cs" />
+    <Compile Include="ValueConverters\Visibility\NullToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\Visibility\BooleanToVisibilityConverter.cs" />
     <Compile Include="ViewModels\AddProductViewModel.cs" />
     <Compile Include="ViewModels\Core\ApplicationViewModel.cs" />
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
     <Compile Include="ViewModels\Design\AddProductDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\BaseDialogWindowViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\Design\MessageDialogBoxDesignModel.cs" />
+    <Compile Include="ViewModels\Dialogs\Design\PromptDialogBoxDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\PromptDialogViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\MessageDialogViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />

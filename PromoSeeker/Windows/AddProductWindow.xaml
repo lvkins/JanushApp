@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Add a new product to the PromoSeeker"
     MaxWidth="400"
+    MaxHeight="500"
     d:DataContext="{x:Static local:AddProductDesignModel.Instance}"
     SizeToContent="WidthAndHeight"
     mc:Ignorable="d">
@@ -15,129 +16,133 @@
         <TabControl>
             <!--  Add automatically tab  -->
             <TabItem Header="Automatic detection">
-                <Border Width="Auto" Margin="10">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource HeaderText}">Let's track it down</TextBlock>
-                        <TextBlock>First, we need to ensure the product is available for tracking!</TextBlock>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Border Width="Auto" Margin="10">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource HeaderText}">Let's track it down</TextBlock>
+                            <TextBlock>First, we need to ensure the product is available for tracking!</TextBlock>
 
-                        <!--  URL  -->
-                        <Border Margin="0,15">
-                            <StackPanel>
-                                <TextBlock>Enter product URL</TextBlock>
+                            <!--  URL  -->
+                            <Border Margin="0,15">
+                                <StackPanel>
+                                    <TextBlock>Enter product URL</TextBlock>
 
-                                <TextBox Tag="https://example.com/product-12345" Text="{Binding Url}" />
+                                    <TextBox Tag="https://example.com/product-12345" Text="{Binding Url}" />
 
-                                <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
-                            </StackPanel>
-                        </Border>
-
-                        <!--  Submit button  -->
-                        <Button Command="{Binding AddAutoCommand}">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
-                                    <Border
-                                        Width="20"
-                                        Height="20"
-                                        Margin="0,0,5,0"
-                                        Style="{StaticResource SpinningText}">
-                                        <Border.Background>
-                                            <VisualBrush Visual="{StaticResource Vector.Spinner}" />
-                                        </Border.Background>
-                                    </Border>
-                                    <TextBlock Text="Please wait..." />
+                                    <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
                                 </StackPanel>
+                            </Border>
 
-                                <TextBlock Text="Add" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}}" />
-                            </Grid>
-                        </Button>
+                            <!--  Submit button  -->
+                            <Button Command="{Binding AddAutoCommand}">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                                        <Border
+                                            Width="20"
+                                            Height="20"
+                                            Margin="0,0,5,0"
+                                            Style="{StaticResource SpinningText}">
+                                            <Border.Background>
+                                                <VisualBrush Visual="{StaticResource Vector.Spinner}" />
+                                            </Border.Background>
+                                        </Border>
+                                        <TextBlock Text="Please wait..." />
+                                    </StackPanel>
 
-                    </StackPanel>
-                </Border>
+                                    <TextBlock Text="Add" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}}" />
+                                </Grid>
+                            </Button>
+
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
             </TabItem>
 
             <!--  Add manually tab  -->
             <TabItem Header="Add manually">
-                <Border Margin="10">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource HeaderText}">Add product manually</TextBlock>
-                        <TextBlock>Please specify as much details as possible in order to manually add a product for tracking.</TextBlock>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Border Margin="10">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource HeaderText}">Add product manually</TextBlock>
+                            <TextBlock>Please specify as much details as possible in order to manually add a product for tracking.</TextBlock>
 
-                        <!--  URL  -->
-                        <Border Margin="0,15">
-                            <StackPanel>
-                                <TextBlock>Enter product URL</TextBlock>
+                            <!--  URL  -->
+                            <Border Margin="0,15">
+                                <StackPanel>
+                                    <TextBlock>Enter product URL</TextBlock>
 
-                                <TextBox Tag="https://example.com/product-12345" Text="{Binding Url}" />
+                                    <TextBox Tag="https://example.com/product-12345" Text="{Binding Url}" />
 
-                                <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
-                            </StackPanel>
-                        </Border>
-                        <!--  Name  -->
-                        <Border Margin="0,15">
-                            <StackPanel>
-                                <TextBlock>Enter product name</TextBlock>
-
-                                <TextBox Tag="Notebook ABC+" Text="{Binding Name}" />
-
-                                <TextBlock Style="{StaticResource HelpBlock}">The product name you will see on the list and in the notifications.</TextBlock>
-                            </StackPanel>
-                        </Border>
-                        <!--  Price selector  -->
-                        <Border Margin="0,15">
-                            <StackPanel>
-                                <TextBlock>Enter the current product price (including decimal point) or price selector (XPath or CSS)</TextBlock>
-
-                                <TextBox Tag="245.30 or //body/div[1]/strong" Text="{Binding Url}" />
-
-                                <TextBlock Style="{StaticResource HelpBlock}">Help us identify the price for you. Enter a current price product or it's selector.</TextBlock>
-                            </StackPanel>
-                        </Border>
-                        <!--  Culture  -->
-                        <Border Margin="0,15">
-                            <StackPanel>
-                                <TextBlock>Select the product currency</TextBlock>
-
-                                <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding UserRegion}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock>
-                                                    <Run Text="{Binding DisplayName, Mode=OneWay}" />
-                                                    <Run Text="-" />
-                                                    <Run Text="{Binding CurrencySymbol, Mode=OneWay}" /><Run Text=", " /><Run Text="{Binding ISOCurrencySymbol, Mode=OneWay}" />
-                                                    <Run Text="(" /><Run Text="{Binding CurrencyNativeName, Mode=OneWay}" /><Run Text=")" />
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-
-                                <TextBlock Style="{StaticResource HelpBlock}">The valid currency of the price on the website the product is displayed on.</TextBlock>
-                            </StackPanel>
-                        </Border>
-
-                        <!--  Submit button  -->
-                        <Button Command="{Binding AddManuallyCommand}" IsDefault="True">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
-                                    <Border
-                                        Width="20"
-                                        Height="20"
-                                        Margin="0,0,5,0"
-                                        Style="{StaticResource SpinningText}">
-                                        <Border.Background>
-                                            <VisualBrush Visual="{StaticResource Vector.Spinner}" />
-                                        </Border.Background>
-                                    </Border>
-                                    <TextBlock Text="Please wait..." />
+                                    <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
                                 </StackPanel>
+                            </Border>
+                            <!--  Name  -->
+                            <Border Margin="0,15">
+                                <StackPanel>
+                                    <TextBlock>Enter product name</TextBlock>
 
-                                <TextBlock Text="Verify product" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}}" />
-                            </Grid>
-                        </Button>
+                                    <TextBox Tag="Notebook ABC+" Text="{Binding Name}" />
 
-                    </StackPanel>
-                </Border>
+                                    <TextBlock Style="{StaticResource HelpBlock}">The product name you will see on the list and in the notifications.</TextBlock>
+                                </StackPanel>
+                            </Border>
+                            <!--  Price selector  -->
+                            <Border Margin="0,15">
+                                <StackPanel>
+                                    <TextBlock>Enter the current product price (including decimal point) or price selector (XPath or CSS)</TextBlock>
+
+                                    <TextBox Tag="245.30 or //body/div[1]/strong" Text="{Binding PriceSelector}" />
+
+                                    <TextBlock Style="{StaticResource HelpBlock}">Help us identify the price for you. Enter a current price product or it's selector.</TextBlock>
+                                </StackPanel>
+                            </Border>
+                            <!--  Culture  -->
+                            <Border Margin="0,15">
+                                <StackPanel>
+                                    <TextBlock>Select the product currency</TextBlock>
+
+                                    <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding UserRegion}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock>
+                                                        <Run Text="{Binding DisplayName, Mode=OneWay}" />
+                                                        <Run Text="-" />
+                                                        <Run Text="{Binding CurrencySymbol, Mode=OneWay}" /><Run Text=", " /><Run Text="{Binding ISOCurrencySymbol, Mode=OneWay}" />
+                                                        <Run Text="(" /><Run Text="{Binding CurrencyNativeName, Mode=OneWay}" /><Run Text=")" />
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+
+                                    <TextBlock Style="{StaticResource HelpBlock}">The valid currency of the price on the website the product is displayed on.</TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!--  Submit button  -->
+                            <Button Command="{Binding AddManuallyCommand}" IsDefault="True">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                                        <Border
+                                            Width="20"
+                                            Height="20"
+                                            Margin="0,0,5,0"
+                                            Style="{StaticResource SpinningText}">
+                                            <Border.Background>
+                                                <VisualBrush Visual="{StaticResource Vector.Spinner}" />
+                                            </Border.Background>
+                                        </Border>
+                                        <TextBlock Text="Please wait..." />
+                                    </StackPanel>
+
+                                    <TextBlock Text="Verify product" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}}" />
+                                </Grid>
+                            </Button>
+
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 
@@ -195,13 +200,13 @@
                         <!--  Product name  -->
                         <StackPanel>
                             <TextBlock Text="Detected product name:" />
-                            <TextBox IsEnabled="False" Text="{Binding Name}" />
+                            <TextBox IsEnabled="True" Text="{Binding Product.Name, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  Product price  -->
                         <StackPanel>
                             <TextBlock Text="Detected current product price:" />
-                            <TextBox Text="{Binding Price}" />
+                            <TextBox Text="{Binding Product.Price, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  Website language  -->
@@ -223,7 +228,10 @@
                     </StackPanel>
 
                     <!--  Submit button  -->
-                    <Button Grid.Row="4" BorderThickness="0,1,0,0">
+                    <Button
+                        Grid.Row="4"
+                        BorderThickness="0,1,0,0"
+                        Command="{Binding ConfirmProduct}">
                         Track this product
                     </Button>
                 </Grid>

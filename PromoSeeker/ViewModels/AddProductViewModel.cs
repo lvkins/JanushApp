@@ -43,7 +43,7 @@ namespace PromoSeeker
         /// <summary>
         /// The price selector 
         /// </summary>
-        public string Price { get; set; }
+        public string PriceSelector { get; set; }
 
         /// <summary>
         /// Any status message about adding a product that is displayed to the user.
@@ -66,7 +66,7 @@ namespace PromoSeeker
             .ToList();
 
         /// <summary>
-        /// The current user region informations.
+        /// The currently selected region informations, defaults to the current user region.
         /// </summary>
         public RegionInfo UserRegion { get; set; } = new RegionInfo(CultureInfo.CurrentUICulture.Name); // Binding is not working when using RegionInfo.CurrentRegion;
 
@@ -102,6 +102,11 @@ namespace PromoSeeker
             }
         }
 
+        /// <summary>
+        /// The product to be added;
+        /// </summary>
+        public Product Product { get; private set; }
+
         #endregion
 
         #region Public Commands
@@ -126,6 +131,11 @@ namespace PromoSeeker
         /// </summary>
         public ICommand AddManuallyCommand { get; set; }
 
+        /// <summary>
+        /// The command to confirm loaded product and store it in the tracker.
+        /// </summary>
+        public ICommand ConfirmProductCommand { get; set; }
+
         #endregion
 
         #region Constructor
@@ -140,6 +150,7 @@ namespace PromoSeeker
             CloseCommand = new RelayCommand(Close);
             AddAutoCommand = new RelayCommand(async () => await AddAutoProductAsync());
             AddManuallyCommand = new RelayCommand(async () => await AddProductManuallyAsync());
+            ConfirmProductCommand = new RelayCommand(ConfirmProduct);
         }
 
         #endregion
@@ -156,16 +167,20 @@ namespace PromoSeeker
         /// </summary>
         public void Close() => DI.Application.CloseAllWindow<AddProductWindow>();
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
-        /// Adds a new product by specified <see cref="Url"/> to the tracker by automatically detecting it's properties.
+        /// Loads a new product by specified <see cref="Url"/> by automatically detecting it's properties and shows a confirmation page.
         /// </summary>
         /// <returns></returns>
-        public async Task AddAutoProductAsync()
+        private async Task AddAutoProductAsync()
         {
             // TODO: Check if the product was already added
 
             /*
-             * 1. Get required product parameters (name, price, culture info (currency)).
+             * 1. Collect required product parameters (name, price, culture info (currency)).
              * 2. Show results to the user in the inputs,
              * 3. If some parameters were incorrect, give the user right to correct them,
              * 4. Price correction can be made via the dropdown of already detected prices - or via user specified xpath selector.
@@ -175,36 +190,102 @@ namespace PromoSeeker
 
             IsBusy = true;
 
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            // Create product
+            var product = new Product(Url);
 
-            StepTwo = true;
+            // Await the result
+            var result = await Task.Run(product.LoadAsync);
 
-            //var product = new Product(Url);
+            // If load was successful...
+            if (result.Success)
+            {
+                // Store product for confirmation
+                Product = product;
 
-            //var result = await product.LoadAsync();
+                // Raise property changed event
+                OnPropertyChanged(nameof(Product));
+
+                // Show confirmation page
+                StepTwo = true;
+
+                // Set detected properties
+
+            }
+            else
+            {
+                // Show error message
+                _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                {
+                    Type = DialogBoxType.Error,
+                    Message = result.Error ?? result.ErrorType.ToString()
+                });
+            }
+
             IsBusy = false;
         }
 
         /// <summary>
-        /// Adds a new product to the tracker by manually user specified properties.
+        /// Loads a new product by manually user specified properties and shows a confirmation page.
         /// </summary>
         /// <returns></returns>
-        public async Task AddProductManuallyAsync()
+        private async Task AddProductManuallyAsync()
         {
             IsBusy = true;
 
-            var response = await DI.UIManager.ShowPromptMessageBoxAsync(new PromptDialogViewModel
+            if (string.IsNullOrEmpty(Url))
             {
-                Message = "Informative dialog!",
-                Type = DialogBoxType.Error,
-                Placeholder = "Type something nice",
-                SubmitText = "Meh!"
-            });
+                IsBusy = false;
 
+                _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                {
+                    Type = DialogBoxType.Error,
+                    Message = "You need to specify a product URL."
+                });
 
-            ;
+                return;
+            }
+
+            // Create product
+            var product = new Product(Name, Url, PriceSelector, new CultureInfo(UserRegion.Name));
+
+            var result = await Task.Run(product.LoadAsync);
+
+            if (result.Success)
+            {
+                // Store product for confirmation
+                Product = product;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(Product));
+
+                // Show confirmation page
+                StepTwo = true;
+            }
+            else
+            {
+                // Show error message
+                _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                {
+                    Type = DialogBoxType.Error,
+                    Message = result.Error ?? result.ErrorType.ToString()
+                });
+            }
 
             IsBusy = false;
+        }
+
+        /// <summary>
+        /// Adds a new product to the tracker.
+        /// </summary>
+        private void ConfirmProduct()
+        {
+            // If we have no product stored...
+            if (Product == null)
+            {
+                return;
+            }
+
+            // Add product
         }
 
         #endregion

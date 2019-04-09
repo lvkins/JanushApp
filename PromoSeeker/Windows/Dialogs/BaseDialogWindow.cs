@@ -32,6 +32,7 @@ namespace PromoSeeker
         /// The icon for the dialog control.
         /// </summary>
         public ImageSource Icon { get; set; }
+            = Imaging.CreateBitmapSourceFromHIcon(SystemIcons.Information.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
 
         #endregion
 
@@ -115,7 +116,7 @@ namespace PromoSeeker
                 if (viewModel.Type == DialogBoxType.Question)
                     iconHandle = SystemIcons.Question.Handle;
                 // Informative dialog
-                else if (viewModel.Type == DialogBoxType.Informative)
+                else if (viewModel.Type == DialogBoxType.Information)
                     iconHandle = SystemIcons.Information.Handle;
                 // Warning dialog
                 else if (viewModel.Type == DialogBoxType.Warning)
