@@ -1,11 +1,25 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 
 namespace PromoSeeker
 {
+    /// <summary>
+    /// The application main view model.
+    /// </summary>
     public class ApplicationViewModel : BaseViewModel
     {
+        #region Public Properties
+
+        /// <summary>
+        /// The tracking products collection.
+        /// </summary>
+        public ObservableCollection<ProductViewModel> Products { get; set; }
+            = new ObservableCollection<ProductViewModel>();
+
+        #endregion
+
         #region Public Methods
 
         /// <summary>

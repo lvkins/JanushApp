@@ -2,7 +2,7 @@
 
 namespace PromoSeeker.Core
 {
-    public class Seeker
+    public class Tracker
     {
         private readonly string[] URLS = {
             @"https://www.zalando.pl/polo-ralph-lauren-golf-fairway-czapka-z-daszkiem-po742l00d-k11.html",
@@ -26,10 +26,10 @@ namespace PromoSeeker.Core
 
         #region Constructor
 
-        public Seeker()
+        public Tracker()
         {
 
-        } 
+        }
 
         #endregion
 
@@ -46,6 +46,11 @@ namespace PromoSeeker.Core
         }
 
         public void CheckPrices()
+        {
+
+        }
+
+        public static void AddProduct(Product product)
         {
 
         }

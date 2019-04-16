@@ -2,8 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PromoSeeker.Core;
 using System;
-using System.IO;
-using System.Reflection;
 
 namespace PromoSeeker
 {
@@ -26,9 +24,9 @@ namespace PromoSeeker
         public static ApplicationViewModel Application => GetService<ApplicationViewModel>();
 
         /// <summary>
-        /// 
+        /// A shortcut to access a singleton instance of the <see cref="AddPromotionViewModel"/>.
         /// </summary>
-        public static AddProductViewModel AddPromotionViewModel => GetService<AddProductViewModel>();
+        public static IWindowViewModel AddPromotionViewModel => GetService<IWindowViewModel>();
 
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.

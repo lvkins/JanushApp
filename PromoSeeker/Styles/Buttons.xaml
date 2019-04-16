@@ -4,8 +4,19 @@
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
+    <Style TargetType="{x:Type Control}">
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="ToolTip" Value="{Binding Path=(Validation.Errors)[0].ErrorContent, RelativeSource={x:Static RelativeSource.Self}}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!--  Base button style  -->
-    <Style BasedOn="{StaticResource BaseStyle}" TargetType="{x:Type Button}">
+    <Style
+        x:Key="BaseButtonStyle"
+        BasedOn="{StaticResource BaseStyle}"
+        TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource BackgroundLighterBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ForegroundDarkBrush}" />
         <Setter Property="BorderThickness" Value="1" />

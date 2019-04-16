@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     public interface ILogger
     {

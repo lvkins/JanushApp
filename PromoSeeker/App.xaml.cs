@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using PromoSeeker.Core;
 
 namespace PromoSeeker
 {
@@ -13,6 +14,9 @@ namespace PromoSeeker
 
             // Setup dependency injection
             DI.Setup();
+
+            // Bind logger into the core solution
+            CoreDI.Logger = DI.Logger;
 
             // Initialize UI components.
             DI.UIManager.Initialize();

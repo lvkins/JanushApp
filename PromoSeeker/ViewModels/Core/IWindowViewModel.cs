@@ -2,7 +2,10 @@
 
 namespace PromoSeeker
 {
-    internal interface IWindowViewModel
+    /// <summary>
+    /// A interface represeting a window view model.
+    /// </summary>
+    public interface IWindowViewModel
     {
         #region Commands
 

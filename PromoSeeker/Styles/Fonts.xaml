@@ -12,9 +12,33 @@
     <system:Double x:Key="FontSizeXLarge">22</system:Double>
     <system:Double x:Key="FontSizeXXLarge">28</system:Double>
 
+    <ControlTemplate x:Key="GlobalErrorTemplate">
+        <DockPanel>
+            <Ellipse
+                x:Name="PART_icon"
+                Width="10"
+                Height="10"
+                Margin="2,0"
+                DockPanel.Dock="Right">
+                <Ellipse.Fill>
+                    <LinearGradientBrush>
+                        <GradientStop Offset="0" Color="#11FF1111" />
+                        <GradientStop Offset="1" Color="#FFFF0000" />
+                    </LinearGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+        </DockPanel>
+    </ControlTemplate>
+
     <!--  Base Styles  -->
     <Style x:Key="BaseStyle" TargetType="{x:Type Control}">
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
+        <Setter Property="Validation.ErrorTemplate" Value="{StaticResource GlobalErrorTemplate}" />
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="ToolTip" Value="{Binding Path=(Validation.Errors)[0].ErrorContent, RelativeSource={RelativeSource Self}}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="BaseTextBlockStyle" TargetType="{x:Type TextBlock}">

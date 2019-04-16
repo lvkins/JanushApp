@@ -27,7 +27,12 @@
                                 <StackPanel>
                                     <TextBlock>Enter product URL</TextBlock>
 
-                                    <TextBox Tag="https://example.com/product-12345" Text="{Binding Url}" />
+                                    <TextBox Tag="https://example.com/product-12345" Text="{Binding Url, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}">
+                                        <!--  Submit on enter key  -->
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Return" Command="{Binding AddAutoCommand}" />
+                                        </TextBox.InputBindings>
+                                    </TextBox>
 
                                     <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
                                 </StackPanel>
@@ -35,6 +40,18 @@
 
                             <!--  Submit button  -->
                             <Button Command="{Binding AddAutoCommand}">
+                                <Button.Style>
+                                    <Style BasedOn="{StaticResource BaseButtonStyle}" TargetType="{x:Type Button}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsValid}" Value="False">
+                                                <DataTrigger.Setters>
+                                                    <Setter Property="IsEnabled" Value="False" />
+                                                </DataTrigger.Setters>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                                         <Border
@@ -211,15 +228,15 @@
 
                         <!--  Website language  -->
                         <StackPanel>
-                            <TextBlock Text="Detected culture (currency):" />
-                            <TextBox Text="{Binding Name}" />
+                            <TextBlock Text="Detected product currency:" />
+                            <TextBox Text="{Binding UserRegion.CurrencyNativeName, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  Optional section  -->
                         <Border BorderBrush="{StaticResource AppDarkBlueBrush}" BorderThickness="1">
 
                             <!--  Custom name  -->
-                            <StackPanel Name="Blah">
+                            <StackPanel>
                                 <TextBlock Text="Your product custom name:" />
                                 <TextBox Tag="My wish item (optional)" />
                             </StackPanel>
@@ -231,7 +248,7 @@
                     <Button
                         Grid.Row="4"
                         BorderThickness="0,1,0,0"
-                        Command="{Binding ConfirmProduct}">
+                        Command="{Binding ConfirmProductCommand}">
                         Track this product
                     </Button>
                 </Grid>

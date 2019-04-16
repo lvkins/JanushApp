@@ -145,6 +145,7 @@
     <Compile Include="ViewModels\Dialogs\PromptDialogViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\MessageDialogViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Windows\AddProductWindow.xaml.cs">
       <DependentUpon>AddProductWindow.xaml</DependentUpon>
     </Compile>
@@ -213,11 +214,7 @@
     </Compile>
     <Compile Include="DI\DI.cs" />
     <Compile Include="DI\DIExtensions.cs" />
-    <Compile Include="Logging\ILogger.cs" />
-    <Compile Include="Logging\Logger.cs" />
-    <Compile Include="Logging\LoggerExtensions.cs" />
     <Compile Include="ViewModels\Core\BaseViewModel.cs" />
-    <Compile Include="ViewModels\Design\WindowDesignModel.cs" />
     <Compile Include="ViewModels\ProductViewModel.cs" />
     <Compile Include="ViewModels\Core\RelayCommand.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
@@ -271,6 +268,8 @@
   <ItemGroup>
     <Resource Include="Assets\Application.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="AttachedProperties\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

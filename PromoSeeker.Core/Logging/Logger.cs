@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     /// <summary>
     /// The severity of the log message.

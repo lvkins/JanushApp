@@ -1,6 +1,7 @@
 ﻿using PromoSeeker.Core;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace PromoSeeker
     /// <summary>
     /// The view model for <see cref="AddProductWindow"/>.
     /// </summary>
-    public class AddProductViewModel : BaseViewModel, IWindowViewModel
+    public class AddProductViewModel : BaseViewModel, IWindowViewModel, IDataErrorInfo
     {
         #region Private Members
 
@@ -52,6 +53,12 @@ namespace PromoSeeker
 
         /// <summary>
         /// The regions to select the currency from.
+        /// 
+        /// TODO: Should we group the currencies by, for example
+        /// the ISOCurrencySymbol to prevent multiple currencies 
+        /// and give user the ability to select a currency, rather 
+        /// than the country?
+        /// 
         /// </summary>
         public IEnumerable<RegionInfo> Regions { get; } = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
             // Select the region info of the culture
@@ -68,7 +75,7 @@ namespace PromoSeeker
         /// <summary>
         /// The currently selected region informations, defaults to the current user region.
         /// </summary>
-        public RegionInfo UserRegion { get; set; } = new RegionInfo(CultureInfo.CurrentUICulture.Name); // Binding is not working when using RegionInfo.CurrentRegion;
+        public RegionInfo UserRegion { get; set; } = new RegionInfo(CultureInfo.CurrentUICulture.Name); // SelectedItem Binding is not working when using RegionInfo.CurrentRegion;
 
         /// <summary>
         /// If we are currently adding a product.
@@ -136,6 +143,54 @@ namespace PromoSeeker
         /// </summary>
         public ICommand ConfirmProductCommand { get; set; }
 
+        #region Validation
+
+        /// <summary>
+        /// An error message indicating what is wrong with this object. The default is an
+        /// empty string ("").
+        /// </summary>
+        public string Error => this[null];
+
+        /// <summary>
+        /// Verifies whether all properties in the object are passing the validation.
+        /// </summary>
+        public bool IsValid => string.IsNullOrEmpty(Error);
+
+        /// <summary>
+        /// Gets the error message for the property with the given name.
+        /// </summary>
+        /// <param name="columnName">The property name.</param>
+        /// <returns>The error message for the property. The default is an empty string ("").</returns>
+        public string this[string columnName]
+        {
+            get
+            {
+                if (columnName == null || columnName == nameof(Url))
+                {
+                    // If empty...
+                    if (string.IsNullOrWhiteSpace(Url))
+                    {
+                        return "Please specify the URL.";
+                    }
+
+                    // Validate the URL
+                    var result = Uri.TryCreate(Url, UriKind.Absolute, out var uriResult)
+                        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+                    // If unable to parse URL...
+                    if (!result)
+                    {
+                        return "This is not a valid URL";
+                    }
+                }
+
+                return string.Empty;
+            }
+        }
+
+
+        #endregion
+
         #endregion
 
         #region Constructor
@@ -177,6 +232,12 @@ namespace PromoSeeker
         /// <returns></returns>
         private async Task AddAutoProductAsync()
         {
+            // Double validate to ensure there are no errors
+            if (!IsValid)
+            {
+                return;
+            }
+
             // TODO: Check if the product was already added
 
             /*
@@ -193,27 +254,28 @@ namespace PromoSeeker
             // Create product
             var product = new Product(Url);
 
-            // Await the result
+            // Load product and get the result
             var result = await Task.Run(product.LoadAsync);
 
-            // If load was successful...
+            // If product was successfully loaded...
             if (result.Success)
             {
                 // Store product for confirmation
                 Product = product;
+
+                // Create product region info
+                UserRegion = new RegionInfo(Product.Culture.Name);
 
                 // Raise property changed event
                 OnPropertyChanged(nameof(Product));
 
                 // Show confirmation page
                 StepTwo = true;
-
-                // Set detected properties
-
             }
+            // Otherwise...
             else
             {
-                // Show error message
+                // Show error message to the user
                 _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
                 {
                     Type = DialogBoxType.Error,
@@ -230,26 +292,21 @@ namespace PromoSeeker
         /// <returns></returns>
         private async Task AddProductManuallyAsync()
         {
-            IsBusy = true;
-
-            if (string.IsNullOrEmpty(Url))
+            // Double validate to ensure there are no errors
+            if (!IsValid)
             {
-                IsBusy = false;
-
-                _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
-                {
-                    Type = DialogBoxType.Error,
-                    Message = "You need to specify a product URL."
-                });
-
                 return;
             }
+
+            IsBusy = true;
 
             // Create product
             var product = new Product(Name, Url, PriceSelector, new CultureInfo(UserRegion.Name));
 
+            // Load product and get the result
             var result = await Task.Run(product.LoadAsync);
 
+            // If product was successfully loaded...
             if (result.Success)
             {
                 // Store product for confirmation
@@ -261,9 +318,10 @@ namespace PromoSeeker
                 // Show confirmation page
                 StepTwo = true;
             }
+            // Otherwise...
             else
             {
-                // Show error message
+                // Show error message to the user
                 _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
                 {
                     Type = DialogBoxType.Error,
@@ -286,6 +344,28 @@ namespace PromoSeeker
             }
 
             // Add product
+            DI.Application.Products.Add(new ProductViewModel
+            {
+                Product = Product,
+                Name = Product.Name,
+                Url = new Uri(Product.Url),
+                DateAdded = DateTime.Now,
+                PriceCurrent = Product.PriceInfo.Price.Decimal
+            });
+
+            // Close and cleanup user input
+            StepTwo = false;
+            Name = string.Empty;
+            Url = string.Empty;
+            PriceSelector = string.Empty;
+            Status = string.Empty;
+            Product = null;
+
+            // Close window
+            Close();
+
+            // Show main window
+            Application.Current.MainWindow?.Show();
         }
 
         #endregion

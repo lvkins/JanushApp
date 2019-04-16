@@ -1,11 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
-namespace PromoSeeker
+namespace PromoSeeker.Core
 {
     /// <summary>
     /// The extension methods for the <see cref="ILogger"/>.
     /// </summary>
-    internal static class LoggerExtensions
+    public static class LoggerExtensions
     {
         /// <summary>
         /// A shortcut method for logging a trace message.
@@ -76,5 +77,23 @@ namespace PromoSeeker
         /// <param name="filePath">The code filename that this message was logged from.</param>
         /// <param name="lineNumber">The line of code in the filename this message was logged from.</param>
         public static void Fatal(this ILogger logger, string message, [CallerMemberName] string origin = "", [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0) => logger.Log(message, LogLevel.Fatal, origin, filePath, lineNumber);
+
+        /// <summary>
+        /// Logs the given exception details to the logger.
+        /// </summary>
+        /// <param name="logger">The logger instance.</param>
+        /// <param name="exception">The exception to log.</param>
+        /// <param name="origin">The method/function this message was logged in.</param>
+        /// <param name="filePath">The code filename that this message was logged from.</param>
+        /// <param name="lineNumber">The line of code in the filename this message was logged from.</param>
+        public static void Exception(this ILogger logger, Exception exception, [CallerMemberName]string origin = "", [CallerFilePath]string filePath = "", [CallerLineNumber]int lineNumber = 0)
+        {
+            logger.Debug($"An unexpected error occurred:\n{exception.Message}", origin, filePath, lineNumber);
+
+            if (exception.InnerException != null)
+            {
+                logger.Debug($"\tCaused by: {exception.InnerException.Message}");
+            }
+        }
     }
 }

@@ -25,34 +25,19 @@ namespace PromoSeeker
         #region Public Properties
 
         /// <summary>
-        /// 
+        /// The window minimum width.
         /// </summary>
         public double WindowWidthMin { get; set; } = 100;
+
+        /// <summary>
+        /// The window minimum height.
+        /// </summary>
         public double WindowHeightMin { get; set; } = 100;
 
         /// <summary>
         /// Whether if the settings popup menu is currently visible.
         /// </summary>
         public bool ShowSettingsPopupMenu { get; set; }
-
-        public ObservableCollection<ProductViewModel> Products { get; set; } = new ObservableCollection<ProductViewModel>
-        {
-            new ProductViewModel
-            {
-                Name = "Test Product",
-                PriceCurrent = 1337
-            },
-            new ProductViewModel
-            {
-                Name = "Test Product",
-                PriceCurrent = 1337
-            },
-            new ProductViewModel
-            {
-                Name = "Test Product",
-                PriceCurrent = 1337
-            },
-        };
 
         /// <summary>
         /// The height of the title bar.
@@ -64,9 +49,9 @@ namespace PromoSeeker
         #region Commands
 
         /// <summary>
-        /// The command for adding a new promotion.
+        /// The command to open the <see cref="AddProductWindow"/>.
         /// </summary>
-        public ICommand AddPromotionCommand { get; }
+        public ICommand OpenAddProductWindowCommand { get; }
 
         /// <summary>
         /// The command to open the <see cref="SettingsWindow"/>.
@@ -118,7 +103,7 @@ namespace PromoSeeker
 
             #region Create Commands
 
-            AddPromotionCommand = new RelayCommand(() => DI.AddPromotionViewModel.Open());
+            OpenAddProductWindowCommand = new RelayCommand(() => DI.AddPromotionViewModel.Open());
 
             ToggleSettingsPopupCommand = new RelayCommand(() =>
             {

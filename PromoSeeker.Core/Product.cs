@@ -222,7 +222,14 @@ namespace PromoSeeker.Core
             var request = new HtmlRequest();
 
             // Attempt to load HTML
-            await request.LoadAsync(Url);
+            try
+            {
+                await request.LoadAsync(Url);
+            }
+            catch (Exception e)
+            {
+                CoreDI.Logger.Exception(e);
+            }
 
             // If status code is any other than 200...
             if (request.Response?.StatusCode != System.Net.HttpStatusCode.OK)
