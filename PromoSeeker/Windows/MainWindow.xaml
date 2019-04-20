@@ -10,11 +10,11 @@
     Title="{x:Static core:Consts.APP_TITLE}"
     Width="500"
     Height="450"
-    d:DataContext="{x:Static local:WindowDesignModel.Instance}"
     Icon="../Assets/Application.ico"
     ShowInTaskbar="False"
     WindowStyle="None"
     mc:Ignorable="d">
+    <!--  d:DataContext="{x:Static local:WindowDesignModel.Instance}"  -->
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="27" CornerRadius="0" />

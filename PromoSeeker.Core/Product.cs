@@ -130,6 +130,11 @@ namespace PromoSeeker.Core
         /// </summary>
         public bool IsAutoLoadProperties { get; }
 
+        /// <summary>
+        /// The task that is handling tracking of this product.
+        /// </summary>
+        public Task TrackingTask { get; private set; }
+
         #endregion
 
         #region Public Events
@@ -137,7 +142,17 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The event that raises when application failed to load product properties.
         /// </summary>
-        public event Action ProductLoadFailed = () => { };
+        public event Action LoadFailed = () => { };
+
+        /// <summary>
+        /// The event that raises when the product is updating.
+        /// </summary>
+        public event Action Updating = () => { };
+
+        /// <summary>
+        /// The event that raises when the product was updated.
+        /// </summary>
+        public event Action<ProductUpdateResult> Updated = (result) => { };
 
         #endregion
 
@@ -433,6 +448,38 @@ namespace PromoSeeker.Core
         public void Save()
         {
 
+        }
+
+        public void Track(TimeSpan interval)
+        {
+            // If we are not yet tracking...
+            if (TrackingTask == null)
+            {
+                // Create task
+                TrackingTask = Task.Run(async () =>
+                {
+                    // Do this until not interrupted
+                    // TODO: add cancellation token
+                    while (true)
+                    {
+                        // Wait for the specified amount of time
+                        await Task.Delay(interval);
+
+                        // Raise updating event
+                        Updating();
+
+                        // Refresh product
+
+                        // Load result
+                        var result = await LoadAsync();
+
+                        Updated(new ProductUpdateResult
+                        {
+                            Success = result.Success
+                        });
+                    }
+                });
+            }
         }
 
         #endregion

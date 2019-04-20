@@ -32,9 +32,14 @@ namespace PromoSeeker
         #region Public Properties
 
         /// <summary>
-        /// The product name.
+        /// The product detected name.
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The product display name.
+        /// </summary>
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// Product full URL.
@@ -145,6 +150,8 @@ namespace PromoSeeker
 
         #region Validation
 
+        private bool _isValid;
+
         /// <summary>
         /// An error message indicating what is wrong with this object. The default is an
         /// empty string ("").
@@ -154,7 +161,15 @@ namespace PromoSeeker
         /// <summary>
         /// Verifies whether all properties in the object are passing the validation.
         /// </summary>
-        public bool IsValid => string.IsNullOrEmpty(Error);
+        public bool IsValid
+        {
+            get => _isValid;
+            set
+            {
+                _isValid = value;
+                OnPropertyChanged(nameof(IsValid));
+            }
+        }
 
         /// <summary>
         /// Gets the error message for the property with the given name.
@@ -165,11 +180,13 @@ namespace PromoSeeker
         {
             get
             {
+                // Url validation
                 if (columnName == null || columnName == nameof(Url))
                 {
                     // If empty...
                     if (string.IsNullOrWhiteSpace(Url))
                     {
+                        IsValid = false;
                         return "Please specify the URL.";
                     }
 
@@ -180,10 +197,12 @@ namespace PromoSeeker
                     // If unable to parse URL...
                     if (!result)
                     {
+                        IsValid = false;
                         return "This is not a valid URL";
                     }
                 }
 
+                IsValid = true;
                 return string.Empty;
             }
         }
@@ -343,15 +362,17 @@ namespace PromoSeeker
                 return;
             }
 
-            // Add product
-            DI.Application.Products.Add(new ProductViewModel
+            // Create setting object
+            var productSetting = new ProductSettings
             {
-                Product = Product,
-                Name = Product.Name,
+                Name = Name,
+                DisplayName = DisplayName,
+                Price = Product.PriceInfo.Price.Decimal,
                 Url = new Uri(Product.Url),
-                DateAdded = DateTime.Now,
-                PriceCurrent = Product.PriceInfo.Price.Decimal
-            });
+            };
+
+            // Add product
+            DI.Application.AddProduct(productSetting);
 
             // Close and cleanup user input
             StepTwo = false;

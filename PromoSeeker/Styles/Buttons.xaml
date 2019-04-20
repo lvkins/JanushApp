@@ -4,14 +4,6 @@
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <Style TargetType="{x:Type Control}">
-        <Style.Triggers>
-            <Trigger Property="Validation.HasError" Value="True">
-                <Setter Property="ToolTip" Value="{Binding Path=(Validation.Errors)[0].ErrorContent, RelativeSource={x:Static RelativeSource.Self}}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
     <!--  Base button style  -->
     <Style
         x:Key="BaseButtonStyle"
@@ -27,23 +19,24 @@
                 <ControlTemplate TargetType="{x:Type ButtonBase}">
 
                     <Border
-                        Padding="{TemplateBinding Padding}"
+                        Margin="{TemplateBinding Padding}"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="0"
                         SnapsToDevicePixels="True">
 
-                        <StackPanel
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            Orientation="Horizontal">
+                        <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                             <ContentPresenter />
-                        </StackPanel>
+                        </Grid>
 
                     </Border>
 
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{StaticResource ForegroundDarkBrush}" />
+                            <Setter Property="Opacity" Value=".5" />
+                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
                             <Setter Property="BorderThickness" Value="1" />
@@ -54,6 +47,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style BasedOn="{StaticResource BaseButtonStyle}" TargetType="{x:Type Button}" />
 
     <!--  A button for image-content buttons  -->
     <Style x:Key="Styleless" TargetType="{x:Type ButtonBase}">

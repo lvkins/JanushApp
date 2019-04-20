@@ -24,7 +24,7 @@ namespace PromoSeeker
         /// <param name="name">The name of the changed property.</param>
         public void OnPropertyChanged(string name)
         {
-            // Fire property changed event
+            // Raise property changed event
             PropertyChanged(this, new PropertyChangedEventArgs(name));
         }
 

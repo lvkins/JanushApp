@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PromoSeeker.Core;
+using System;
 using System.Drawing;
 using System.Windows;
 using FormsApp = System.Windows.Forms;

@@ -125,6 +125,11 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="AttachedProperties\BaseAttachedProperty.cs" />
+    <Compile Include="AttachedProperties\StretchParentContentAttachedProperty.cs" />
+    <Compile Include="Controls\ProductReviewControl.xaml.cs">
+      <DependentUpon>ProductReviewControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Models\DialogBoxType.cs" />
     <Compile Include="UI\Controls\FormEntry.xaml.cs">
       <DependentUpon>FormEntry.xaml</DependentUpon>
@@ -133,6 +138,7 @@
     <Compile Include="UI\TrayIcon.cs" />
     <Compile Include="UI\UIManager.cs" />
     <Compile Include="ValueConverters\BaseValueConverter.cs" />
+    <Compile Include="ValueConverters\HumanRelativeTimeConverter.cs" />
     <Compile Include="ValueConverters\Visibility\NullToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\Visibility\BooleanToVisibilityConverter.cs" />
     <Compile Include="ViewModels\AddProductViewModel.cs" />
@@ -160,6 +166,10 @@
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\ProductReviewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Styles\Controls.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -208,7 +218,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Consts.cs" />
     <Compile Include="UI\Controls\ProductListItem.xaml.cs">
       <DependentUpon>ProductListItem.xaml</DependentUpon>
     </Compile>
@@ -260,16 +269,14 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Assets\Application.ico" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
     <ProjectReference Include="..\PromoSeeker.Core\PromoSeeker.Core.csproj">
       <Project>{457b18f9-670e-45a7-8ade-98fcf8ceae35}</Project>
       <Name>PromoSeeker.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Assets\Application.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="AttachedProperties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

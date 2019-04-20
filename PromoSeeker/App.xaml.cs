@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using PromoSeeker.Core;
 
 namespace PromoSeeker
@@ -23,6 +24,9 @@ namespace PromoSeeker
 
             // Log startup
             DI.Logger.Info("Application started");
+
+            // Load application content
+            DI.Application.Load();
         }
     }
 }

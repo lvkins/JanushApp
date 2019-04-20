@@ -1,0 +1,80 @@
+﻿<UserControl
+    x:Class="PromoSeeker.ProductReviewControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:PromoSeeker"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <!--  Dimmable overlay  -->
+        <Border Background="Black" Opacity=".5" />
+
+        <!--  Overlay content  -->
+        <Border Margin="15" Background="{StaticResource BackgroundLighterBrush}">
+            <Grid>
+                <!--  Header -> Status -> Controls -> Button  -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  Result title  -->
+                <TextBlock Grid.Row="0" Style="{StaticResource HeaderText}">Review the product</TextBlock>
+
+                <!--  Status message  -->
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,10"
+                    HorizontalAlignment="Center"
+                    Foreground="{StaticResource AppDarkRedBrush}"
+                    Text="{Binding Status}" />
+
+                <!--  Controls  -->
+                <StackPanel Grid.Row="2" Margin="12">
+
+                    <!--  Product name  -->
+                    <StackPanel>
+                        <TextBlock Text="Detected product name:" />
+                        <TextBox IsEnabled="True" Text="{Binding Product.Name, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  Product price  -->
+                    <StackPanel>
+                        <TextBlock Text="Detected current product price:" />
+                        <TextBox Text="{Binding Product.Price, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  Website language  -->
+                    <StackPanel>
+                        <TextBlock Text="Detected product currency:" />
+                        <TextBox Text="{Binding UserRegion.CurrencyNativeName, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  Optional section  -->
+                    <Border BorderBrush="{StaticResource AppDarkBlueBrush}" BorderThickness="1">
+
+                        <!--  Custom name  -->
+                        <StackPanel>
+                            <TextBlock Text="Your product custom name:" />
+                            <TextBox Tag="My wish item (optional)" />
+                        </StackPanel>
+
+                    </Border>
+                </StackPanel>
+
+                <!--  Submit button  -->
+                <Button
+                    Grid.Row="4"
+                    BorderThickness="0,1,0,0"
+                    Command="{Binding ConfirmProductCommand}">
+                    Track this product
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+
+</UserControl>

@@ -286,7 +286,7 @@
                                 <ContentPresenter
                                     Grid.Column="1"
                                     Margin="4,0,0,0"
-                                    HorizontalAlignment="Left"
+                                    HorizontalAlignment="Stretch"
                                     VerticalAlignment="Center"
                                     RecognizesAccessKey="True"
                                     SnapsToDevicePixels="True" />
@@ -409,46 +409,145 @@
         <Expander
             Margin="0"
             Padding="0"
-            Style="{DynamicResource ExpanderStyle1}">
+            IsExpanded="False"
+            Style="{StaticResource ExpanderStyle1}">
             <Expander.Header>
-                <Grid Width="370">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <!--  Host  -->
                         <ColumnDefinition Width="*" />
 
                         <!--  Name  -->
-                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="*" />
 
                         <!--  Price  -->
                         <ColumnDefinition Width="*" />
 
+                        <!--  Last check  -->
+                        <ColumnDefinition Width="*" />
+
                         <!--  Options  -->
-                        <ColumnDefinition Width=".5*" />
+                        <ColumnDefinition Width=".4*" />
 
                     </Grid.ColumnDefinitions>
 
                     <!--  Host  -->
-                    <TextBlock Grid.Column="0" Text="{Binding Url.Host, FallbackValue=example.com}" />
+                    <TextBlock
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Url.Host, FallbackValue=example.com}"
+                        TextWrapping="Wrap" />
 
                     <!--  Product Name  -->
                     <Button
                         Grid.Column="1"
-                        Command="{Binding OpenCommand}"
-                        Content="{Binding Name, FallbackValue=Product}"
+                        Command="{Binding NavigateCommand}"
+                        Content="{Binding DisplayName, FallbackValue=Product}"
                         Style="{StaticResource Styleless}" />
 
                     <!--  Current Product Price  -->
-                    <TextBlock Grid.Column="2" Text="{Binding PriceCurrent, FallbackValue=1234}" />
+                    <TextBlock
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Text="{Binding PriceCurrent, FallbackValue=1234}" />
 
-                    <Border Grid.Column="3">
-                        <Button Padding="0" Content="..." />
+                    <!--  Last check  -->
+                    <TextBlock
+                        Grid.Column="3"
+                        VerticalAlignment="Center"
+                        Text="{Binding LastCheck, FallbackValue=5 minutes ago, Converter={local:HumanRelativeTimeConverter}}"
+                        Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}}" />
+
+                    <!--  Last check: updating now  -->
+                    <StackPanel
+                        Grid.Column="3"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                        <Border
+                            Width="12"
+                            Height="12"
+                            Margin="0,0,5,0"
+                            Style="{StaticResource SpinningText}">
+                            <Border.Background>
+                                <VisualBrush Visual="{StaticResource Vector.Spinner}" />
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Text="Updating..." />
+                    </StackPanel>
+
+                    <!--  Product options  -->
+                    <Border Grid.Column="4">
+                        <Button
+                            x:Name="OptionsButton"
+                            Padding="0"
+                            VerticalAlignment="Center"
+                            Command="{Binding ExpandOptionsPopupCommand}"
+                            Content="..." />
                     </Border>
+
+                    <!--  Product options popup menu  -->
+                    <Popup
+                        AllowsTransparency="True"
+                        HorizontalOffset="0"
+                        IsOpen="{Binding ShowOptionsPopupMenu}"
+                        Placement="Bottom"
+                        PlacementTarget="{Binding ElementName=OptionsButton}"
+                        StaysOpen="{Binding IsMouseOver, ElementName=OptionsButton}"
+                        VerticalOffset="2">
+
+                        <Border BorderBrush="{StaticResource ForegroundDarkerBrush}" BorderThickness="0.5">
+                            <StackPanel Background="{StaticResource BackgroundLighterBrush}">
+                                <ItemsControl>
+                                    <!--  Open in browser  -->
+                                    <MenuItem Command="{Binding OpenSettingsWindowCommand}" Header="Open in browser" />
+                                    <!--  Toggle tracking  -->
+                                    <MenuItem Command="{Binding OpenSettingsWindowCommand}" Header="Stop tracking" />
+                                    <!--  Separator  -->
+                                    <Separator Background="{StaticResource BackgroundMainBrush}" />
+                                    <!--  Remove  -->
+                                    <MenuItem
+                                        Command="{Binding ShutdownCommand}"
+                                        Foreground="#FF0000"
+                                        Header="Remove Product" />
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                    </Popup>
                 </Grid>
             </Expander.Header>
 
             <!--  Expanded content  -->
 
             <StackPanel Margin="10">
+                <!--  Original name  -->
+                <Border Margin="0,5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Original name:" />
+                        <TextBlock Grid.Column="1" Text="{Binding Name, FallbackValue=Original Name}" />
+                    </Grid>
+                </Border>
+
+                <!--  Site URL  -->
+                <Border Margin="0,5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Site:" />
+                        <TextBlock Grid.Column="1" Text="{Binding Url.Host, FallbackValue=example.cc}" />
+                    </Grid>
+                </Border>
+
                 <!--  Last check  -->
                 <Border Margin="0,5">
                     <Grid>

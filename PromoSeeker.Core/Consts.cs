@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PromoSeeker.Core
 {
@@ -18,6 +19,11 @@ namespace PromoSeeker.Core
         /// The product title maximum length.
         /// </summary>
         public const int PRODUCT_TITLE_MAX_LENGTH = 96;
+
+        /// <summary>
+        /// The time interval, product will updated within.
+        /// </summary>
+        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromMinutes(10);
 
         /// <summary>
         /// The sources to look for the product title.

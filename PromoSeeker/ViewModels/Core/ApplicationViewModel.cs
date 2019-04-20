@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using PromoSeeker.Core;
 
 namespace PromoSeeker
 {
@@ -13,7 +14,7 @@ namespace PromoSeeker
         #region Public Properties
 
         /// <summary>
-        /// The tracking products collection.
+        /// The added products collection.
         /// </summary>
         public ObservableCollection<ProductViewModel> Products { get; set; }
             = new ObservableCollection<ProductViewModel>();
@@ -21,6 +22,36 @@ namespace PromoSeeker
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Adds a new product to track to the application and stores it in the settings file.
+        /// </summary>
+        /// <param name="productSetting">The product settings object.</param>
+        public void AddProduct(ProductSettings productSetting)
+        {
+            // Add the product to the collection
+            Products.Add(new ProductViewModel(productSetting));
+
+            // Store the product to the settings file
+            DI.Settings.Settings.Products.Add(productSetting);
+            DI.Settings.Save();
+        }
+
+        /// <summary>
+        /// Loads the application content.
+        /// </summary>
+        public void Load()
+        {
+            // Get the stored products list
+            var products = DI.Settings.Settings.Products;
+
+            // Iterate over products list
+            products.ForEach(product =>
+            {
+                // Add the product to the collection
+                Products.Add(new ProductViewModel(product));
+            });
+        }
 
         /// <summary>
         /// Shows a children window to the user.
