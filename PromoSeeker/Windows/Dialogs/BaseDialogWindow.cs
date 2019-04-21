@@ -79,7 +79,7 @@ namespace PromoSeeker
         /// </summary>
         /// <typeparam name="T">The view model type.</typeparam>
         /// <param name="viewModel">The view model that controls this dialog control.</param>
-        /// <returns></returns>
+        /// <returns>A task that will finish once the dialog is closed.</returns>
         public Task ShowDialog<T>(T viewModel)
             where T : BaseDialogWindowViewModel
         {
@@ -100,7 +100,14 @@ namespace PromoSeeker
 
                 // Show in the middle of the parent window (which is currently active, otherwise - main window)
                 _dialogWindow.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(_ => _.IsActive)
-                    ?? Application.Current.MainWindow;
+                    ?? (Application.Current.MainWindow.IsLoaded
+                        ? Application.Current.MainWindow
+                        : null);
+
+                // Set proper startup location
+                _dialogWindow.WindowStartupLocation = _dialogWindow.Owner != null
+                    ? WindowStartupLocation.CenterOwner
+                    : WindowStartupLocation.CenterScreen;
 
                 // Set window content to this dialog control
                 _dialogWindow.Content = this;

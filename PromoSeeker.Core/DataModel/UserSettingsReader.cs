@@ -17,6 +17,11 @@ namespace PromoSeeker.Core
         private static readonly string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, @"Settings.json");
 
         /// <summary>
+        /// The settings backup file path.
+        /// </summary>
+        private static readonly string BackupSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, @"Settings.bup.json");
+
+        /// <summary>
         /// The JSON serializer settings to be used to proceed the settings serialization.
         /// </summary>
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
@@ -35,6 +40,11 @@ namespace PromoSeeker.Core
         /// The current user setting instance.
         /// </summary>
         public UserSettings Settings { get; set; }
+
+        /// <summary>
+        /// If a backup of the current settings file should be made before saving a new file.
+        /// </summary>
+        public bool BackupSettings { get; set; } = true;
 
         #endregion
 
@@ -84,11 +94,20 @@ namespace PromoSeeker.Core
             // Create settings directory, if not exists (there's an internal check for that)
             Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath));
 
+            // If backup should be made...
+            if (BackupSettings && File.Exists(SettingsPath))
+            {
+                File.Copy(SettingsPath, BackupSettingsPath, true);
+            }
+
             // Serialize user settings
             var json = JsonConvert.SerializeObject(Settings, Formatting.Indented, JsonSerializerSettings);
 
             // Write to file
-            File.WriteAllText(SettingsPath, json);
+            for (var i = 0; i < 1000000; i++)
+            {
+                File.WriteAllText(SettingsPath, json);
+            }
         }
 
         #endregion

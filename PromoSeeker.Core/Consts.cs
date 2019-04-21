@@ -23,7 +23,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The time interval, product will updated within.
         /// </summary>
-        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromMinutes(10);
+        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(20);
 
         /// <summary>
         /// The sources to look for the product title.

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -70,6 +71,11 @@ namespace PromoSeeker.Core
         /// The HTML document of the current promotion.
         /// </summary>
         private HtmlDocument mHtmlDocument;
+
+        /// <summary>
+        /// The tracking task cancellation token.
+        /// </summary>
+        private CancellationTokenSource _trackingCancellation;
 
         #endregion
 
@@ -404,7 +410,6 @@ namespace PromoSeeker.Core
             await LoadAsync();
         }
 
-
         /// <summary>
         /// Sets up the promotion product data.
         /// </summary>
@@ -435,35 +440,37 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Loads a previously stored promotion data.
+        /// Starts the product tracking task with the specified time <paramref name="interval"/>.
         /// </summary>
-        public void Load()
-        {
-
-        }
-
-        /// <summary>
-        /// Store the promotion data for the next use.
-        /// </summary>
-        public void Save()
-        {
-
-        }
-
+        /// <param name="interval">The time interval to track the product within.</param>
         public void Track(TimeSpan interval)
         {
             // If we are not yet tracking...
             if (TrackingTask == null)
             {
+                // Dispose of any current cancellation token
+                _trackingCancellation?.Dispose();
+
+                // Create fresh token
+                _trackingCancellation = new CancellationTokenSource();
+
                 // Create task
                 TrackingTask = Task.Run(async () =>
                 {
-                    // Do this until not interrupted
-                    // TODO: add cancellation token
+                    // Do this until not interrupted by cancellation token
                     while (true)
                     {
                         // Wait for the specified amount of time
                         await Task.Delay(interval);
+
+                        // If cancellation requested...
+                        if (_trackingCancellation.IsCancellationRequested)
+                        {
+                            Debug.WriteLine("Abort product tracking - cancellation requested");
+
+                            // Exit
+                            return;
+                        }
 
                         // Raise updating event
                         Updating();
@@ -478,8 +485,16 @@ namespace PromoSeeker.Core
                             Success = result.Success
                         });
                     }
-                });
+                }, _trackingCancellation.Token);
             }
+        }
+
+        /// <summary>
+        /// Stops the product tracking task.
+        /// </summary>
+        public void StopTracking()
+        {
+            _trackingCancellation.Cancel();
         }
 
         #endregion

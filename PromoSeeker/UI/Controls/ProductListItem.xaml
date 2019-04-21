@@ -443,7 +443,17 @@
                         Grid.Column="1"
                         Command="{Binding NavigateCommand}"
                         Content="{Binding DisplayName, FallbackValue=Product}"
-                        Style="{StaticResource Styleless}" />
+                        Foreground="{StaticResource AppDarkRedBrush}">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource Styleless}" TargetType="Button">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource AppRedBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
                     <!--  Current Product Price  -->
                     <TextBlock
@@ -461,7 +471,6 @@
                     <!--  Last check: updating now  -->
                     <StackPanel
                         Grid.Column="3"
-                        HorizontalAlignment="Stretch"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
                         Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">

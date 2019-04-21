@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using PromoSeeker.Core;
@@ -38,19 +39,61 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// Loads the application content.
+        /// Loads the application content state.
         /// </summary>
         public void Load()
         {
-            // Get the stored products list
-            var products = DI.Settings.Settings.Products;
-
-            // Iterate over products list
-            products.ForEach(product =>
+            try
             {
-                // Add the product to the collection
-                Products.Add(new ProductViewModel(product));
-            });
+                // Get the stored products list
+                var products = DI.Settings.Settings.Products;
+
+                // Iterate over products list
+                products.ForEach(product =>
+                {
+                    // Add the product to the collection
+                    Products.Add(new ProductViewModel(product));
+                });
+            }
+            catch (Exception ex)
+            {
+                // Unable to load application 
+                DI.Logger.Fatal("Load failed");
+                DI.Logger.Exception(ex);
+
+                // Show error to the user
+                DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                {
+                    Type = DialogBoxType.Error,
+                    Message = "Application state wasn't loaded properly, please ensure your settings file is not corrupted.", // TODO: localize me
+                });
+
+                // TODO: Ask user to restore backed up settings file if we have one
+            }
+        }
+
+        /// <summary>
+        /// Saves the application content state.
+        /// </summary>
+        public void Save()
+        {
+            // Write diagnostic info
+            Debug.WriteLine("Save application state");
+
+            // Update products
+            DI.Settings.Settings.Products = Products.Select(_ => new ProductSettings
+            {
+                Name = _.Name,
+                Url = _.Url,
+                Price = _.PriceCurrent,
+                DisplayName = _.Name.Equals(_.DisplayName, StringComparison.InvariantCulture) ? _.DisplayName : null,
+                Tracked = _.Tracked,
+                LastChecked = _.LastCheck,
+                Created = _.DateAdded,
+            }).ToList();
+
+            // Save settings
+            DI.Settings.Save();
         }
 
         /// <summary>

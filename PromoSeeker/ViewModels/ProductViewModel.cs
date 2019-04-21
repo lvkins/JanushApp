@@ -1,8 +1,8 @@
-﻿using System;
+﻿using PromoSeeker.Core;
+using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Input;
-using PromoSeeker.Core;
 
 namespace PromoSeeker
 {
@@ -19,9 +19,19 @@ namespace PromoSeeker
         private DateTime _lastCheck;
 
         /// <summary>
+        /// A timer for raising the property changed of the <see cref="LastCheck"/> property.
+        /// </summary>
+        private readonly Timer _lastCheckTimer;
+
+        /// <summary>
         /// Whether the product is currently being updated.
         /// </summary>
         private bool _currentlyUpdating;
+
+        /// <summary>
+        /// If the tracking is enabled for this product.
+        /// </summary>
+        private bool _tracked;
 
         #endregion
 
@@ -102,7 +112,18 @@ namespace PromoSeeker
         /// <summary>
         /// If the tracking is enabled for this product.
         /// </summary>
-        public bool Tracked { get; private set; }
+        public bool Tracked
+        {
+            get => _tracked;
+            set
+            {
+                // Update value
+                _tracked = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(Tracked));
+            }
+        }
 
         #endregion
 
@@ -140,6 +161,18 @@ namespace PromoSeeker
 
             // Load product from settings
             Load(product);
+
+            // Create the last check refreshing timer
+            _lastCheckTimer = new Timer
+            {
+                AutoReset = true,
+                Interval = 1000,
+                Enabled = true,
+            };
+            _lastCheckTimer.Elapsed += (s, e) =>
+            {
+                OnPropertyChanged(nameof(LastCheck));
+            };
 
             #region Create Commands
 
@@ -195,7 +228,10 @@ namespace PromoSeeker
         /// </summary>
         public void StartTracking()
         {
-            // Start tracking the product
+            // Flag as tracked
+            Tracked = true;
+
+            // Start tracking tasks
             Product.Track(Consts.PRODUCT_UPDATE_INTERVAL);
         }
 
@@ -204,17 +240,11 @@ namespace PromoSeeker
         /// </summary>
         public void StopTracking()
         {
-            // TODO:
-            // Raise cancellation token
-            // Set properties
-        }
+            // Flag as not tracked
+            Tracked = false;
 
-        /// <summary>
-        /// Saves the product to the file.
-        /// </summary>
-        public void Save()
-        {
-            // TODO: Save to the file
+            // Stop any tracking tasks
+            Product.StopTracking();
         }
 
         #endregion
@@ -246,6 +276,9 @@ namespace PromoSeeker
             {
                 // TODO: Handle unsuccessful update
             }
+
+            // Save application state
+            DI.Application.Save();
 
             Console.WriteLine("update finished");
             Console.WriteLine(Product.Name);
