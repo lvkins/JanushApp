@@ -32,6 +32,11 @@ namespace PromoSeeker.Core
             NullValueHandling = NullValueHandling.Ignore,
         };
 
+        /// <summary>
+        /// A lock for the settings access to keep it thread-safe.
+        /// </summary>
+        private readonly object _settingsLock = new object();
+
         #endregion
 
         #region Public Properties
@@ -68,15 +73,19 @@ namespace PromoSeeker.Core
         /// </summary>
         public void Load()
         {
-            // If the file doesn't exists...
-            if (!File.Exists(SettingsPath))
+            // Lock the settings for thread safety
+            lock (_settingsLock)
             {
-                // Use default
-                Settings = new UserSettings();
-                return;
+                // If the file doesn't exists or unable to deserialize...
+                if (!File.Exists(SettingsPath) || (Settings = JsonConvert.DeserializeObject<UserSettings>(
+                    File.ReadAllText(SettingsPath),
+                    JsonSerializerSettings)) == null)
+                {
+                    // Use default
+                    Settings = new UserSettings();
+                    return;
+                }
             }
-
-            Settings = JsonConvert.DeserializeObject<UserSettings>(File.ReadAllText(SettingsPath), JsonSerializerSettings);
         }
 
         /// <summary>
@@ -91,21 +100,22 @@ namespace PromoSeeker.Core
                 return;
             }
 
-            // Create settings directory, if not exists (there's an internal check for that)
-            Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath));
-
-            // If backup should be made...
-            if (BackupSettings && File.Exists(SettingsPath))
+            // Lock the settings for thread safety
+            lock (_settingsLock)
             {
-                File.Copy(SettingsPath, BackupSettingsPath, true);
-            }
+                // Create settings directory, if not exists (there's an internal check for that)
+                Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath));
 
-            // Serialize user settings
-            var json = JsonConvert.SerializeObject(Settings, Formatting.Indented, JsonSerializerSettings);
+                // If backup should be made...
+                if (BackupSettings && File.Exists(SettingsPath))
+                {
+                    File.Copy(SettingsPath, BackupSettingsPath, true);
+                }
 
-            // Write to file
-            for (var i = 0; i < 1000000; i++)
-            {
+                // Serialize user settings
+                var json = JsonConvert.SerializeObject(Settings, Formatting.Indented, JsonSerializerSettings);
+
+                // Write to file
                 File.WriteAllText(SettingsPath, json);
             }
         }

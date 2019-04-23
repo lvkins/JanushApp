@@ -151,6 +151,11 @@ namespace PromoSeeker.Core
         public event Action LoadFailed = () => { };
 
         /// <summary>
+        /// The event that raises when tracking was unexpectedly aborted.
+        /// </summary>
+        public event Action<Exception> TrackingFailed = (exception) => { };
+
+        /// <summary>
         /// The event that raises when the product is updating.
         /// </summary>
         public event Action Updating = () => { };
@@ -395,14 +400,6 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Sets the product properties using the loaded data.
-        /// </summary>
-        private bool SetValues()
-        {
-            return true;
-        }
-
-        /// <summary>
         /// Refreshes the product properties (eg. the current price)
         /// </summary>
         public async Task RefreshAsync()
@@ -443,58 +440,79 @@ namespace PromoSeeker.Core
         /// Starts the product tracking task with the specified time <paramref name="interval"/>.
         /// </summary>
         /// <param name="interval">The time interval to track the product within.</param>
-        public void Track(TimeSpan interval)
+        public async Task TrackAsync(TimeSpan interval)
         {
-            // If we are not yet tracking...
-            if (TrackingTask == null)
+            // If a tracking task that is not completed already exists...
+            if (TrackingTask != null && !TrackingTask.IsCompleted)
             {
-                // Dispose of any current cancellation token
-                _trackingCancellation?.Dispose();
-
-                // Create fresh token
-                _trackingCancellation = new CancellationTokenSource();
-
-                // Create task
-                TrackingTask = Task.Run(async () =>
-                {
-                    // Do this until not interrupted by cancellation token
-                    while (true)
-                    {
-                        // Wait for the specified amount of time
-                        await Task.Delay(interval);
-
-                        // If cancellation requested...
-                        if (_trackingCancellation.IsCancellationRequested)
-                        {
-                            Debug.WriteLine("Abort product tracking - cancellation requested");
-
-                            // Exit
-                            return;
-                        }
-
-                        // Raise updating event
-                        Updating();
-
-                        // Refresh product
-
-                        // Load result
-                        var result = await LoadAsync();
-
-                        Updated(new ProductUpdateResult
-                        {
-                            Success = result.Success
-                        });
-                    }
-                }, _trackingCancellation.Token);
+                // Do nothing, shall properly stop tracking first
+                return;
             }
+
+            // Dispose of any existing cancellation token
+            _trackingCancellation?.Dispose();
+
+            // Create fresh token
+            _trackingCancellation = new CancellationTokenSource();
+
+            // Create a task
+            TrackingTask = Task.Run(async () =>
+            {
+                // Do this until not interrupted by cancellation token
+                while (true)
+                {
+                    // Wait for the specified amount of time
+                    await Task.Delay(interval, _trackingCancellation.Token);
+
+                    // Abort if cancellation is requested
+                    _trackingCancellation.Token.ThrowIfCancellationRequested();
+
+                    // Raise updating event
+                    Updating();
+
+                    // Refresh product
+
+                    // Load result
+                    var result = await LoadAsync();
+
+                    // Raise updated event
+                    Updated(new ProductUpdateResult
+                    {
+                        Success = result.Success
+                    });
+                }
+            }, _trackingCancellation.Token)
+            // Handle faulted task
+            .ContinueWith(t =>
+            {
+                // Inform developer
+                Debugger.Break();
+
+                // Notify that the tracking task has failed and pass the exception details
+                TrackingFailed(t.Exception?.GetBaseException());
+            }, TaskContinuationOptions.OnlyOnFaulted)
+            .ContinueWith(t =>
+            {
+                // Handle task cancellation politely and stop bubbling it up
+            }, TaskContinuationOptions.OnlyOnCanceled);
+
+            // Wait for the task to finish
+            await TrackingTask;
         }
 
         /// <summary>
         /// Stops the product tracking task.
         /// </summary>
-        public void StopTracking()
+        public async Task StopTrackingAsync()
         {
-            _trackingCancellation.Cancel();
+            // Request task cancellation
+            _trackingCancellation?.Cancel();
+
+            // Wait while task is completing...
+            while (TrackingTask != null && !TrackingTask.IsCompleted)
+            {
+                await Task.Delay(100);
+            }
         }
 
         #endregion

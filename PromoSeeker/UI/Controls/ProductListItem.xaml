@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignWidth="400"
     Background="{StaticResource BackgroundMainBrush}"
+    SnapsToDevicePixels="True"
     mc:Ignorable="d">
     <UserControl.Resources>
         <SolidColorBrush x:Key="Expander.MouseOver.Circle.Stroke" Color="#FF5593FF" />
@@ -397,6 +398,17 @@
     </UserControl.Resources>
 
     <Border Padding="0,10" BorderThickness="0,0,0,0.5">
+        <!--  Faded effect if product tracking is disabled  -->
+        <Border.Style>
+            <Style TargetType="{x:Type Border}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Tracked}" Value="False">
+                        <Setter Property="Opacity" Value="0.5" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
         <!--  Line Separator  -->
         <Border.BorderBrush>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -406,126 +418,136 @@
             </LinearGradientBrush>
         </Border.BorderBrush>
 
+        <!--  The product values  -->
         <Expander
             Margin="0"
             Padding="0"
             IsExpanded="False"
             Style="{StaticResource ExpanderStyle1}">
             <Expander.Header>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <!--  Host  -->
-                        <ColumnDefinition Width="*" />
-
-                        <!--  Name  -->
-                        <ColumnDefinition Width="*" />
-
-                        <!--  Price  -->
-                        <ColumnDefinition Width="*" />
-
-                        <!--  Last check  -->
-                        <ColumnDefinition Width="*" />
-
-                        <!--  Options  -->
-                        <ColumnDefinition Width=".4*" />
-
-                    </Grid.ColumnDefinitions>
-
-                    <!--  Host  -->
-                    <TextBlock
-                        Grid.Column="0"
-                        VerticalAlignment="Center"
-                        Text="{Binding Url.Host, FallbackValue=example.com}"
-                        TextWrapping="Wrap" />
+                <StackPanel>
 
                     <!--  Product Name  -->
-                    <Button
-                        Grid.Column="1"
-                        Command="{Binding NavigateCommand}"
-                        Content="{Binding DisplayName, FallbackValue=Product}"
-                        Foreground="{StaticResource AppDarkRedBrush}">
+                    <Button Command="{Binding NavigateCommand}" ToolTip="Navigate to the product">
                         <Button.Style>
                             <Style BasedOn="{StaticResource Styleless}" TargetType="Button">
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundVeryDarkBrush}" />
+                                <Setter Property="Content" Value="{Binding DisplayName, FallbackValue=Display Product Name}" />
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource AppRedBrush}" />
+                                        <Setter Property="Foreground" Value="{StaticResource AppDarkBlueBrush}" />
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <TextBlock Text="{Binding DisplayName}" TextDecorations="Underline" />
+                                            </Setter.Value>
+                                        </Setter>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
 
-                    <!--  Current Product Price  -->
-                    <TextBlock
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Text="{Binding PriceCurrent, FallbackValue=1234}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <!--  Current price  -->
+                            <ColumnDefinition Width="*" />
 
-                    <!--  Last check  -->
-                    <TextBlock
-                        Grid.Column="3"
-                        VerticalAlignment="Center"
-                        Text="{Binding LastCheck, FallbackValue=5 minutes ago, Converter={local:HumanRelativeTimeConverter}}"
-                        Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}}" />
+                            <!--  Options button  -->
+                            <ColumnDefinition Width=".07*" />
+                        </Grid.ColumnDefinitions>
 
-                    <!--  Last check: updating now  -->
-                    <StackPanel
-                        Grid.Column="3"
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal"
-                        Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
-                        <Border
-                            Width="12"
-                            Height="12"
-                            Margin="0,0,5,0"
-                            Style="{StaticResource SpinningText}">
-                            <Border.Background>
-                                <VisualBrush Visual="{StaticResource Vector.Spinner}" />
-                            </Border.Background>
-                        </Border>
-                        <TextBlock Text="Updating..." />
-                    </StackPanel>
+                        <!--  Current price  -->
+                        <TextBlock
+                            Grid.Column="0"
+                            FontSize="{StaticResource FontSizeXLarge}"
+                            Text="{Binding PriceCurrent, FallbackValue=1234}" />
 
-                    <!--  Product options  -->
-                    <Border Grid.Column="4">
+                        <!--  Product options  -->
                         <Button
                             x:Name="OptionsButton"
+                            Grid.Column="1"
                             Padding="0"
                             VerticalAlignment="Center"
-                            Command="{Binding ExpandOptionsPopupCommand}"
+                            Command="{Binding ToggleOptionsPopupCommand}"
                             Content="..." />
-                    </Border>
 
-                    <!--  Product options popup menu  -->
-                    <Popup
-                        AllowsTransparency="True"
-                        HorizontalOffset="0"
-                        IsOpen="{Binding ShowOptionsPopupMenu}"
-                        Placement="Bottom"
-                        PlacementTarget="{Binding ElementName=OptionsButton}"
-                        StaysOpen="{Binding IsMouseOver, ElementName=OptionsButton}"
-                        VerticalOffset="2">
+                        <!--  Product options popup menu  -->
+                        <Popup
+                            AllowsTransparency="True"
+                            HorizontalOffset="0"
+                            IsOpen="{Binding ShowOptionsPopupMenu}"
+                            Placement="Bottom"
+                            PlacementTarget="{Binding ElementName=OptionsButton}"
+                            SnapsToDevicePixels="False"
+                            StaysOpen="{Binding IsMouseOver, ElementName=OptionsButton}"
+                            VerticalOffset="2">
+                            <Border BorderBrush="{StaticResource ForegroundDarkerBrush}" BorderThickness="0.5">
+                                <StackPanel Background="{StaticResource BackgroundLighterBrush}">
+                                    <ItemsControl>
+                                        <!--  Edit the product  -->
+                                        <MenuItem Header="Edit" />
+                                        <!--  Open in browser  -->
+                                        <MenuItem Header="Open in browser" />
+                                        <!--  Toggle tracking  -->
+                                        <MenuItem
+                                            Command="{Binding StopTrackingCommand}"
+                                            Header="Stop tracking"
+                                            Visibility="{Binding Tracked, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+                                        <MenuItem
+                                            Command="{Binding StartTrackingCommand}"
+                                            Header="Start tracking"
+                                            Visibility="{Binding Tracked, Converter={local:BooleanToVisibilityConverter}}" />
+                                        <!--  Separator  -->
+                                        <Separator Background="{StaticResource BackgroundMainBrush}" />
+                                        <!--  Remove  -->
+                                        <MenuItem Foreground="#FF0000" Header="Remove Product" />
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
 
-                        <Border BorderBrush="{StaticResource ForegroundDarkerBrush}" BorderThickness="0.5">
-                            <StackPanel Background="{StaticResource BackgroundLighterBrush}">
-                                <ItemsControl>
-                                    <!--  Open in browser  -->
-                                    <MenuItem Command="{Binding OpenSettingsWindowCommand}" Header="Open in browser" />
-                                    <!--  Toggle tracking  -->
-                                    <MenuItem Command="{Binding OpenSettingsWindowCommand}" Header="Stop tracking" />
-                                    <!--  Separator  -->
-                                    <Separator Background="{StaticResource BackgroundMainBrush}" />
-                                    <!--  Remove  -->
-                                    <MenuItem
-                                        Command="{Binding ShutdownCommand}"
-                                        Foreground="#FF0000"
-                                        Header="Remove Product" />
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    </Popup>
-                </Grid>
+                        <!--  Host  -->
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{Binding Url.Host, FallbackValue=example.com}" />
+
+                        <!--  Last check  -->
+                        <TextBlock
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Text="{Binding LastCheck, FallbackValue=5 minutes ago, Converter={local:HumanRelativeTimeConverter}}"
+                            Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}}" />
+
+                        <!--  Last check - updating now  -->
+                        <StackPanel
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                            <Border
+                                Width="12"
+                                Height="12"
+                                Margin="0,0,5,0"
+                                Style="{StaticResource SpinningText}">
+                                <Border.Background>
+                                    <VisualBrush Visual="{StaticResource Vector.Spinner}" />
+                                </Border.Background>
+                            </Border>
+                            <TextBlock Text="Updating..." />
+                        </StackPanel>
+                    </Grid>
+
+                </StackPanel>
             </Expander.Header>
 
             <!--  Expanded content  -->
@@ -553,7 +575,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="Site:" />
-                        <TextBlock Grid.Column="1" Text="{Binding Url.Host, FallbackValue=example.cc}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Url.Host, FallbackValue=example.com}" />
                     </Grid>
                 </Border>
 

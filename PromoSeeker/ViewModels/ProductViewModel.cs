@@ -24,6 +24,11 @@ namespace PromoSeeker
         private readonly Timer _lastCheckTimer;
 
         /// <summary>
+        /// If the product options popup menu is currently expanded.
+        /// </summary>
+        private bool _showOptionsPopupMenu;
+
+        /// <summary>
         /// Whether the product is currently being updated.
         /// </summary>
         private bool _currentlyUpdating;
@@ -86,7 +91,18 @@ namespace PromoSeeker
         /// <summary>
         /// If the product options popup menu is currently expanded.
         /// </summary>
-        public bool ShowOptionsPopupMenu { get; set; }
+        public bool ShowOptionsPopupMenu
+        {
+            get => _showOptionsPopupMenu;
+            set
+            {
+                // Update value
+                _showOptionsPopupMenu = value;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(ShowOptionsPopupMenu));
+            }
+        }
 
         /// <summary>
         /// Whether the product instance is set and loaded.
@@ -142,7 +158,17 @@ namespace PromoSeeker
         /// <summary>
         /// The command for expanding the product options popup menu.
         /// </summary>
-        public ICommand ExpandOptionsPopupCommand { get; set; }
+        public ICommand ToggleOptionsPopupCommand { get; set; }
+
+        /// <summary>
+        /// The command for starting the product tracking task.
+        /// </summary>
+        public ICommand StartTrackingCommand { get; set; }
+
+        /// <summary>
+        /// The command for stopping the product tracking task.
+        /// </summary>
+        public ICommand StopTrackingCommand { get; set; }
 
         #endregion
 
@@ -166,9 +192,10 @@ namespace PromoSeeker
             _lastCheckTimer = new Timer
             {
                 AutoReset = true,
-                Interval = 1000,
+                Interval = 60 * 1000,
                 Enabled = true,
             };
+
             _lastCheckTimer.Elapsed += (s, e) =>
             {
                 OnPropertyChanged(nameof(LastCheck));
@@ -177,15 +204,14 @@ namespace PromoSeeker
             #region Create Commands
 
             LoadCommand = new RelayParamCommand((param) => Load((ProductSettings)param));
-            NavigateCommand = new RelayCommand(() => Process.Start(Url.Scheme + "://" + Url.Host));
-            ExpandOptionsPopupCommand = new RelayCommand(() =>
+            NavigateCommand = new RelayCommand(() => Process.Start(Url.ToString()));
+            ToggleOptionsPopupCommand = new RelayCommand(() =>
             {
                 // Toggle value
                 ShowOptionsPopupMenu = !ShowOptionsPopupMenu;
-
-                // Raise property changed event
-                OnPropertyChanged(nameof(ShowOptionsPopupMenu));
             });
+            StartTrackingCommand = new RelayCommand(StartTrackingAsync);
+            StopTrackingCommand = new RelayCommand(StopTrackingAsync);
 
             #endregion
         }
@@ -205,6 +231,7 @@ namespace PromoSeeker
                 : product.Name;
             Name = product.Name;
             DateAdded = product.Created;
+            LastCheck = product.LastChecked;
             PriceCurrent = product.Price;
             Url = product.Url;
             Tracked = product.Tracked;
@@ -212,6 +239,7 @@ namespace PromoSeeker
             // Create product instance
             Product = new Product(Url.ToString());
             // Subscribe to the events
+            Product.TrackingFailed += Product_TrackingFailed;
             Product.Updating += Product_Updating;
             Product.Updated += Product_Updated;
 
@@ -219,32 +247,38 @@ namespace PromoSeeker
             if (Tracked)
             {
                 // Start tracking
-                StartTracking();
+                StartTrackingAsync();
             }
         }
 
         /// <summary>
         /// Starts the tracking task for this product.
         /// </summary>
-        public void StartTracking()
+        public async void StartTrackingAsync()
         {
+            // Close options popup
+            ShowOptionsPopupMenu = false;
+
             // Flag as tracked
             Tracked = true;
 
             // Start tracking tasks
-            Product.Track(Consts.PRODUCT_UPDATE_INTERVAL);
+            await Product.TrackAsync(Consts.PRODUCT_UPDATE_INTERVAL);
         }
 
         /// <summary>
         /// Disable this product from tracking.
         /// </summary>
-        public void StopTracking()
+        public async void StopTrackingAsync()
         {
-            // Flag as not tracked
-            Tracked = false;
+            // Close options popup
+            ShowOptionsPopupMenu = false;
 
             // Stop any tracking tasks
-            Product.StopTracking();
+            await Product.StopTrackingAsync();
+
+            // Once stopped, flag as not tracked
+            Tracked = false;
         }
 
         #endregion
@@ -252,17 +286,19 @@ namespace PromoSeeker
         #region Private Methods
 
         /// <summary>
-        /// Gets called whenever the product is updating.
+        /// A callback that occurs whenever the product update has started.
         /// </summary>
         private void Product_Updating()
         {
             // Flag we are updating
             CurrentlyUpdating = true;
-            Console.WriteLine("update started");
+
+            // Leave a log message
+            DI.Logger.Info($"> Update [{Name}, {Url}]");
         }
 
         /// <summary>
-        /// Gets called whenever the product is updated.
+        /// A callback that occurs whenever the product is updated.
         /// </summary>
         private void Product_Updated(ProductUpdateResult result)
         {
@@ -280,8 +316,19 @@ namespace PromoSeeker
             // Save application state
             DI.Application.Save();
 
-            Console.WriteLine("update finished");
-            Console.WriteLine(Product.Name);
+            // Leave a log message
+            DI.Logger.Info($"> Update finished [{Name}]");
+        }
+
+        /// <summary>
+        /// A callback that occurs when the product tracking task was aborted due to an error.
+        /// </summary>
+        /// <param name="ex">The exception occurred, if any.</param>
+        private void Product_TrackingFailed(Exception ex)
+        {
+            // Inform the user
+
+            // Mark the product 'error having'
         }
 
 

@@ -51,6 +51,7 @@
 
     <Style x:Key="BaseTextBlockStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
+        <Setter Property="FontWeight" Value="Thin" />
         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
     </Style>
 

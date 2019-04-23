@@ -147,15 +147,17 @@
             Grid.Row="2"
             Padding="10"
             Background="{StaticResource BackgroundMainBrush}">
-            <StackPanel>
-                <ItemsControl ItemsSource="{Binding Products, FallbackValue=12345678, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <local:ProductListItem />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
+            <ScrollViewer>
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Products, FallbackValue=12345678, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <local:ProductListItem />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
     </Grid>

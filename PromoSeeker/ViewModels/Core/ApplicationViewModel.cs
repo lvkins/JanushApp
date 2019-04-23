@@ -49,14 +49,18 @@ namespace PromoSeeker
                 var products = DI.Settings.Settings.Products;
 
                 // Iterate over products list
-                products.ForEach(product =>
-                {
-                    // Add the product to the collection
-                    Products.Add(new ProductViewModel(product));
-                });
+                products.OrderBy(_ => !_.Tracked).ToList()
+                    .ForEach(product =>
+                    {
+                        // Add the product to the collection
+                        Products.Add(new ProductViewModel(product));
+                    });
             }
             catch (Exception ex)
             {
+                // Let developer know
+                Debugger.Break();
+
                 // Unable to load application 
                 DI.Logger.Fatal("Load failed");
                 DI.Logger.Exception(ex);
@@ -78,7 +82,7 @@ namespace PromoSeeker
         public void Save()
         {
             // Write diagnostic info
-            Debug.WriteLine("Save application state");
+            Debug.WriteLine($"Save application state {System.Threading.Thread.CurrentThread.ManagedThreadId}");
 
             // Update products
             DI.Settings.Settings.Products = Products.Select(_ => new ProductSettings
