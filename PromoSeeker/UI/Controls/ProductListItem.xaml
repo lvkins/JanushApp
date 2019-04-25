@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gl="clr-namespace:System.Globalization;assembly=mscorlib"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignWidth="400"
@@ -588,7 +589,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="Last check:" />
-                        <TextBlock Grid.Column="1" Text="{Binding DateAdded, FallbackValue=ss ago}" />
+                        <TextBlock Grid.Column="1" Text="{Binding LastCheck, StringFormat=f, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
                     </Grid>
                 </Border>
 
@@ -601,7 +602,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="Tracking since:" />
-                        <TextBlock Grid.Column="1" Text="{Binding DateAdded, FallbackValue=dd/mm/yyyy h:i:s}" />
+                        <TextBlock Grid.Column="1" Text="{Binding DateAdded, StringFormat=f, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
                     </Grid>
                 </Border>
             </StackPanel>
