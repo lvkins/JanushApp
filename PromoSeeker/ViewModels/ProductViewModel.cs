@@ -1,6 +1,7 @@
 ﻿using PromoSeeker.Core;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Timers;
 using System.Windows.Input;
 
@@ -56,6 +57,16 @@ namespace PromoSeeker
         /// The current price.
         /// </summary>
         public decimal PriceCurrent { get; set; }
+
+        /// <summary>
+        /// The formatted price value to be displayed as the product price.
+        /// </summary>
+        public string DisplayPrice => PriceCurrent.ToString("C2", Culture);
+
+        /// <summary>
+        /// The culture to use for the currency formatting.
+        /// </summary>
+        public CultureInfo Culture { get; set; }
 
         /// <summary>
         /// Date when the product was created.
@@ -225,7 +236,7 @@ namespace PromoSeeker
         /// </summary>
         public void Load(ProductSettings product)
         {
-            // Set properties
+            // Populate properties
             DisplayName = !string.IsNullOrWhiteSpace(product.DisplayName)
                 ? product.DisplayName
                 : product.Name;
@@ -233,6 +244,7 @@ namespace PromoSeeker
             DateAdded = product.Created;
             LastCheck = product.LastChecked;
             PriceCurrent = product.Price;
+            Culture = product.Culture;
             Url = product.Url;
             Tracked = product.Tracked;
 
@@ -311,7 +323,59 @@ namespace PromoSeeker
             if (!result.Success)
             {
                 // TODO: Handle unsuccessful update
+                DI.UIManager.Tray.Notification("Failed to update product", DisplayName, TrayIconNotificationType.Warning);
+                return;
             }
+
+            // The notification message
+            var tooltipMessage = string.Empty;
+
+            // Get updates properties values
+            var name = Product.Name;
+            var price = Product.PriceInfo.Price.Decimal;
+
+            #region Notify The User
+
+            // TODO: add conditional notifications and allow user to customize
+
+            // If new price is higher than current price...
+            if (price > PriceCurrent)
+            {
+                tooltipMessage = $"Aww... price has increased!\nNew price: {Product.Price}";
+            }
+            // If new price is lower than current price...
+            else if (price < PriceCurrent)
+            {
+                tooltipMessage = $"Ohh... price has decreased!\nNew price: {Product.Price}";
+            }
+
+            // If a product name has changed...
+            if (!name.Equals(Name, StringComparison.InvariantCulture))
+            {
+                tooltipMessage = $"Product has a new name.";
+            }
+
+            // If we have a message to notify...
+            if (!string.IsNullOrEmpty(tooltipMessage))
+            {
+                // Send notification
+                DI.UIManager.Tray.Notification(tooltipMessage, DisplayName);
+            }
+
+            #endregion
+
+            #region Assign New Values
+
+            // Set values
+            Name = name;
+            PriceCurrent = price;
+
+            // Raise property changed events
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(PriceCurrent));
+            OnPropertyChanged(nameof(DisplayPrice));
+
+            #endregion
 
             // Save application state
             DI.Application.Save();

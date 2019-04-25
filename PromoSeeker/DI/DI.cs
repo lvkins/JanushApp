@@ -31,7 +31,7 @@ namespace PromoSeeker
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.
         /// </summary>
-        public static IUserSettingsReader Settings => GetService<IUserSettingsReader>();
+        public static IUserSettingsReader SettingsReader => GetService<IUserSettingsReader>();
 
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="PromoSeeker.Logger"/>.

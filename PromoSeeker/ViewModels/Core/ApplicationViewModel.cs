@@ -34,8 +34,8 @@ namespace PromoSeeker
             Products.Add(new ProductViewModel(productSetting));
 
             // Store the product to the settings file
-            DI.Settings.Settings.Products.Add(productSetting);
-            DI.Settings.Save();
+            DI.SettingsReader.Settings.Products.Add(productSetting);
+            DI.SettingsReader.Save();
         }
 
         /// <summary>
@@ -45,8 +45,12 @@ namespace PromoSeeker
         {
             try
             {
+                // Load user settings here to catch all the exceptions and handle corrupted
+                // user settings in one place
+                DI.SettingsReader.Load();
+
                 // Get the stored products list
-                var products = DI.Settings.Settings.Products;
+                var products = DI.SettingsReader.Settings.Products;
 
                 // Iterate over products list
                 products.OrderBy(_ => !_.Tracked).ToList()
@@ -69,7 +73,7 @@ namespace PromoSeeker
                 DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
                 {
                     Type = DialogBoxType.Error,
-                    Message = "Application state wasn't loaded properly, please ensure your settings file is not corrupted.", // TODO: localize me
+                    Message = "Application state wasn't loaded properly, please ensure your settings file is corrupted.", // TODO: localize me
                 });
 
                 // TODO: Ask user to restore backed up settings file if we have one
@@ -85,19 +89,20 @@ namespace PromoSeeker
             Debug.WriteLine($"Save application state {System.Threading.Thread.CurrentThread.ManagedThreadId}");
 
             // Update products
-            DI.Settings.Settings.Products = Products.Select(_ => new ProductSettings
+            DI.SettingsReader.Settings.Products = Products.Select(_ => new ProductSettings
             {
-                Name = _.Name,
                 Url = _.Url,
+                Name = _.Name,
                 Price = _.PriceCurrent,
-                DisplayName = _.Name.Equals(_.DisplayName, StringComparison.InvariantCulture) ? _.DisplayName : null,
+                Culture = _.Culture,
+                DisplayName = !_.Name.Equals(_.DisplayName, StringComparison.InvariantCulture) ? _.DisplayName : null,
                 Tracked = _.Tracked,
                 LastChecked = _.LastCheck,
                 Created = _.DateAdded,
             }).ToList();
 
             // Save settings
-            DI.Settings.Save();
+            DI.SettingsReader.Save();
         }
 
         /// <summary>

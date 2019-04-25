@@ -2,6 +2,9 @@
 
 namespace PromoSeeker.Core
 {
+    /// <summary>
+    /// Holds all the relevant informations about the product price and it's origin.
+    /// </summary>
     public interface IPriceInfo
     {
         /// <summary>

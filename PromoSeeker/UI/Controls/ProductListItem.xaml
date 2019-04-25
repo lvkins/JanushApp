@@ -460,7 +460,7 @@
                         <TextBlock
                             Grid.Column="0"
                             FontSize="{StaticResource FontSizeXLarge}"
-                            Text="{Binding PriceCurrent, FallbackValue=1234}" />
+                            Text="{Binding DisplayPrice, FallbackValue=1234$}" />
 
                         <!--  Product options  -->
                         <Button

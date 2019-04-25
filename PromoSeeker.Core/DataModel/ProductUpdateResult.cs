@@ -5,6 +5,14 @@
     /// </summary>
     public class ProductUpdateResult
     {
+        /// <summary>
+        /// Whether the update was successful.
+        /// </summary>
         public bool Success { get; set; }
+
+        /// <summary>
+        /// Whether any of the product property (price, name, ...) has changed.
+        /// </summary>
+        public bool Changed { get; set; }
     }
 }

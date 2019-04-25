@@ -136,6 +136,7 @@
     </Compile>
     <Compile Include="UI\IUIManager.cs" />
     <Compile Include="UI\TrayIcon.cs" />
+    <Compile Include="UI\TrayIconNotificationType.cs" />
     <Compile Include="UI\UIManager.cs" />
     <Compile Include="ValueConverters\BaseValueConverter.cs" />
     <Compile Include="ValueConverters\HumanRelativeTimeConverter.cs" />

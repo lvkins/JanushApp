@@ -1,6 +1,4 @@
 ﻿using HtmlAgilityPack;
-using System;
-using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -12,7 +10,7 @@ namespace PromoSeeker.Core
     public class HtmlRequest
     {
         #region Private Members
-        
+
         /// <summary>
         /// The web response awaiting task.
         /// </summary>
@@ -27,7 +25,7 @@ namespace PromoSeeker.Core
         #endregion
 
         #region Public Properties
-        
+
         /// <summary>
         /// The complete, loaded HTML document.
         /// </summary>
@@ -92,7 +90,7 @@ namespace PromoSeeker.Core
             // https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-        } 
+        }
 
         #endregion
 

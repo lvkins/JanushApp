@@ -365,10 +365,11 @@ namespace PromoSeeker
             // Create setting object
             var productSetting = new ProductSettings
             {
-                Name = Name,
+                Url = new Uri(Product.Url),
+                Name = Product.Name,
                 DisplayName = DisplayName,
                 Price = Product.PriceInfo.Price.Decimal,
-                Url = new Uri(Product.Url),
+                Culture = Product.Culture
             };
 
             // Add product

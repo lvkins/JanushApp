@@ -404,7 +404,13 @@ namespace PromoSeeker.Core
         /// </summary>
         public async Task RefreshAsync()
         {
-            await LoadAsync();
+            // If the product is not loaded...
+            if (!IsLoaded)
+            {
+                throw new InvalidOperationException("Product has to be loaded in order to refresh");
+            }
+
+
         }
 
         /// <summary>

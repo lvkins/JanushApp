@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace PromoSeeker.Core
 {
@@ -20,10 +21,15 @@ namespace PromoSeeker.Core
     }
 
     /// <summary>
-    /// A promotion settings.
+    /// A class representing the product settings data.
     /// </summary>
     public sealed class ProductSettings
     {
+        /// <summary>
+        /// A product URL.
+        /// </summary>
+        public Uri Url { get; set; }
+
         /// <summary>
         /// The product detected name.
         /// </summary>
@@ -40,14 +46,14 @@ namespace PromoSeeker.Core
         public decimal Price { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public CultureInfo Culture { get; set; } = CultureInfo.CurrentCulture;
+
+        /// <summary>
         /// The product change price history.
         /// </summary>
         public Dictionary<decimal, DateTime> PriceHistory { get; set; }
-
-        /// <summary>
-        /// A product URL.
-        /// </summary>
-        public Uri Url { get; set; }
 
         /// <summary>
         /// If the product tracking is enabled.

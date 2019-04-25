@@ -19,7 +19,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The settings backup file path.
         /// </summary>
-        private static readonly string BackupSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, @"Settings.bup.json");
+        private static readonly string BackupSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, @"Settings.back");
 
         /// <summary>
         /// The JSON serializer settings to be used to proceed the settings serialization.
@@ -60,8 +60,6 @@ namespace PromoSeeker.Core
         /// </summary>
         public SettingsReader()
         {
-            // Loads user settings
-            Load();
         }
 
         #endregion
@@ -69,7 +67,7 @@ namespace PromoSeeker.Core
         #region Public Methods
 
         /// <summary>
-        /// Initializes the <see cref="Settings"/> object by deserializing the JSON settings file.
+        /// Initializes the <see cref="Settings"/> object by deserialization of the JSON settings file.
         /// </summary>
         public void Load()
         {

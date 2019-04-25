@@ -11,7 +11,7 @@
         UserSettings Settings { get; set; }
 
         /// <summary>
-        /// Initializes the <see cref="Settings"/> object by deserializing the JSON settings file.
+        /// Initializes the <see cref="Settings"/> object by deserialization of the JSON settings file.
         /// </summary>
         void Load();
 

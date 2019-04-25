@@ -1,5 +1,4 @@
 ﻿using PromoSeeker.Core;
-using System;
 using System.Drawing;
 using System.Windows;
 using FormsApp = System.Windows.Forms;
@@ -9,11 +8,13 @@ namespace PromoSeeker
     /// <summary>
     /// Represents the <see cref="FormsApp.NotifyIcon"/> for our application.
     /// </summary>
-    internal class TrayIcon
+    public sealed class TrayIcon
     {
         #region Private Members
 
-        // An instance of the notify icon.
+        /// <summary>
+        /// An instance of the notify icon.
+        /// </summary>
         private readonly FormsApp.NotifyIcon _trayIcon = new FormsApp.NotifyIcon();
 
         #endregion
@@ -47,6 +48,23 @@ namespace PromoSeeker
 
         #endregion
 
+        #region Public Properties
+
+        /// <summary>
+        /// Shows a notification near the tray icon.
+        /// </summary>
+        /// <param name="tipText"></param>
+        /// <param name="tipTitle"></param>
+        /// <param name="timeout"></param>
+        /// <param name="type"></param>
+        public void Notification(string tipText, string tipTitle = "",
+            TrayIconNotificationType type = TrayIconNotificationType.None, int timeout = 5)
+            => _trayIcon.ShowBalloonTip(timeout, tipTitle, tipText, (FormsApp.ToolTipIcon)type);
+
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
         /// Gets called on application exit.
         /// </summary>
@@ -76,5 +94,7 @@ namespace PromoSeeker
             mainWnd.Topmost = true;
             mainWnd.Topmost = false;
         }
+
+        #endregion
     }
 }

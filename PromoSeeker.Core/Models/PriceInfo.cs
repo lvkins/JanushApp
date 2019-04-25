@@ -24,7 +24,7 @@ namespace PromoSeeker.Core
     }
 
     /// <summary>
-    /// An object containing all the key informations about the price and it's origin.
+    /// A class that holds all the relevant informations about the product price and it's origin.
     /// </summary>
     public class PriceInfo : IPriceInfo
     {
