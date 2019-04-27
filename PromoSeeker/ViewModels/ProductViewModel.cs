@@ -249,7 +249,8 @@ namespace PromoSeeker
             Tracked = product.Tracked;
 
             // Create product instance
-            Product = new Product(Url.ToString());
+            Product = new Product(product.Url.ToString());
+
             // Subscribe to the events
             Product.TrackingFailed += Product_TrackingFailed;
             Product.Updating += Product_Updating;
@@ -341,12 +342,12 @@ namespace PromoSeeker
             // If new price is higher than current price...
             if (price > PriceCurrent)
             {
-                tooltipMessage = $"Aww... price has increased!\nNew price: {Product.Price}";
+                tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.Price}";
             }
             // If new price is lower than current price...
             else if (price < PriceCurrent)
             {
-                tooltipMessage = $"Ohh... price has decreased!\nNew price: {Product.Price}";
+                tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.Price}";
             }
 
             // If a product name has changed...

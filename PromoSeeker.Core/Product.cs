@@ -1,4 +1,6 @@
-﻿using HtmlAgilityPack;
+﻿using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.XPath;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,14 +65,14 @@ namespace PromoSeeker.Core
     /// <summary>
     /// A main product class.
     /// </summary>
-    public class Product
+    public class Product : IDisposable
     {
         #region Private Members
 
         /// <summary>
-        /// The HTML document of the current promotion.
+        /// The document of the product web page.
         /// </summary>
-        private HtmlDocument mHtmlDocument;
+        private IDocument mHtmlDocument;
 
         /// <summary>
         /// The tracking task cancellation token.
@@ -244,21 +246,23 @@ namespace PromoSeeker.Core
                 throw new InvalidOperationException("Url not specified");
             }
 
-            // Create HTML request
-            var request = new HtmlRequest();
-
             // Attempt to load HTML
             try
             {
-                await request.LoadAsync(Url);
+                // Wait for the HTML document
+                mHtmlDocument = await WebLoader.LoadAsync(Url);
             }
             catch (Exception e)
             {
+                // Let developer know
+                Debugger.Break();
+
+                // Log details
                 CoreDI.Logger.Exception(e);
             }
 
-            // If status code is any other than 200...
-            if (request.Response?.StatusCode != System.Net.HttpStatusCode.OK)
+            // If status code is not successful..
+            if (mHtmlDocument == null || !((int)mHtmlDocument.StatusCode >= 200 && (int)mHtmlDocument.StatusCode <= 299))
             {
                 // Return with the result
                 return new ProductLoadResult
@@ -266,14 +270,11 @@ namespace PromoSeeker.Core
                     // Load wasn't successful
                     Success = false,
                     // Set no response or invalid response,
-                    ErrorType = request.Response == null
+                    ErrorType = mHtmlDocument == null
                         ? ProductLoadResultType.NoResponse
                         : ProductLoadResultType.InvalidResponse,
                 };
             }
-
-            // Store the HTML document
-            mHtmlDocument = request.Document;
 
             // Once we have the HTML document, we can parse product properties
 
@@ -286,7 +287,7 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Automatically attempts to grab the product properties like name, price, culture info.
+        /// Automatically loads the latest product properties like name, price, culture info.
         /// </summary>
         /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the load.</returns>
         private Task<ProductLoadResult> LoadAutoAsync()
@@ -308,11 +309,13 @@ namespace PromoSeeker.Core
                 result.Success = false;
                 result.ErrorType = ProductLoadResultType.ProductUnknownName;
             }
-            // If the price selector is not specified...
+            // Once we have culture and name, we can detect price
             else
             {
                 // Detect prices sources
                 var prices = DetectPriceSources();
+
+                ;
 
                 // If no price sources were found...
                 if (!prices.Any())
@@ -344,9 +347,9 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// 
+        /// Manually loads the latest product properties like name, price.
         /// </summary>
-        /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the load.</returns>
+        /// <returns>A task that will finish once loading is finished. Task result contains the result of the load.</returns>
         private Task<ProductLoadResult> LoadManuallyAsync()
         {
             // Create the result
@@ -362,17 +365,17 @@ namespace PromoSeeker.Core
 
             #region Set Price
 
-            // Select node by specified xpath query
-            var node = mHtmlDocument.DocumentNode.SelectSingleNode(PriceXPathOrSelector);
+            // Select node by given xpath query
+            var node = (HtmlElement)mHtmlDocument.Body.SelectSingleNode(PriceXPathOrSelector);
 
             // Because the price xpath query can point to the meta tag, where the price lies
             // In case of a meta tag node, read the 'content' attribute, instead of the inner text.
-            var isMeta = node?.Name.ToLowerInvariant() == "meta";
+            var isMeta = node?.NodeName.ToUpperInvariant() == "META";
 
             // Get the value
             var value = isMeta
-                ? node.GetAttributeValue("content", default(string))
-                : node.InnerText;
+                ? node.GetAttribute("content")
+                : node.TextContent;
 
             // If unable to read the node value...
             if (!ReadPrice(value, out var priceValue))
@@ -538,7 +541,7 @@ namespace PromoSeeker.Core
             Debug.WriteLine("> Attempt to detect culture by currency meta tag...");
 
             // Find the currency value in the pre-defined node sources
-            var currencyValue = mHtmlDocument.DocumentNode.FindContentFromSource(Consts.CURRENCY_SOURCES);
+            var currencyValue = mHtmlDocument.Body.FindContentFromSource(Consts.CURRENCY_SOURCES);
 
             // If not empty and culture exists...
             if (!string.IsNullOrWhiteSpace(currencyValue) && CurrencyHelpers.FindCultureByCurrencySymbol(currencyValue, out var culture))
@@ -558,14 +561,14 @@ namespace PromoSeeker.Core
             Debug.WriteLine("> Attempt to detect culture by prices currency...");
 
             // Take all prices in the document, lookup the currency symbol they use and try to find appropriate culture by the symbol.
-            var topPricesCulture = mHtmlDocument.DocumentNode.Descendants()
+            var topPricesCulture = mHtmlDocument.Descendents()
                 // Get most nested text nodes
                 .Where(_ => !_.HasChildNodes)
                 // Get fixed text
                 .Select(_ =>
                 {
                     // Prepare text
-                    ParseNodeText(_.InnerText, out var result);
+                    ParseNodeText(_.TextContent, out var result);
                     return new { Text = result, Node = _ };
                 })
                 // Where the value is price-like.
@@ -617,14 +620,14 @@ namespace PromoSeeker.Core
             foreach (var source in Consts.LANG_SOURCES)
             {
                 // Select node by XPath expression
-                var node = mHtmlDocument.DocumentNode.SelectSingleNode(source.Key);
+                var node = (HtmlElement)mHtmlDocument.DocumentElement.SelectSingleNode(source.Key);
 
                 // If node exists...
                 if (node != null)
                 {
                     // Find any attribute
                     var result = source.Value
-                        .Select(_ => new { Name = _, Value = node.GetAttributeValue(_, default(string)) })
+                        .Select(_ => new { Name = _, Value = node.GetAttribute(_) })
                         .FirstOrDefault(_ => !string.IsNullOrWhiteSpace(_.Value));
 
                     // If an attribute was found...
@@ -665,7 +668,7 @@ namespace PromoSeeker.Core
             // Otherwise we are dealing with some badly set e-commerce site, which we don't care about right now.
 
             // Find the title
-            var titleValue = mHtmlDocument.DocumentNode.FindContentFromSource(Consts.TITLE_SOURCES);
+            var titleValue = mHtmlDocument.DocumentElement.FindContentFromSource(Consts.TITLE_SOURCES);
 
             // If we have no page title...
             if (string.IsNullOrWhiteSpace(titleValue))
@@ -677,14 +680,14 @@ namespace PromoSeeker.Core
             ParseNodeText(titleValue, out var pageTitle);
 
             // Get nodes that can potentially contain the product title
-            var contents = mHtmlDocument.DocumentNode.Descendants()
+            var contents = mHtmlDocument.DocumentElement.Descendents()
                 // Only nodes without children, not empty and not longer than product max. length
-                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.InnerText) && _.InnerText.Length <= Consts.PRODUCT_TITLE_MAX_LENGTH)
+                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent) && _.TextContent.Length <= Consts.PRODUCT_TITLE_MAX_LENGTH)
                 // Select node along with parsed text
                 .Select(_ =>
                 {
                     // Parse
-                    ParseNodeText(_.InnerText, out var text);
+                    ParseNodeText(_.TextContent, out var text);
 
                     // Some shops can format the page title like so:
                     // The Product Name, SiteName.com
@@ -757,7 +760,7 @@ namespace PromoSeeker.Core
             foreach (var source in Consts.PRICE_SOURCES)
             {
                 // Find a node in the document
-                var node = mHtmlDocument.DocumentNode.SelectSingleNode(source.Key);
+                var node = (HtmlElement)mHtmlDocument.DocumentElement.SelectSingleNode(source.Key);
 
                 // If node exists...
                 if (node != null)
@@ -768,9 +771,9 @@ namespace PromoSeeker.Core
                     // If we are dealing with the attribute source...
                     var isPrice = isAttribute
                         // Read from the attribute
-                        ? ReadPrice(node.GetAttributeValue(source.Value, default(string)), out var price)
+                        ? ReadPrice(node.GetAttribute(source.Value), out var price)
                         // Otherwise assume node text
-                        : ReadPrice(node.InnerText, out price);
+                        : ReadPrice(node.TextContent, out price);
 
                     // If price read was successful...
                     if (isPrice)
@@ -833,7 +836,7 @@ namespace PromoSeeker.Core
 
             // Extract price values in the Javascript objects declared in the document
             var pricesInJavaScript = PricesInJavaScriptRegex
-                .Matches(mHtmlDocument.DocumentNode.InnerText)
+                .Matches(mHtmlDocument.TextContent)
                 .Cast<Match>()
                 .Select(m => new { IsPrice = ReadPrice(m.Groups[1].Value, out var price), Price = price })
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
@@ -844,14 +847,14 @@ namespace PromoSeeker.Core
                 });
 
             // Get all document descendants
-            var docDescendants = mHtmlDocument.DocumentNode.Descendants();
+            var docDescendants = mHtmlDocument.Descendents().OfType<HtmlElement>();
 
             // Extract price values from attributes named after prices.
             var pricesInAttributeValues = docDescendants
-                .Where(_ => _.HasAttributes)
-                .SelectMany(_ => _.Attributes
+                .Where(_ => ((IElement)_).Attributes.Any())
+                .SelectMany(_ => ((IElement)_).Attributes
                     .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES))
-                    .Select(a => new { IsPrice = ReadPrice(a.DeEntitizeValue, out var price), Price = price, Attribute = a })
+                    .Select(a => new { IsPrice = ReadPrice(a.Value, out var price), Price = price, Attribute = a })
                     .Where(a => a.IsPrice && a.Price.Decimal > 0)
                     .Select(a =>
                     {
@@ -866,12 +869,14 @@ namespace PromoSeeker.Core
                 )
                 .ToList();
 
+            ;
+
             // Extract price values from most nested nodes
             var pricesInNodes = docDescendants
-                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.InnerText))
+                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent))
                 .Select(_ => new
                 {
-                    IsPrice = ReadPrice(_.InnerText, out var price),
+                    IsPrice = ReadPrice(_.TextContent, out var price),
                     PriceSource = new PriceInfo
                     {
                         Price = price,
@@ -898,12 +903,12 @@ namespace PromoSeeker.Core
                         // Find closest product name position
                         var distanceToProductName = _.SourceNode.FindClosest(n =>
                         {
-                            return ProductNameRegex.IsMatch(n.InnerText);
+                            return ProductNameRegex.IsMatch(n.TextContent);
                             //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                        }, 30)?.StreamPosition;
+                        }, 30)?.StreamPosition();
 
                         // Set the distance to the node
-                        nameDistance = _.SourceNode.StreamPosition - distanceToProductName;
+                        nameDistance = _.SourceNode.StreamPosition() - distanceToProductName;
                     }
 
                     // Pass the anonymous type
@@ -1081,6 +1086,18 @@ namespace PromoSeeker.Core
 
             // Return with the price valid info
             return output.Valid;
+        }
+
+        #endregion
+
+        #region Disposal
+
+        /// <summary>
+        /// Cleans up the resources used.
+        /// </summary>
+        public void Dispose()
+        {
+            mHtmlDocument?.Dispose();
         }
 
         #endregion

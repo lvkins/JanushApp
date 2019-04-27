@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 
 namespace PromoSeeker.Core
 {
@@ -41,7 +42,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The origin node where the price was located.
         /// </summary>
-        public HtmlNode SourceNode { get; set; }
+        public HtmlElement SourceNode { get; set; }
 
         /// <summary>
         /// The price object.
