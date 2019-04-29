@@ -42,7 +42,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The origin node where the price was located.
         /// </summary>
-        public HtmlElement SourceNode { get; set; }
+        public IHtmlElement SourceNode { get; set; }
 
         /// <summary>
         /// The price object.

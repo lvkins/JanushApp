@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -250,7 +251,7 @@ namespace PromoSeeker.Core
             try
             {
                 // Wait for the HTML document
-                mHtmlDocument = await WebLoader.LoadAsync(Url);
+                mHtmlDocument = await WebLoader.LoadReadyAsync(Url);
             }
             catch (Exception e)
             {
@@ -563,7 +564,7 @@ namespace PromoSeeker.Core
             // Take all prices in the document, lookup the currency symbol they use and try to find appropriate culture by the symbol.
             var topPricesCulture = mHtmlDocument.Descendents()
                 // Get most nested text nodes
-                .Where(_ => !_.HasChildNodes)
+                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent))
                 // Get fixed text
                 .Select(_ =>
                 {
@@ -760,10 +761,8 @@ namespace PromoSeeker.Core
             foreach (var source in Consts.PRICE_SOURCES)
             {
                 // Find a node in the document
-                var node = (HtmlElement)mHtmlDocument.DocumentElement.SelectSingleNode(source.Key);
-
                 // If node exists...
-                if (node != null)
+                if (mHtmlDocument.DocumentElement.SelectSingleNode(source.Key) is HtmlElement node)
                 {
                     // Whether the price is defined within the attribute
                     var isAttribute = !string.IsNullOrEmpty(source.Value);
@@ -792,10 +791,10 @@ namespace PromoSeeker.Core
                 }
             }
 
-            // If we have any prices from the eligible sources...
+            // If we have any prices from the pre-defined sources...
             if (ret.Any())
             {
-                // We can return early to not waste resources
+                // We can return with a good price sources at this point
                 return ret;
             }
 
@@ -812,6 +811,9 @@ namespace PromoSeeker.Core
             //  ["cost" : 100,] -> 100
             var PricesInJavaScriptRegex = new Regex(@"\b[\""\']?(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\'\s]?\:[\""\'\s]?([\d\.\,\ ]+)[\""\']?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+            // The maximum allowed number of depth between price and the product name price node
+            var MaxNameNodeDistance = 7;
+
             // We extract the prices in three ways:
             //
             //  1. The Javascript objects values, if the key contains 'price' keyword.
@@ -826,7 +828,7 @@ namespace PromoSeeker.Core
             //
             //  2. The values from attributes named after price, eg. data-my-price="1234".
             //     Some e-commerce sites declare the prices in the tag attributes. Accurate or not,
-            //     this is a worthy method to validate the price.
+            //     this is a worthy method to get a valid price from.
             //
             //
             //  3. Parse most nested nodes inner text that display the price on the screen.
@@ -836,7 +838,7 @@ namespace PromoSeeker.Core
 
             // Extract price values in the Javascript objects declared in the document
             var pricesInJavaScript = PricesInJavaScriptRegex
-                .Matches(mHtmlDocument.TextContent)
+                .Matches(mHtmlDocument.Body.TextContent)
                 .Cast<Match>()
                 .Select(m => new { IsPrice = ReadPrice(m.Groups[1].Value, out var price), Price = price })
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
@@ -847,12 +849,15 @@ namespace PromoSeeker.Core
                 });
 
             // Get all document descendants
-            var docDescendants = mHtmlDocument.Descendents().OfType<HtmlElement>();
+            var docDescendants = mHtmlDocument.Descendents();
 
             // Extract price values from attributes named after prices.
             var pricesInAttributeValues = docDescendants
-                .Where(_ => ((IElement)_).Attributes.Any())
-                .SelectMany(_ => ((IElement)_).Attributes
+                // HTML elements descendants only
+                .OfType<IHtmlElement>()
+                // Having at least one attribute
+                .Where(_ => _.Attributes.Any())
+                .SelectMany(_ => _.Attributes
                     .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES))
                     .Select(a => new { IsPrice = ReadPrice(a.Value, out var price), Price = price, Attribute = a })
                     .Where(a => a.IsPrice && a.Price.Decimal > 0)
@@ -866,24 +871,29 @@ namespace PromoSeeker.Core
                             SourceNode = _,
                         };
                     })
-                )
-                .ToList();
-
-            ;
+                );
 
             // Extract price values from most nested nodes
             var pricesInNodes = docDescendants
-                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent))
-                .Select(_ => new
+                // Get text nodes only
+                .OfType<IText>()
+                // Where text length of least two characters and parent is not a link
+                .Where(_ => _.Length > 1 && _.ParentElement.IsLink() == false)
+                // Select price
+                .Select(_ =>
                 {
-                    IsPrice = ReadPrice(_.TextContent, out var price),
-                    PriceSource = new PriceInfo
+                    return new
                     {
-                        Price = price,
-                        Source = PriceSourceType.PriceSourceText,
-                        SourceNode = _,
-                    }
+                        IsPrice = ReadPrice(_.TextContent, out var price),
+                        PriceSource = new PriceInfo
+                        {
+                            Price = price,
+                            Source = PriceSourceType.PriceSourceText,
+                            SourceNode = _.ParentElement as IHtmlElement,
+                        }
+                    };
                 })
+                // Get only successfully parsed prices
                 .Where(_ => _.IsPrice && _.PriceSource.Price.Decimal > 0)
                 .Select(_ => _.PriceSource);
 
@@ -900,15 +910,24 @@ namespace PromoSeeker.Core
                     // If price has a source node and source price is a price found in the node text (node that *could be* displayed to user)...
                     if (_.SourceNode != null && _.Source == PriceSourceType.PriceSourceText)
                     {
+                        // NOTE: Since we've switched from HtmlAgilityPack to AngleSharp
+                        // We have lost the ability to check the stream position of the element.
+                        // Thats why we use the node 'depth' approach to get the distance - it's not that accurate however.
+                        // Stream position should be added soon: https://github.com/AngleSharp/AngleSharp/issues/754
+
                         // Find closest product name position
-                        var distanceToProductName = _.SourceNode.FindClosest(n =>
+                        var result = _.SourceNode.FindClosest(n =>
                         {
                             return ProductNameRegex.IsMatch(n.TextContent);
                             //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                        }, 30)?.StreamPosition();
+                        }, out var node, out var distance);
 
-                        // Set the distance to the node
-                        nameDistance = _.SourceNode.StreamPosition() - distanceToProductName;
+                        // If closest node was found...
+                        if (result)
+                        {
+                            // Set a distance to the node
+                            nameDistance = distance; //_.SourceNode.StreamPosition() - distanceToProductName;
+                        }
                     }
 
                     // Pass the anonymous type
@@ -944,9 +963,6 @@ namespace PromoSeeker.Core
 
                         ++totalCount;
                     }
-
-                    // Get the closest distance of a price to the product name in this group
-                    var closestNameDistance = _.Min(p => p.NameDistance);
 
                     // Check if any price in this group occurs with the currency symbol in the document...
                     // Depending on the website and how the price is presented to the user, at least once price should have a currency symbol.
@@ -986,31 +1002,49 @@ namespace PromoSeeker.Core
                             groupScore -= (inJSCount + 20);
                         }
                     }
-                    // Otherwise if all prices are in the attributes/JS code...
+                    // Otherwise if all prices come from the attributes/JS code...
                     else
                     {
                         // Weak source penalty
                         groupScore -= 5;
                     }
 
-                    // If there is a price with closest name...
-                    if (closestNameDistance != null)
+                    // Score closest price-to-name element distance
+
+                    // If at least one price comes from a HTML node...
+                    if (inNodeCount > 0)
                     {
+                        // Get the closest distance of a price to the product name in this group
+                        var closestNameDistance = _.Where(p => p.NameDistance > -1).Min(p => p.NameDistance);
+
+                        // If no name element was located near the price...
+                        if (closestNameDistance == null)
+                        {
+                            // Set for penalty
+                            closestNameDistance = MaxNameNodeDistance + 1;
+                        }
+
                         // If the distance is relatively close...
-                        if (closestNameDistance > 0 && closestNameDistance <= 10000)
+                        if (closestNameDistance > 0 && closestNameDistance <= MaxNameNodeDistance)
                         {
                             // Add bonus score
-                            groupScore += (10 - ((int)closestNameDistance / 1000));
+                            groupScore += 10 - (closestNameDistance.Value - 1);
                         }
                         // Otherwise, if the distance is long...
-                        else if (closestNameDistance > 50000)
+                        else if (closestNameDistance > MaxNameNodeDistance)
                         {
                             // Long distance penalty
-                            groupScore -= (int)closestNameDistance / 10000;
+                            // 10 points for each exceeded limit
+                            groupScore -= closestNameDistance.Value / MaxNameNodeDistance * 10;
                         }
                     }
+                    else
+                    {
+                        // Weak source penalty
+                        groupScore -= 5;
+                    }
 
-                    // If any price in this group occurs with a currency symbol in the document...
+                    // If any price in this group occurs with a currency symbol...
                     if (hasSymbol)
                     {
                         // Add bonus points
@@ -1027,7 +1061,6 @@ namespace PromoSeeker.Core
                         InAttrCount = inAttrCount,
                         InJSCount = inJSCount,
                         Score = groupScore,
-                        MinNameDistance = closestNameDistance,
                         HasSymbol = hasSymbol,
                         Source = _.Select(s => s.PriceSource),
                     };

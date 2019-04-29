@@ -41,6 +41,23 @@ namespace PromoSeeker.Core
             return await context.OpenAsync(url);
         }
 
+        /// <summary>
+        /// Asynchronously loads a document from the provider <paramref name="url"/> address and waits until stylesheets and scripts are ready.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns>The loaded document instance.</returns>
+        public static async Task<IDocument> LoadReadyAsync(string url)
+        {
+            // Load document
+            var document = await LoadAsync(url);
+
+            // Wait until the document is ready
+            await document.WaitForReadyAsync();
+
+            // Return the document
+            return document;
+        }
+
         #region Private Methods
 
         /// <summary>

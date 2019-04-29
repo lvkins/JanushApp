@@ -33,5 +33,14 @@
         public bool Valid { get; set; }
 
         #endregion
+
+        #region Overrides
+
+        public override string ToString()
+        {
+            return Raw;
+        }
+
+        #endregion
     }
 }

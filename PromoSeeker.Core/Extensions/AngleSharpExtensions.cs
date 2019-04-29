@@ -3,10 +3,14 @@ using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PromoSeeker.Core
 {
-    public static class HtmlNodeExtensions
+    /// <summary>
+    /// The extension methods for the <see cref="AngleSharp"/> 
+    /// </summary>
+    public static class AngleSharpExtensions
     {
         /// <summary>
         /// Finds a certain node by XPath selector and returns it's text or the attribute value, if specified.
@@ -54,9 +58,11 @@ namespace PromoSeeker.Core
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="node"></param>
-        /// <param name="predicate"></param>
-        /// <returns>Found <see cref="INode"/> instance if succeeded, otherwise <see langword="null"/>.</returns>
-        public static IElement FindClosest(this IElement node, Func<IElement, bool> predicate, int maxDepth = 50)
+        /// <param name="predicate">The predicate to be used to compare nodes.</param>
+        /// <param name="closestNode">Result of found closest node object.</param>
+        /// <param name="reachDepth">Result of distance between nodes.</param>
+        /// <returns><see cref="true"/> if the closest node was found, otherwise <see cref="false"/>.</returns>
+        public static bool FindClosest(this IElement node, Func<IElement, bool> predicate, out IElement closestNode, out int reachDepth, int maxDepth = 50)
         {
             // Current depth value
             var depth = 0;
@@ -71,7 +77,9 @@ namespace PromoSeeker.Core
                 if (predicate(node))
                 {
                     // We've succeeded.
-                    return node;
+                    reachDepth = depth;
+                    closestNode = node;
+                    return true;
                 }
 
                 // If maximum depth is reached...
@@ -85,25 +93,60 @@ namespace PromoSeeker.Core
             //Console.WriteLine($">> [HtmlNode::FindClosest] depth {depth}");
 
             // Node wasn't found - return null
-            return null;
+            reachDepth = -1;
+            closestNode = null;
+            return false;
         }
 
-        public static int StreamPosition(this IElement node)
+        /// <summary>
+        /// Creates a unique selector path used to locate the element in the DOM.
+        /// </summary>
+        /// <param name="node">The starting node to create the selector path from.</param>
+        /// <returns>The unique selector path for this element.</returns>
+        public static string GetSelector(this IElement node)
         {
-            var thisLength = node.OuterHtml.Length;
-            var totalLength = 0;
+            // Initialize path
+            var path = string.Empty;
 
-            while (node.ParentElement != null)
+            // If the current node is having an unique id property
+            var hasId = false;
+
+            do
             {
-                node = node.ParentElement;
-                totalLength += node.OuterHtml.Length;
-            };
+                // Set if node has id attribute set...
+                hasId = !string.IsNullOrEmpty(node.Id);
 
-            var result = totalLength - thisLength;
+                // Get parent element of the node
+                var parent = node.ParentElement;
 
-            ;
+                // Always lowercase node name in the path
+                var name = node.NodeName.ToLowerInvariant();
 
-            return result;
+                // If node has id attribute...
+                if (hasId)
+                {
+                    // Id is unique in the DOM, so we can use it to locate the element and skip other parents
+                    name = "#" + node.Id;
+                }
+                // If node has siblings of the same type...
+                else if (parent != null && !node.IsOnlyOfType())
+                {
+                    // Get node index in the parent node tree
+                    var index = parent.Children.Where(_ => _.GetType() == node.GetType()).Index(node);
+
+                    // Append nth child selector
+                    name += $":nth-child({index + 1})";
+                }
+
+                // Set current parent
+                node = parent;
+
+                // Recreate selector path
+                path = name + (!string.IsNullOrEmpty(path) ? ">" + path : "");
+            } while (node?.ParentElement != null && !hasId);
+
+            // Return generated selector
+            return path;
         }
     }
 }
