@@ -838,7 +838,7 @@ namespace PromoSeeker.Core
 
             // Extract price values in the Javascript objects declared in the document
             var pricesInJavaScript = PricesInJavaScriptRegex
-                .Matches(mHtmlDocument.Body.TextContent)
+                .Matches(mHtmlDocument.DocumentElement.TextContent)
                 .Cast<Match>()
                 .Select(m => new { IsPrice = ReadPrice(m.Groups[1].Value, out var price), Price = price })
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
