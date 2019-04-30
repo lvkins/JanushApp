@@ -70,7 +70,7 @@ namespace PromoSeeker
                 DI.Logger.Exception(ex);
 
                 // Show error to the user
-                DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
                     Message = "Application state wasn't loaded properly, please ensure your settings file is corrupted.", // TODO: localize me

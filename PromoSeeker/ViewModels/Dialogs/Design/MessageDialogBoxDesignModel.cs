@@ -1,9 +1,9 @@
 ﻿namespace PromoSeeker
 {
     /// <summary>
-    /// The design-time data model for a <see cref="MessageDialogViewModel"/>.
+    /// The design-time data model for a <see cref="MessageDialogBoxViewModel"/>.
     /// </summary>
-    public class MessageDialogBoxDesignModel : MessageDialogViewModel
+    public class MessageDialogBoxDesignModel : MessageDialogBoxViewModel
     {
         #region Singleton
 

@@ -3,7 +3,7 @@
     /// <summary>
     /// A class containing details for the message dialog.
     /// </summary>
-    public class MessageDialogViewModel : BaseDialogWindowViewModel
+    public class MessageDialogBoxViewModel : BaseDialogWindowViewModel
     {
         #region Public Properties
 

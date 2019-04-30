@@ -877,8 +877,8 @@ namespace PromoSeeker.Core
             var pricesInNodes = docDescendants
                 // Get text nodes only
                 .OfType<IText>()
-                // Where text length of least two characters and parent is not a link
-                .Where(_ => _.Length > 1 && _.ParentElement.IsLink() == false)
+                // Where text length of least two characters and doesn't have link ancestor
+                .Where(_ => _.Length > 1 && !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
                 // Select price
                 .Select(_ =>
                 {
@@ -1072,20 +1072,24 @@ namespace PromoSeeker.Core
                 // Make list
                 .ToList();
 
+            // If we have no prices...
             if (!bestPrices.Any())
             {
                 Console.WriteLine("> Couldn't detect product price.");
                 return null;
             }
 
+            // Leave a log message
             Console.WriteLine("> Prices detected");
 
+            // Write top prices
             foreach (var item in bestPrices)
             {
                 Console.WriteLine($" >> {item.Price} ({item.Score})");
                 ret.AddRange(item.Source);
             }
 
+            // Return prices found
             return ret;
         }
 

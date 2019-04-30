@@ -3,19 +3,19 @@
     /// <summary>
     /// A class containing details for the message dialog.
     /// </summary>
-    public class PromptDialogViewModel : BaseDialogWindowViewModel
+    public class PromptDialogBoxViewModel : BaseDialogWindowViewModel
     {
         #region Public Properties
 
         /// <summary>
         /// The text of the submit button.
         /// </summary>
-        public string SubmitText { get; set; } = "Ok";
+        public string SubmitText { get; set; } = "Ok"; // TODO: localize
 
         /// <summary>
         /// The text of the cancel button.
         /// </summary>
-        public string CancelText { get; set; } = "Cancel";
+        public string CancelText { get; set; } = "Cancel"; // TODO: localize
 
         /// <summary>
         /// Whether the prompt message dialog can be canceled.

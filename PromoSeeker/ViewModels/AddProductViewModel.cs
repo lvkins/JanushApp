@@ -200,6 +200,13 @@ namespace PromoSeeker
                         IsValid = false;
                         return "This is not a valid URL";
                     }
+
+                    // If the product was already added...
+                    if (DI.Application.Products.Any(_ => _.Url.Equals(Url)))
+                    {
+                        IsValid = false;
+                        return "This product has been already added to the tracker.";
+                    }
                 }
 
                 IsValid = true;
@@ -257,8 +264,6 @@ namespace PromoSeeker
                 return;
             }
 
-            // TODO: Check if the product was already added
-
             /*
              * 1. Collect required product parameters (name, price, culture info (currency)).
              * 2. Show results to the user in the inputs,
@@ -295,7 +300,7 @@ namespace PromoSeeker
             else
             {
                 // Show error message to the user
-                _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
                     Message = result.Error ?? result.ErrorType.ToString()
@@ -341,7 +346,7 @@ namespace PromoSeeker
             else
             {
                 // Show error message to the user
-                _ = DI.UIManager.ShowMessageBoxAsync(new MessageDialogViewModel
+                _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
                     Message = result.Error ?? result.ErrorType.ToString()

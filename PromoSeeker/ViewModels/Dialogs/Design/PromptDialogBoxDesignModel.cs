@@ -1,9 +1,9 @@
 ﻿namespace PromoSeeker
 {
     /// <summary>
-    /// The design-time data model for a <see cref="PromptDialogViewModel"/>.
+    /// The design-time data model for a <see cref="PromptDialogBoxViewModel"/>.
     /// </summary>
-    public class PromptDialogBoxDesignModel : PromptDialogViewModel
+    public class PromptDialogBoxDesignModel : PromptDialogBoxViewModel
     {
         #region Singleton
 

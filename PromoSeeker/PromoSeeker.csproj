@@ -128,6 +128,9 @@
     </ApplicationDefinition>
     <Compile Include="AttachedProperties\BaseAttachedProperty.cs" />
     <Compile Include="AttachedProperties\StretchParentContentAttachedProperty.cs" />
+    <Compile Include="Controls\ProductSelectPriceControl.xaml.cs">
+      <DependentUpon>ProductSelectPriceControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ProductReviewControl.xaml.cs">
       <DependentUpon>ProductReviewControl.xaml</DependentUpon>
     </Compile>
@@ -148,10 +151,12 @@
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
     <Compile Include="ViewModels\Design\AddProductDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\BaseDialogWindowViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\ConfirmDialogBoxViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\Design\ConfirmDialogBoxDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\Design\MessageDialogBoxDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\Design\PromptDialogBoxDesignModel.cs" />
-    <Compile Include="ViewModels\Dialogs\PromptDialogViewModel.cs" />
-    <Compile Include="ViewModels\Dialogs\MessageDialogViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\PromptDialogBoxViewModel.cs" />
+    <Compile Include="ViewModels\Dialogs\MessageDialogBoxViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Windows\AddProductWindow.xaml.cs">
@@ -159,8 +164,11 @@
     </Compile>
     <Compile Include="Windows\BaseWindow.cs" />
     <Compile Include="Windows\Dialogs\BaseDialogWindow.cs" />
-    <Compile Include="Windows\Dialogs\PromptDialog.xaml.cs">
-      <DependentUpon>PromptDialog.xaml</DependentUpon>
+    <Compile Include="Windows\Dialogs\ConfirmBoxDialog.xaml.cs">
+      <DependentUpon>ConfirmBoxDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Dialogs\PromptBoxDialog.xaml.cs">
+      <DependentUpon>PromptBoxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Dialogs\MessageBoxDialog.xaml.cs">
       <DependentUpon>MessageBoxDialog.xaml</DependentUpon>
@@ -168,6 +176,10 @@
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\ProductSelectPriceControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\ProductReviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -204,7 +216,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\Dialogs\PromptDialog.xaml">
+    <Page Include="Windows\Dialogs\ConfirmBoxDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Dialogs\PromptBoxDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

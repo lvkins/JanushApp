@@ -40,9 +40,9 @@ namespace PromoSeeker
         /// <summary>
         /// Shows a single message box dialog to the user.
         /// </summary>
-        /// <param name="viewModel">The message box view model instance.</param>
+        /// <param name="viewModel">The view model representing the <see cref="MessageBoxDialog"/>.</param>
         /// <returns>A task that will finish once the dialog is closed.</returns>
-        public async Task ShowMessageBoxAsync(MessageDialogViewModel viewModel)
+        public async Task ShowMessageDialogBoxAsync(MessageDialogBoxViewModel viewModel)
         {
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -51,16 +51,34 @@ namespace PromoSeeker
         }
 
         /// <summary>
+        /// Displays a single confirmation message box to the user
+        /// </summary>
+        /// <param name="viewModel">The view model representing the <see cref="ConfirmBoxDialog"/>.</param>
+        /// <returns>A task that will finish once the dialog is closed. Task result contains <see cref="true"/> if confirmation response was successful, otherwise <see cref="false"/>.</returns>
+        public async Task<bool> ShowConfirmDialogBoxAsync(ConfirmDialogBoxViewModel viewModel)
+        {
+            // Run on the UI dispatcher thread
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                // Show dialog
+                return new ConfirmBoxDialog().ShowDialog(viewModel);
+            });
+
+            // Return user response
+            return viewModel.Response;
+        }
+
+        /// <summary>
         /// Shows a single prompt message box dialog to the user.
         /// </summary>
-        /// <param name="viewModel">The prompt message box view model instance.</param>
-        /// <returns>A task that will finish once the dialog is closed.</returns>
-        public async Task<string> ShowPromptMessageBoxAsync(PromptDialogViewModel viewModel)
+        /// <param name="viewModel">The view model representing the <see cref="PromptBoxDialog"/>.</param>
+        /// <returns>A task that will finish once the dialog is closed, task result contains the user input.</returns>
+        public async Task<string> ShowPromptDialogBoxAsync(PromptDialogBoxViewModel viewModel)
         {
             // Await show dialog operation
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                return new PromptDialog().ShowDialog(viewModel);
+                return new PromptBoxDialog().ShowDialog(viewModel);
             });
 
             // Return the user input
