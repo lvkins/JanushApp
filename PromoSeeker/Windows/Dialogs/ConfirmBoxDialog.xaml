@@ -5,11 +5,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    MinWidth="250"
-    MinHeight="150"
+    MaxWidth="350"
     d:DataContext="{x:Static local:ConfirmDialogBoxDesignModel.Instance}"
     Background="{StaticResource BackgroundLighterBrush}"
     mc:Ignorable="d">
+
     <Grid Margin="10">
         <!--  Head -> Content -> Buttons  -->
         <Grid.RowDefinitions>
@@ -37,8 +37,11 @@
                 <!--  Header  -->
                 <TextBlock
                     Grid.Column="1"
+                    Margin="0"
+                    FontWeight="Thin"
                     Style="{StaticResource HeaderText}"
-                    Text="{Binding Title}" />
+                    Text="{Binding Title}"
+                    TextAlignment="Justify" />
             </Grid>
         </Grid>
 
@@ -50,32 +53,39 @@
             TextWrapping="WrapWithOverflow" />
 
         <!--  Buttons  -->
-        <StackPanel
+        <Border
             Grid.Row="2"
-            HorizontalAlignment="Center"
-            Orientation="Horizontal">
+            Padding="0,10,0,0"
+            BorderBrush="{StaticResource ForegroundDarkerBrush}"
+            BorderThickness="0,0.2,0,0"
+            SnapsToDevicePixels="True">
 
-            <!--  Accept button  -->
-            <Button
-                x:Name="OkButton"
-                HorizontalAlignment="Right"
-                Command="{Binding AcceptCommand}"
-                CommandParameter="{Binding CloseCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:BaseDialogWindow}}}"
-                Content="{Binding OkText}" />
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
 
-            <!--  Space between buttons  -->
-            <Border Width="22" />
+                <!--  Accept button  -->
+                <Button
+                    x:Name="OkButton"
+                    HorizontalAlignment="Right"
+                    Command="{Binding AcceptCommand}"
+                    CommandParameter="{Binding CloseCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:BaseDialogWindow}}}"
+                    Content="{Binding OkText}" />
 
-            <!--  Cancel button  -->
-            <Button
-                x:Name="CancelButton"
-                HorizontalAlignment="Right"
-                Command="{Binding CloseCommand, RelativeSource={RelativeSource AncestorType={x:Type local:BaseDialogWindow}}}"
-                Content="{Binding CancelText}"
-                IsCancel="True"
-                IsDefault="True" />
+                <!--  Space between buttons  -->
+                <Border Width="22" />
 
-        </StackPanel>
+                <!--  Cancel button  -->
+                <Button
+                    x:Name="CancelButton"
+                    HorizontalAlignment="Right"
+                    Command="{Binding CloseCommand, RelativeSource={RelativeSource AncestorType={x:Type local:BaseDialogWindow}}}"
+                    Content="{Binding CancelText}"
+                    IsCancel="True"
+                    IsDefault="True" />
+
+            </StackPanel>
+
+        </Border>
 
     </Grid>
+
 </local:BaseDialogWindow>

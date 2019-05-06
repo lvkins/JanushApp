@@ -11,8 +11,18 @@
         public bool Success { get; set; }
 
         /// <summary>
+        /// Indicates whether the product has a new name.
+        /// </summary>
+        public bool HasNewName { get; set; }
+
+        /// <summary>
+        /// Indicates whether the product has a new price.
+        /// </summary>
+        public bool HasNewPrice { get; set; }
+
+        /// <summary>
         /// Whether any of the product property (price, name, ...) has changed.
         /// </summary>
-        public bool Changed { get; set; }
+        public bool Changed => HasNewName || HasNewPrice;
     }
 }

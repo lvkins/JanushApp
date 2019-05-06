@@ -243,13 +243,13 @@ namespace PromoSeeker
             Name = product.Name;
             DateAdded = product.Created;
             LastCheck = product.LastChecked;
-            PriceCurrent = product.Price;
+            PriceCurrent = product.Price.Value;
             Culture = product.Culture;
             Url = product.Url;
             Tracked = product.Tracked;
 
             // Create product instance
-            Product = new Product(product.Url.ToString());
+            Product = new Product(Name, Url.ToString(), product.Price, product.Culture);
 
             // Subscribe to the events
             Product.TrackingFailed += Product_TrackingFailed;
@@ -331,27 +331,23 @@ namespace PromoSeeker
             // The notification message
             var tooltipMessage = string.Empty;
 
-            // Get updates properties values
-            var name = Product.Name;
-            var price = Product.PriceInfo.Price.Decimal;
-
             #region Notify The User
 
             // TODO: add conditional notifications and allow user to customize
 
             // If new price is higher than current price...
-            if (price > PriceCurrent)
+            if (Product.PriceInfo.Value > PriceCurrent)
             {
-                tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.Price}";
+                tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
             }
             // If new price is lower than current price...
-            else if (price < PriceCurrent)
+            else if (Product.PriceInfo.Value < PriceCurrent)
             {
-                tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.Price}";
+                tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
             }
 
             // If a product name has changed...
-            if (!name.Equals(Name, StringComparison.InvariantCulture))
+            if (result.HasNewName)
             {
                 tooltipMessage = $"Product has a new name.";
             }
@@ -368,8 +364,8 @@ namespace PromoSeeker
             #region Assign New Values
 
             // Set values
-            Name = name;
-            PriceCurrent = price;
+            Name = Product.Name;
+            PriceCurrent = Product.PriceInfo.Value;
 
             // Raise property changed events
             OnPropertyChanged(nameof(Name));

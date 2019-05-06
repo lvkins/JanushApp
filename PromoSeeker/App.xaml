@@ -14,6 +14,7 @@
                 <ResourceDictionary Source="Styles/Text.xaml" />
                 <ResourceDictionary Source="Styles/Buttons.xaml" />
                 <ResourceDictionary Source="Styles/Controls.xaml" />
+                <ResourceDictionary Source="Styles/Scroll.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

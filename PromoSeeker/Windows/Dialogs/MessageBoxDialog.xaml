@@ -5,8 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    MinWidth="250"
-    MinHeight="150"
+    MaxWidth="350"
     d:DataContext="{x:Static local:MessageDialogBoxDesignModel.Instance}"
     Background="{StaticResource BackgroundLighterBrush}"
     mc:Ignorable="d">
@@ -37,8 +36,11 @@
                 <!--  Header  -->
                 <TextBlock
                     Grid.Column="1"
+                    Margin="0"
+                    FontWeight="Thin"
                     Style="{StaticResource HeaderText}"
-                    Text="{Binding Title}" />
+                    Text="{Binding Title}"
+                    TextAlignment="Justify" />
             </Grid>
         </Grid>
 
@@ -52,8 +54,10 @@
         <!--  Button  -->
         <Border
             Grid.Row="2"
-            BorderBrush="{StaticResource AppGreenBrush}"
-            BorderThickness="0,0.5,0,0">
+            Padding="0,10,0,0"
+            BorderBrush="{StaticResource ForegroundDarkerBrush}"
+            BorderThickness="0,0.2,0,0"
+            SnapsToDevicePixels="True">
 
             <Button
                 HorizontalAlignment="Right"

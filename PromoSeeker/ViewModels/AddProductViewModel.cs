@@ -18,12 +18,17 @@ namespace PromoSeeker
         #region Private Members
 
         /// <summary>
+        /// Product full URL.
+        /// </summary>
+        private string _url;
+
+        /// <summary>
         /// If we are currently adding a product.
         /// </summary>
         private bool _isBusy;
 
         /// <summary>
-        /// Whether the step two overlay is visible.
+        /// Whether the step two aka. product review overlay is visible.
         /// </summary>
         private bool _stepTwoVisible;
 
@@ -44,7 +49,18 @@ namespace PromoSeeker
         /// <summary>
         /// Product full URL.
         /// </summary>
-        public string Url { get; set; }
+        public string Url
+        {
+            get => _url;
+            set
+            {
+                // Update value
+                _url = value;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(Url));
+            }
+        }
 
         /// <summary>
         /// The price selector 
@@ -99,7 +115,7 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// Whether the step two overlay is visible.
+        /// Whether the step two aka. product review overlay is visible.
         /// </summary>
         public bool StepTwo
         {
@@ -118,6 +134,11 @@ namespace PromoSeeker
         /// The product to be added;
         /// </summary>
         public Product Product { get; private set; }
+
+        /// <summary>
+        /// The product price selected by the user, if product had more than one price detected.
+        /// </summary>
+        public PriceInfo SelectedPrice { get; set; }
 
         #endregion
 
@@ -147,6 +168,11 @@ namespace PromoSeeker
         /// The command to confirm loaded product and store it in the tracker.
         /// </summary>
         public ICommand ConfirmProductCommand { get; set; }
+
+        /// <summary>
+        /// The command to discard the last loaded product.
+        /// </summary>
+        public ICommand DiscardProductCommand { get; set; }
 
         #region Validation
 
@@ -180,6 +206,8 @@ namespace PromoSeeker
         {
             get
             {
+                Console.WriteLine($"is valid: {columnName}");
+
                 // Url validation
                 if (columnName == null || columnName == nameof(Url))
                 {
@@ -232,6 +260,7 @@ namespace PromoSeeker
             AddAutoCommand = new RelayCommand(async () => await AddAutoProductAsync());
             AddManuallyCommand = new RelayCommand(async () => await AddProductManuallyAsync());
             ConfirmProductCommand = new RelayCommand(ConfirmProduct);
+            DiscardProductCommand = new RelayCommand(Cleanup);
         }
 
         #endregion
@@ -266,7 +295,7 @@ namespace PromoSeeker
 
             /*
              * 1. Collect required product parameters (name, price, culture info (currency)).
-             * 2. Show results to the user in the inputs,
+             * 2. Show results to the user in the review,
              * 3. If some parameters were incorrect, give the user right to correct them,
              * 4. Price correction can be made via the dropdown of already detected prices - or via user specified xpath selector.
              * 5. After product is set - verify one more time,
@@ -284,6 +313,18 @@ namespace PromoSeeker
             // If product was successfully loaded...
             if (result.Success)
             {
+                // If several prices have been detected...
+                if (product.DetectedPrices.Count > 1)
+                {
+                    // Inform the user about several prices
+                    await DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
+                    {
+                        Type = DialogBoxType.Information,
+                        Title = "We are not sure about the price!",
+                        Message = "We wasn't able to detect a certain product price. Several prices have been collected and you will be able to select a valid price in the next step."
+                    });
+                }
+
                 // Store product for confirmation
                 Product = product;
 
@@ -325,7 +366,7 @@ namespace PromoSeeker
             IsBusy = true;
 
             // Create product
-            var product = new Product(Name, Url, PriceSelector, new CultureInfo(UserRegion.Name));
+            var product = new Product(Name, Url, null/*TODO: fix me*/, new CultureInfo(UserRegion.Name));
 
             // Load product and get the result
             var result = await Task.Run(product.LoadAsync);
@@ -357,7 +398,7 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// Adds a new product to the tracker.
+        /// Adds a recently loaded product to the tracker.
         /// </summary>
         private void ConfirmProduct()
         {
@@ -367,32 +408,56 @@ namespace PromoSeeker
                 return;
             }
 
+            // If user had to select a valid price...
+            if (Product.DetectedPrices.Count > 1)
+            {
+                // If no price was selected...
+                if (SelectedPrice == null)
+                {
+                    return;
+                }
+
+                // Set selected price to be tracked
+                Product.SetTrackingPrice(SelectedPrice);
+            }
+
+            // TODO: Save price details [selector and such] so we can load and use them later
+
             // Create setting object
             var productSetting = new ProductSettings
             {
                 Url = new Uri(Product.Url),
                 Name = Product.Name,
                 DisplayName = DisplayName,
-                Price = Product.PriceInfo.Price.Decimal,
+                Price = Product.PriceInfo,
                 Culture = Product.Culture
             };
 
             // Add product
             DI.Application.AddProduct(productSetting);
 
-            // Close and cleanup user input
-            StepTwo = false;
-            Name = string.Empty;
-            Url = string.Empty;
-            PriceSelector = string.Empty;
-            Status = string.Empty;
-            Product = null;
+            // Close product review overlay and cleanup user input
+            Cleanup();
 
             // Close window
             Close();
 
             // Show main window
             Application.Current.MainWindow?.Show();
+        }
+
+        /// <summary>
+        /// Clean up a recently loaded product.
+        /// </summary>
+        private void Cleanup()
+        {
+            StepTwo = false;
+            Product = null;
+            Name = default;
+            Url = default;
+            PriceSelector = default;
+            SelectedPrice = default;
+            Status = default;
         }
 
         #endregion

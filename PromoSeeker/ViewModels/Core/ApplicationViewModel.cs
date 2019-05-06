@@ -30,12 +30,12 @@ namespace PromoSeeker
         /// <param name="productSetting">The product settings object.</param>
         public void AddProduct(ProductSettings productSetting)
         {
-            // Add the product to the collection
-            Products.Add(new ProductViewModel(productSetting));
-
             // Store the product to the settings file
             DI.SettingsReader.Settings.Products.Add(productSetting);
             DI.SettingsReader.Save();
+
+            // Add the product to the collection
+            Products.Add(new ProductViewModel(productSetting));
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace PromoSeeker
                 DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
-                    Message = "Application state wasn't loaded properly, please ensure your settings file is corrupted.", // TODO: localize me
+                    Message = "Application state wasn't loaded properly, please ensure your settings file is not corrupted.", // TODO: localize me
                 });
 
                 // TODO: Ask user to restore backed up settings file if we have one
@@ -93,7 +93,7 @@ namespace PromoSeeker
             {
                 Url = _.Url,
                 Name = _.Name,
-                Price = _.PriceCurrent,
+                Price = _.Product.PriceInfo,
                 Culture = _.Culture,
                 DisplayName = !_.Name.Equals(_.DisplayName, StringComparison.InvariantCulture) ? _.DisplayName : null,
                 Tracked = _.Tracked,

@@ -5,8 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    MinWidth="250"
-    MinHeight="150"
+    MaxWidth="350"
     d:DataContext="{x:Static local:PromptDialogBoxDesignModel.Instance}"
     Background="{StaticResource BackgroundLighterBrush}"
     mc:Ignorable="d">
@@ -38,8 +37,11 @@
                 <!--  Header  -->
                 <TextBlock
                     Grid.Column="1"
+                    Margin="0"
+                    FontWeight="Thin"
                     Style="{StaticResource HeaderText}"
-                    Text="{Binding Title}" />
+                    Text="{Binding Title}"
+                    TextAlignment="Justify" />
             </Grid>
         </Grid>
 
@@ -61,9 +63,10 @@
         <!--  Buttons  -->
         <Border
             Grid.Row="3"
-            Padding="0,10"
-            BorderBrush="{StaticResource AppGreenBrush}"
-            BorderThickness="0,1,0,0">
+            Padding="0,10,0,0"
+            BorderBrush="{StaticResource ForegroundDarkerBrush}"
+            BorderThickness="0,0.2,0,0"
+            SnapsToDevicePixels="True">
 
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <!--  Submit button  -->

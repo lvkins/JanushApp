@@ -25,6 +25,17 @@ namespace PromoSeeker.Core
     /// </summary>
     public sealed class ProductSettings
     {
+        #region Private Members
+
+        /// <summary>
+        /// The price details.
+        /// </summary>
+        private PriceInfo _price;
+
+        #endregion
+
+        #region Public Properties
+
         /// <summary>
         /// A product URL.
         /// </summary>
@@ -41,14 +52,9 @@ namespace PromoSeeker.Core
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// The current product price.
+        /// The product website culture, used for currency conversions.
         /// </summary>
-        public decimal Price { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public CultureInfo Culture { get; set; } = CultureInfo.CurrentCulture;
+        public CultureInfo Culture { get; set; }
 
         /// <summary>
         /// The product change price history.
@@ -79,5 +85,27 @@ namespace PromoSeeker.Core
         /// The last check date.
         /// </summary>
         public DateTime LastChecked { get; set; }
+
+        /// <summary>
+        /// The price details.
+        /// </summary>
+        public PriceInfo Price
+        {
+            get => _price;
+            set
+            {
+                // Fix Json deserializer having no clue of the product culture...
+                if (string.IsNullOrEmpty(value.CurrencyAmount))
+                {
+                    // Set price format provider to the product culture
+                    value.SetFormatProvider(Culture);
+                }
+
+                // Update value
+                _price = value;
+            }
+        }
+
+        #endregion
     }
 }

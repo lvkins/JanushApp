@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignWidth="380"
     mc:Ignorable="d">
 
     <Grid>
@@ -13,68 +14,179 @@
 
         <!--  Overlay content  -->
         <Border Margin="15" Background="{StaticResource BackgroundLighterBrush}">
-            <Grid>
-                <!--  Header -> Status -> Controls -> Button  -->
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
 
-                <!--  Result title  -->
-                <TextBlock Grid.Row="0" Style="{StaticResource HeaderText}">Review the product</TextBlock>
+            <!--  Scrollable Content  -->
+            <ScrollViewer
+                Margin="0,1,0,-1"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
 
-                <!--  Status message  -->
-                <TextBlock
-                    Grid.Row="1"
-                    Margin="0,10"
-                    HorizontalAlignment="Center"
-                    Foreground="{StaticResource AppDarkRedBrush}"
-                    Text="{Binding Status}" />
+                <Grid>
+                    <!--  Header -> Status -> Controls -> Button  -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!--  Controls  -->
-                <StackPanel Grid.Row="2" Margin="12">
+                    <!--  Header  -->
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Style="{StaticResource HeaderText}">Review the product</TextBlock>
 
-                    <!--  Product name  -->
-                    <StackPanel>
-                        <TextBlock Text="Detected product name:" />
-                        <TextBox IsEnabled="True" Text="{Binding Product.Name, Mode=OneWay}" />
+                        <TextBlock
+                            Margin="15,0"
+                            Text="Make sure everything is set as it should be and detected properties match!"
+                            TextAlignment="Justify"
+                            TextWrapping="WrapWithOverflow" />
                     </StackPanel>
 
-                    <!--  Product price  -->
-                    <StackPanel>
-                        <TextBlock Text="Detected current product price:" />
-                        <TextBox Text="{Binding Product.Price, Mode=OneWay}" />
-                    </StackPanel>
+                    <!--  Status message  -->
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,10"
+                        HorizontalAlignment="Center"
+                        Foreground="{StaticResource AppDarkRedBrush}"
+                        Text="{Binding Status}"
+                        Visibility="{Binding Status, FallbackValue=Collapsed, Converter={local:NullToVisibilityConverter}}" />
 
-                    <!--  Website language  -->
-                    <StackPanel>
-                        <TextBlock Text="Detected product currency:" />
-                        <TextBox Text="{Binding UserRegion.CurrencyNativeName, Mode=OneWay}" />
-                    </StackPanel>
+                    <!--  Controls  -->
+                    <StackPanel Grid.Row="2" Margin="12">
 
-                    <!--  Optional section  -->
-                    <Border BorderBrush="{StaticResource AppDarkBlueBrush}" BorderThickness="1">
+                        <!--  Detected properties header  -->
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            FontSize="{StaticResource FontSizeLarge}"
+                            Style="{StaticResource HeaderText}"
+                            Text="Detected properties" />
 
-                        <!--  Custom name  -->
+                        <!--  Product name  -->
                         <StackPanel>
-                            <TextBlock Text="Your product custom name:" />
-                            <TextBox Tag="My wish item (optional)" />
+                            <TextBlock Text="Product name:" />
+                            <TextBox IsEnabled="False" Text="{Binding Product.Name, Mode=OneWay}" />
                         </StackPanel>
 
-                    </Border>
-                </StackPanel>
+                        <!--  Product price  -->
 
-                <!--  Submit button  -->
-                <Button
-                    Grid.Row="4"
-                    BorderThickness="0,1,0,0"
-                    Command="{Binding ConfirmProductCommand}">
-                    Track this product
-                </Button>
-            </Grid>
+                        <!--  If one product price  -->
+                        <StackPanel Margin="0,10,0,0" Visibility="{Binding Product.DetectedPrices, Converter={local:NullToVisibilityConverter}, ConverterParameter=True}">
+                            <TextBlock Text="Current product price:" />
+                            <TextBox IsEnabled="False" Text="{Binding Product.PriceInfo.Value, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <!--  If several prices detected  -->
+                        <StackPanel Margin="0,10,0,0" Visibility="{Binding Product.DetectedPrices, Converter={local:NullToVisibilityConverter}}">
+                            <TextBlock Text="Select current product price:" />
+
+                            <!--  No price info  -->
+                            <Grid Margin="0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Margin="9,0"
+                                    FontSize="{StaticResource FontSizeLarge}"
+                                    Foreground="{StaticResource AppNavyBlueBrush}"
+                                    SnapsToDevicePixels="True"
+                                    Text="🛈" />
+
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    FontSize="{StaticResource FontSizeSmall}"
+                                    Foreground="{StaticResource AppNavyBlueBrush}"
+                                    Text="No luck finding product price on the list? Try adding the product manually." />
+                            </Grid>
+
+                            <!--  Prices detected list  -->
+                            <Grid>
+                                <ComboBox
+                                    x:Name="PriceSelector"
+                                    DisplayMemberPath="CurrencyAmount"
+                                    ItemsSource="{Binding Product.DetectedPrices}"
+                                    SelectedItem="{Binding SelectedPrice}" />
+
+                                <TextBlock
+                                    Margin="5,1"
+                                    IsHitTestVisible="False"
+                                    Text="Pick the product price..."
+                                    Visibility="{Binding SelectedItem, ElementName=PriceSelector, Converter={local:NullToVisibilityConverter}, ConverterParameter=True}" />
+                            </Grid>
+
+                            <!--  Price selection explainer  -->
+                            <TextBlock Style="{StaticResource HelpBlock}" Text="Because product price wasn't obvious, you need to select a valid price yourself." />
+
+                        </StackPanel>
+
+                        <!--  Website language  -->
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Product currency:" />
+                            <TextBox IsEnabled="False" Text="{Binding UserRegion.CurrencyNativeName, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <!--  Optional section  -->
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            FontSize="{StaticResource FontSizeLarge}"
+                            Foreground="{StaticResource AppDarkBlueBrush}"
+                            Style="{StaticResource HeaderText}"
+                            Text="Optional zone" />
+
+                        <Border
+                            Padding="10"
+                            BorderBrush="{StaticResource AppDarkBlueBrush}"
+                            BorderThickness="1">
+
+                            <!--  Custom name  -->
+                            <StackPanel>
+
+                                <TextBlock Text="Enter product custom name:" />
+                                <TextBox Tag="My wish item (optional)" />
+
+                                <TextBlock Style="{StaticResource HelpBlock}" Text="Your product will appear in the tracker under this name." />
+
+                            </StackPanel>
+
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Submit/Discard Buttons  -->
+                    <Grid Grid.Row="4" Margin="0,20,0,0">
+
+                        <!--  Submit -> Discard  -->
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Submit button  -->
+                        <Button
+                            Grid.Column="0"
+                            BorderThickness="0,1,0,0"
+                            Command="{Binding ConfirmProductCommand}"
+                            Content="Track this product"
+                            IsDefault="True" />
+
+                        <!--  Discard button  -->
+                        <Button
+                            Grid.Column="1"
+                            BorderThickness="0,1,0,0"
+                            Command="{Binding DiscardProductCommand}"
+                            Content="Discard this product"
+                            Foreground="{StaticResource AppRedBrush}"
+                            IsCancel="True"
+                            Style="{StaticResource BaseButtonStyle}" />
+
+                    </Grid>
+                </Grid>
+
+            </ScrollViewer>
+
         </Border>
+
     </Grid>
 
 </UserControl>

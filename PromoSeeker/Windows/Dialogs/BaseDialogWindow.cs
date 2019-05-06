@@ -34,6 +34,11 @@ namespace PromoSeeker
         public ImageSource Icon { get; set; }
             = Imaging.CreateBitmapSourceFromHIcon(SystemIcons.Information.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
 
+        /// <summary>
+        /// The resize mode behavior of the window.
+        /// </summary>
+        public ResizeMode ResizeMode { get; set; } = ResizeMode.NoResize;
+
         #endregion
 
         #region Public Commands
@@ -61,7 +66,7 @@ namespace PromoSeeker
             // Create window instance
             _dialogWindow = new Window
             {
-                ResizeMode = ResizeMode.NoResize,
+                ResizeMode = ResizeMode,
                 SizeToContent = SizeToContent.WidthAndHeight,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };

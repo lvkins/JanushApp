@@ -148,5 +148,25 @@ namespace PromoSeeker.Core
             // Return generated selector
             return path;
         }
+
+        /// <summary>
+        /// Returns the first element within the document that matches the
+        /// specified XPath query or CSS selector.
+        /// </summary>
+        /// <param name="node">A node to search within.</param>
+        /// <param name="path">The XPath query or CSS selector.</param>
+        /// <returns>The found element.</returns>
+        public static IElement QuerySelectorOrXPath(this IElement node, string path)
+        {
+            // If path is a XPath query...
+            if (path.StartsWith("/"))
+            {
+                // Return result of the XPath query
+                return node.SelectSingleNode(path) as IElement;
+            }
+
+            // Otherwise assume CSS selector
+            return node.QuerySelector(path);
+        }
     }
 }

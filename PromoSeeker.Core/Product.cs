@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -57,10 +56,6 @@ namespace PromoSeeker.Core
         public string Error { get; set; }
 
         public ProductLoadResultType ErrorType { get; set; }
-
-        public IList<IPriceInfo> PricesDetected { get; set; }
-
-        public List<string> NamesDetected { get; set; }
     }
 
     /// <summary>
@@ -95,24 +90,14 @@ namespace PromoSeeker.Core
         public string Name { get; private set; }
 
         /// <summary>
-        /// The price currency amount representation formatted by the provider in the <see cref="Culture"/>.
-        /// </summary>
-        public string Price => PriceInfo.Price.Decimal.ToString("C", Culture);
-
-        /// <summary>
         /// The current product price informations.
         /// </summary>
-        public IPriceInfo PriceInfo { get; private set; }
+        public PriceInfo PriceInfo { get; private set; }
 
         /// <summary>
-        /// The selector used to grab the price value from the document.
+        /// A list of detected prices on the product website.
         /// </summary>
-        public string PriceXPathOrSelector { get; private set; }
-
-        /// <summary>
-        /// The product price history.
-        /// </summary>
-        public List<double> PriceHistory { get; set; }
+        public List<PriceInfo> DetectedPrices { get; private set; }
 
         /// <summary>
         /// The culture of the website where the product is.
@@ -130,9 +115,14 @@ namespace PromoSeeker.Core
         public bool IsSaved { get; private set; }
 
         /// <summary>
-        /// Whether the product properties are loaded and set.
+        /// Whether the product <see cref="mHtmlDocument"/> has been loaded.
         /// </summary>
-        public bool IsLoaded => mHtmlDocument != null && PriceInfo != null && !string.IsNullOrEmpty(PriceXPathOrSelector);
+        public bool IsLoaded => mHtmlDocument != null && !string.IsNullOrEmpty(Title);
+
+        /// <summary>
+        /// Whether the product properties are set properly and the product is ready to be tracked.
+        /// </summary>
+        public bool IsReady => PriceInfo != null && Culture != null;
 
         /// <summary>
         /// Whether the product properties like the culture of the website, price selector and name should be loaded automatically.
@@ -183,34 +173,6 @@ namespace PromoSeeker.Core
 
             // Auto load other necessary properties
             IsAutoLoadProperties = true;
-
-            /*
-            // Create HTML request
-            var request = new HtmlRequest();
-
-            // Load website URL
-            _ = request.LoadAsync(url);
-
-            #region Ensure Valid Response
-
-            // If status code is any other than 200...
-            if (request.Response?.StatusCode != System.Net.HttpStatusCode.OK)
-            {
-                // Cannot continue
-                throw new Exception("Status code not OK");
-            }
-
-            #endregion
-
-            // Store the HTML document
-            mHtmlDocument = request.Document;
-
-            // Acquire Promotion Data
-            if (AutoSetup)
-            {
-                Setup();
-            }
-            */
         }
 
         /// <summary>
@@ -220,7 +182,7 @@ namespace PromoSeeker.Core
         /// <param name="url"></param>
         /// <param name="priceXPath"></param>
         /// <param name="culture"></param>
-        public Product(string name, string url, string priceXPath, CultureInfo culture)
+        public Product(string name, string url, PriceInfo priceInfo, CultureInfo culture)
         {
             // We are setting the properties manually
             IsAutoLoadProperties = false;
@@ -228,7 +190,7 @@ namespace PromoSeeker.Core
             // Set the properties
             Name = name;
             Url = url;
-            PriceXPathOrSelector = priceXPath;
+            PriceInfo = priceInfo;
             Culture = culture;
         }
 
@@ -237,16 +199,23 @@ namespace PromoSeeker.Core
         #region Public Methods
 
         /// <summary>
-        /// Loads the product.
+        /// Set a price source for the product that will be used for tracking.
         /// </summary>
-        /// <returns>The result of the product load.</returns>
-        public async Task<ProductLoadResult> LoadAsync()
+        /// <param name="price"></param>
+        public void SetTrackingPrice(PriceInfo price)
         {
-            if (string.IsNullOrEmpty(Url))
-            {
-                throw new InvalidOperationException("Url not specified");
-            }
+            // Set tracking price details
+            PriceInfo = price;
+            // Reset detected prices
+            DetectedPrices = default;
+        }
 
+        /// <summary>
+        /// Navigates the product <see cref="Url"/> and downloads the document.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ProductLoadResult> OpenAsync()
+        {
             // Attempt to load HTML
             try
             {
@@ -277,7 +246,34 @@ namespace PromoSeeker.Core
                 };
             }
 
+            // Set properties
+            Title = mHtmlDocument.Title;
+
+            // Return with the successful result
+            return new ProductLoadResult
+            {
+                Success = true
+            };
+        }
+
+        /// <summary>
+        /// Loads the product.
+        /// </summary>
+        /// <returns>A task that will finish once the product was loaded. The task result contains a <see cref="ProductLoadResult"/> object.</returns>
+        public async Task<ProductLoadResult> LoadAsync()
+        {
             // Once we have the HTML document, we can parse product properties
+            if (mHtmlDocument == null)
+            {
+                // Open product website
+                var result = await OpenAsync();
+
+                // If not successful...
+                if (!result.Success)
+                {
+                    return result;
+                }
+            }
 
             // If properties should be automatically detected...
             return IsAutoLoadProperties
@@ -290,57 +286,37 @@ namespace PromoSeeker.Core
         /// <summary>
         /// Automatically loads the latest product properties like name, price, culture info.
         /// </summary>
-        /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the load.</returns>
+        /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the product load.</returns>
         private Task<ProductLoadResult> LoadAutoAsync()
         {
             // Create the result
-            var result = new ProductLoadResult { Success = true };
+            var result = new ProductLoadResult();
 
             // NOTE: Order of the loading properties is important
 
-            // If the culture is not specified and we are not able to detect it...
+            // If failed to detect product website culture...
             if (!DetectCulture())
             {
-                result.Success = false;
                 result.ErrorType = ProductLoadResultType.ProductUnknownCulture;
             }
-            // If the name is not specified and we are not able to detect it...
+            // If failed to detect product name...
             else if (!DetectName())
             {
-                result.Success = false;
                 result.ErrorType = ProductLoadResultType.ProductUnknownName;
             }
-            // Once we have culture and name, we can detect price
+            // If failed to detect price sources...
+            else if (!DetectPriceSources())
+            {
+                result.ErrorType = ProductLoadResultType.ProductUnknownPrice;
+            }
+            // Success
             else
             {
-                // Detect prices sources
-                var prices = DetectPriceSources();
+                // Set successful result
+                result.Success = true;
 
-                ;
-
-                // If no price sources were found...
-                if (!prices.Any())
-                {
-                    result.Success = false;
-                    result.ErrorType = ProductLoadResultType.ProductUnknownPrice;
-                }
-                else if (prices.Count == 1)
-                {
-                    // We have the price source
-                    PriceInfo = prices.First();
-                }
-                // Else if we have more than one price detected...
-                // TODO: Check score
-                else
-                {
-                    result.Success = false;
-
-                    // Threat is as an error - user should be prompted to pick a valid one.
-                    result.ErrorType = ProductLoadResultType.ProductNeedValidPrice;
-
-                    // Add the prices detected to the result
-                    result.PricesDetected = prices;
-                }
+                // Set the best-scored price detected to use
+                PriceInfo = DetectedPrices.First();
             }
 
             // Return the result
@@ -350,14 +326,17 @@ namespace PromoSeeker.Core
         /// <summary>
         /// Manually loads the latest product properties like name, price.
         /// </summary>
-        /// <returns>A task that will finish once loading is finished. Task result contains the result of the load.</returns>
+        /// <returns>A task that will finish once loading is finished. Task result contains the result of the product load.</returns>
         private Task<ProductLoadResult> LoadManuallyAsync()
         {
+            // TODO:
+            // FIX THIS METHOD AND USE PASS IN THE PRICE SELECTOR (and conditionally an attribute) TO SELECT THE PRICE.
+
             // Create the result
             var result = new ProductLoadResult { Success = true };
 
             // Ensure we got all necessary properties set
-            if (Culture == null || string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(PriceXPathOrSelector))
+            if (Culture == null || string.IsNullOrEmpty(Name) || PriceInfo == null)
             {
                 result.Success = false;
                 result.ErrorType = ProductLoadResultType.ProductParamNotFound;
@@ -367,7 +346,7 @@ namespace PromoSeeker.Core
             #region Set Price
 
             // Select node by given xpath query
-            var node = (HtmlElement)mHtmlDocument.Body.SelectSingleNode(PriceXPathOrSelector);
+            var node = mHtmlDocument.Body.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
 
             // Because the price xpath query can point to the meta tag, where the price lies
             // In case of a meta tag node, read the 'content' attribute, instead of the inner text.
@@ -389,12 +368,11 @@ namespace PromoSeeker.Core
             }
 
             // Set product price
-            PriceInfo = new PriceInfo
+            PriceInfo = new PriceInfo(priceValue.Decimal, Culture)
             {
                 AttributeName = isMeta ? "content" : null,
-                Price = priceValue,
                 Source = isMeta ? PriceSourceType.PriceSourceAttribute : PriceSourceType.PriceSourceText,
-                SourceNode = node
+                PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector
             };
 
             #endregion
@@ -404,54 +382,19 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Refreshes the product properties (eg. the current price)
-        /// </summary>
-        public async Task RefreshAsync()
-        {
-            // If the product is not loaded...
-            if (!IsLoaded)
-            {
-                throw new InvalidOperationException("Product has to be loaded in order to refresh");
-            }
-
-
-        }
-
-        /// <summary>
-        /// Sets up the promotion product data.
-        /// </summary>
-        public void Setup()
-        {
-            // Find language and set the culture
-            if (DetectCulture())
-            {
-                // Leave a log message
-                Console.WriteLine($">> Culture detected: {Culture.EnglishName} ({Culture.Name})");
-            }
-            else
-            {
-                // Fallback to default culture
-                //Console.WriteLine("> No culture was detected. Fallback to local culture");
-                //mCulture = CultureInfo.CurrentCulture;
-
-                // Cannot continue without valid culture.
-                // TODO: Prompt the user to specify the culture/currency the website is using manually.
-                throw new NullReferenceException("Culture not set");
-            }
-
-            // Find the product name
-            DetectName();
-
-            // Find the product price
-            DetectPriceSources();
-        }
-
-        /// <summary>
         /// Starts the product tracking task with the specified time <paramref name="interval"/>.
         /// </summary>
         /// <param name="interval">The time interval to track the product within.</param>
+        /// <exception cref="InvalidOperationException">Thrown when product is not ready to be tracked.</exception>
         public async Task TrackAsync(TimeSpan interval)
         {
+            // If the product is not set...
+            if (!IsReady)
+            {
+                // Product has to be loaded in order to start tracking
+                throw new InvalidOperationException("Product is not staged for tracking");
+            }
+
             // If a tracking task that is not completed already exists...
             if (TrackingTask != null && !TrackingTask.IsCompleted)
             {
@@ -477,19 +420,8 @@ namespace PromoSeeker.Core
                     // Abort if cancellation is requested
                     _trackingCancellation.Token.ThrowIfCancellationRequested();
 
-                    // Raise updating event
-                    Updating();
-
-                    // Refresh product
-
-                    // Load result
-                    var result = await LoadAsync();
-
-                    // Raise updated event
-                    Updated(new ProductUpdateResult
-                    {
-                        Success = result.Success
-                    });
+                    // Update
+                    await UpdateAsync();
                 }
             }, _trackingCancellation.Token)
             // Handle faulted task
@@ -528,6 +460,38 @@ namespace PromoSeeker.Core
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// Formats the input string by removing any line breaks, multiple whitespaces, then trims the output.
+        /// </summary>
+        /// <param name="input">The input string to be formatted.</param>
+        /// <param name="result">When this method returns, contains the formatted <see cref="string"/> value of the <paramref name="input"/>.</param>
+        private void ParseNodeText(string input, out string result) => result = Regex.Replace(HttpUtility.HtmlDecode(input), @"\s+", " ").Trim();
+
+        /// <summary>
+        /// Checks whether the input can be parsed to the <see cref="decimal"/> value using the website detected culture <see cref="Culture"/>.
+        /// </summary>
+        /// <param name="input">The input to be parsed.</param>
+        /// <returns><see langword="true"/> if the <paramref name="input"/> value can be parsed to <see cref="decimal"/> value, otherwise <see langword="false"/>.</returns>
+        private bool ReadPrice(string input, out PriceReadResult output)
+        {
+            // Ensure the proper input
+            ParseNodeText(input, out var result);
+
+            // If result is empty...
+            if (string.IsNullOrEmpty(result))
+            {
+                // Not a price
+                output = default(PriceReadResult);
+                return false;
+            }
+
+            // Fix price format (separators) accordingly to the current culture
+            output = CurrencyHelpers.ReadPriceValue(input, Culture);
+
+            // Return with the price valid info
+            return output.Valid;
+        }
 
         /// <summary>
         /// Attempts to locate website culture in order to find which culture to use for price conversions etc. If the culture couldn't be located
@@ -737,9 +701,6 @@ namespace PromoSeeker.Core
             // Set product name
             Name = pageTitle;
 
-            // Set product site title
-            Title = titleValue;
-
             // Leave a message
             Console.WriteLine($"> Setting product name: {Name}");
 
@@ -750,11 +711,17 @@ namespace PromoSeeker.Core
         /// <summary>
         /// Attempts to extract all available price source from the <see cref="mHtmlDocument"/>.
         /// </summary>
-        /// <returns>A list of <see cref="IPriceInfo"/> objects.</returns>
-        private IList<IPriceInfo> DetectPriceSources()
+        /// <returns><see cref="true"/> if found any price source, otherwise <see cref="false"/>.</returns>
+        private bool DetectPriceSources()
         {
-            // Found price sources
-            var ret = new List<IPriceInfo>();
+            // Initialize price sources
+            if (DetectedPrices == null)
+            {
+                DetectedPrices = new List<PriceInfo>();
+            }
+
+            // Clear any current content
+            DetectedPrices.Clear();
 
             // Iterate through pre-defined price sources
             // Prices from this source are the most eligible
@@ -778,10 +745,9 @@ namespace PromoSeeker.Core
                     if (isPrice)
                     {
                         // Read from value attribute and store the price source
-                        ret.Add(new PriceInfo
+                        DetectedPrices.Add(new PriceInfo(price.Decimal, Culture)
                         {
-                            Price = price,
-                            SourceNode = node,
+                            PriceXPathOrSelector = node.GetSelector(),
                             AttributeName = isAttribute ? source.Value : null,
                             Source = isAttribute
                                 ? PriceSourceType.PriceSourceAttribute
@@ -792,14 +758,14 @@ namespace PromoSeeker.Core
             }
 
             // If we have any prices from the pre-defined sources...
-            if (ret.Any())
+            if (DetectedPrices.Any())
             {
-                // We can return with a good price sources at this point
-                return ret;
+                // We have prices from a reliable source, so we can return at this point.
+                return true;
             }
 
             // If the above failed, attempt to locate price by parsing the document.
-            // Some e-commerce sites just make it hard sometimes and decide not to use the good practices.
+            // Some e-commerce sites just make it hard sometimes and decide not to follow the good practices.
 
             // Compiled regex to find a product name in the document.
             var ProductNameRegex = new Regex($@"\b{Regex.Escape(Name)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -842,10 +808,14 @@ namespace PromoSeeker.Core
                 .Cast<Match>()
                 .Select(m => new { IsPrice = ReadPrice(m.Groups[1].Value, out var price), Price = price })
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
-                .Select(_ => new PriceInfo
+                .Select(_ => new
                 {
-                    Price = _.Price,
-                    Source = PriceSourceType.PriceSourceJavascript,
+                    Node = default(IElement),
+                    PriceReadResult = _.Price,
+                    PriceInfo = new PriceInfo(_.Price.Decimal, Culture)
+                    {
+                        Source = PriceSourceType.PriceSourceJavascript,
+                    }
                 });
 
             // Get all document descendants
@@ -854,22 +824,22 @@ namespace PromoSeeker.Core
             // Extract price values from attributes named after prices.
             var pricesInAttributeValues = docDescendants
                 // HTML elements descendants only
-                .OfType<IHtmlElement>()
+                .OfType<IElement>()
                 // Having at least one attribute
                 .Where(_ => _.Attributes.Any())
                 .SelectMany(_ => _.Attributes
                     .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES))
                     .Select(a => new { IsPrice = ReadPrice(a.Value, out var price), Price = price, Attribute = a })
                     .Where(a => a.IsPrice && a.Price.Decimal > 0)
-                    .Select(a =>
+                    .Select(a => new
                     {
-                        return new PriceInfo
+                        Node = _,
+                        PriceReadResult = a.Price,
+                        PriceInfo = new PriceInfo(a.Price.Decimal, Culture)
                         {
-                            Price = a.Price,
                             Source = PriceSourceType.PriceSourceAttribute,
                             AttributeName = a.Attribute.Name,
-                            SourceNode = _,
-                        };
+                        }
                     })
                 );
 
@@ -880,35 +850,37 @@ namespace PromoSeeker.Core
                 // Where text length of least two characters and doesn't have link ancestor
                 .Where(_ => _.Length > 1 && !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
                 // Select price
-                .Select(_ =>
+                .Select(_ => new
                 {
-                    return new
-                    {
-                        IsPrice = ReadPrice(_.TextContent, out var price),
-                        PriceSource = new PriceInfo
-                        {
-                            Price = price,
-                            Source = PriceSourceType.PriceSourceText,
-                            SourceNode = _.ParentElement as IHtmlElement,
-                        }
-                    };
+                    IsPrice = ReadPrice(_.TextContent, out var price),
+                    Node = _.ParentElement,
+                    PriceReadResult = price
                 })
                 // Get only successfully parsed prices
-                .Where(_ => _.IsPrice && _.PriceSource.Price.Decimal > 0)
-                .Select(_ => _.PriceSource);
+                .Where(_ => _.IsPrice && _.PriceReadResult.Decimal > 0)
+                // Continue with same types as in other prices for the concatenation data type compatibility
+                .Select(_ => new
+                {
+                    _.Node,
+                    _.PriceReadResult,
+                    PriceInfo = new PriceInfo(_.PriceReadResult.Decimal, Culture)
+                    {
+                        Source = PriceSourceType.PriceSourceText,
+                    }
+                });
 
             // Get best prices by concatenating three source lists and scoring each price group.
-            var bestPrices = pricesInJavaScript
+            DetectedPrices = pricesInJavaScript
                 .Concat(pricesInAttributeValues)
                 .Concat(pricesInNodes)
-                // Attempt to find a currency symbol in each price
+                // Find each node price distance to product name.
                 .Select(_ =>
                 {
                     // Distance from the price node stream position to the closest product name node stream position.
                     int? nameDistance = null;
 
                     // If price has a source node and source price is a price found in the node text (node that *could be* displayed to user)...
-                    if (_.SourceNode != null && _.Source == PriceSourceType.PriceSourceText)
+                    if (_.Node != null && _.PriceInfo.Source == PriceSourceType.PriceSourceText)
                     {
                         // NOTE: Since we've switched from HtmlAgilityPack to AngleSharp
                         // We have lost the ability to check the stream position of the element.
@@ -916,11 +888,11 @@ namespace PromoSeeker.Core
                         // Stream position should be added soon: https://github.com/AngleSharp/AngleSharp/issues/754
 
                         // Find closest product name position
-                        var result = _.SourceNode.FindClosest(n =>
-                        {
-                            return ProductNameRegex.IsMatch(n.TextContent);
-                            //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                        }, out var node, out var distance);
+                        var result = _.Node.FindClosest(n =>
+                {
+                    return ProductNameRegex.IsMatch(n.TextContent);
+                    //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
+                }, out var node, out var distance);
 
                         // If closest node was found...
                         if (result)
@@ -933,30 +905,38 @@ namespace PromoSeeker.Core
                     // Pass the anonymous type
                     return new
                     {
-                        PriceSource = _,
+                        _.Node,
+                        _.PriceReadResult,
+                        _.PriceInfo,
                         NameDistance = nameDistance,
                     };
                 })
-                // Group entries by the price
-                .GroupBy(_ => _.PriceSource.Price.Decimal)
+                // Group entries by the price and prioritize prices having node sources
+                .GroupBy(_ => _.PriceReadResult.Decimal, (k, g) => new { Key = k, Prices = g.OrderByDescending(p => p.Node != null) })
                 // Select price & entries count
                 .Select(_ =>
                 {
+                    // Check if any price in this group occurs with the currency symbol in the document...
+                    // Depending on the website and how the price is presented to the user, at least once price should have a currency symbol.
+                    var hasSymbol = _.Prices.Any(p => !string.IsNullOrEmpty(p.PriceReadResult.CurrencySymbol));
+
+                    #region Make Counts
+
                     // Particular source counts
                     int inAttrCount = 0, inJSCount = 0, inNodeCount = 0, totalCount = 0;
 
                     // Get particular prices by source count
-                    foreach (var item in _)
+                    foreach (var item in _.Prices)
                     {
-                        if (item.PriceSource.Source == PriceSourceType.PriceSourceAttribute)
+                        if (item.PriceInfo.Source == PriceSourceType.PriceSourceAttribute)
                         {
                             ++inAttrCount;
                         }
-                        else if (item.PriceSource.Source == PriceSourceType.PriceSourceJavascript)
+                        else if (item.PriceInfo.Source == PriceSourceType.PriceSourceJavascript)
                         {
                             ++inJSCount;
                         }
-                        else if (item.PriceSource.Source == PriceSourceType.PriceSourceText)
+                        else if (item.PriceInfo.Source == PriceSourceType.PriceSourceText)
                         {
                             ++inNodeCount;
                         }
@@ -964,9 +944,7 @@ namespace PromoSeeker.Core
                         ++totalCount;
                     }
 
-                    // Check if any price in this group occurs with the currency symbol in the document...
-                    // Depending on the website and how the price is presented to the user, at least once price should have a currency symbol.
-                    var hasSymbol = _.Any(p => !string.IsNullOrEmpty(p.PriceSource.Price.CurrencySymbol));
+                    #endregion
 
                     #region Compute Price Group Score
 
@@ -1015,7 +993,7 @@ namespace PromoSeeker.Core
                     if (inNodeCount > 0)
                     {
                         // Get the closest distance of a price to the product name in this group
-                        var closestNameDistance = _.Where(p => p.NameDistance > -1).Min(p => p.NameDistance);
+                        var closestNameDistance = _.Prices.Where(p => p.NameDistance > -1).Min(p => p.NameDistance);
 
                         // If no name element was located near the price...
                         if (closestNameDistance == null)
@@ -1053,76 +1031,151 @@ namespace PromoSeeker.Core
 
                     #endregion
 
+                    Console.WriteLine($">> Price detected :: {_.Key} ({groupScore}) ({totalCount})");
+
                     // Return the anonymous type containing useful data
                     return new
                     {
-                        Price = _.Key,
-                        Count = totalCount,
-                        InAttrCount = inAttrCount,
-                        InJSCount = inJSCount,
                         Score = groupScore,
-                        HasSymbol = hasSymbol,
-                        Source = _.Select(s => s.PriceSource),
+                        Source = _.Prices.Select(s => new { s.Node, s.PriceInfo }),
                     };
                 })
                 // Order by the group of prices score
                 .OrderByDescending(_ => _.Score)
-                // Take 10 best prices
-                //.Take(10)
+                // Take 10 best price groups
+                .Take(10)
+                // Reduct to the first price in each group and create a selector for each price
+                .Select(_ =>
+                {
+                    // Get first (top) price in a group
+                    var firstPrice = _.Source.First();
+
+                    // If price has a node origin...
+                    if (firstPrice.Node != null)
+                    {
+                        // Create a CSS selector for each price
+                        // NOTE: We do it here at the end, once we gather eligible 
+                        //  prices - because it is pointless to waste resources to 
+                        //  create selectors for inappropriate nodes.
+                        firstPrice.PriceInfo.PriceXPathOrSelector = firstPrice.Node.GetSelector();
+                    }
+
+                    // Reduce
+                    return firstPrice.PriceInfo;
+                })
                 // Make list
                 .ToList();
 
             // If we have no prices...
-            if (!bestPrices.Any())
+            if (!DetectedPrices.Any())
             {
-                Console.WriteLine("> Couldn't detect product price.");
-                return null;
+                Console.WriteLine("> Unable to detect product price.");
+                return false;
             }
 
             // Leave a log message
             Console.WriteLine("> Prices detected");
 
-            // Write top prices
-            foreach (var item in bestPrices)
-            {
-                Console.WriteLine($" >> {item.Price} ({item.Score})");
-                ret.AddRange(item.Source);
-            }
-
-            // Return prices found
-            return ret;
+            // We have some prices, return true
+            return true;
         }
 
         /// <summary>
-        /// Formats the input string by removing any line breaks, multiple whitespaces, then trims the output.
+        /// Updates the already loaded product.
         /// </summary>
-        /// <param name="input">The input string to be formatted.</param>
-        /// <param name="result">When this method returns, contains the formatted <see cref="string"/> value of the <paramref name="input"/>.</param>
-        private void ParseNodeText(string input, out string result) => result = Regex.Replace(HttpUtility.HtmlDecode(input), @"\s+", " ").Trim();
-
-        /// <summary>
-        /// Checks whether the input can be parsed to the <see cref="decimal"/> value using the website detected culture <see cref="Culture"/>.
-        /// </summary>
-        /// <param name="input">The input to be parsed.</param>
-        /// <returns><see langword="true"/> if the <paramref name="input"/> value can be parsed to <see cref="decimal"/> value, otherwise <see langword="false"/>.</returns>
-        private bool ReadPrice(string input, out PriceValue output)
+        /// <returns>A task that will finish once the product is updated, the task result contains the update result object.</returns>
+        private async Task<ProductUpdateResult> UpdateAsync()
         {
-            // Ensure the proper input
-            ParseNodeText(input, out var result);
+            // Raise updating event
+            Updating();
 
-            // If result is empty...
-            if (string.IsNullOrEmpty(result))
+            // Load fresh document
+            var loadResult = await OpenAsync();
+
+            // Create update result object
+            var updateResult = new ProductUpdateResult
             {
-                // Not a price
-                output = default(PriceValue);
-                return false;
+                Success = true
+            };
+
+            if (!loadResult.Success)
+            {
+                // TODO: notify, report error
+                updateResult.Success = false;
+                return updateResult;
             }
 
-            // Fix price format (separators) accordingly to the current culture
-            output = CurrencyHelpers.ReadPriceValue(input, Culture);
+            // Reload
 
-            // Return with the price valid info
-            return output.Valid;
+            #region Update Name
+
+            var preName = Name;
+
+            // Get latest product name (we use automatic name detection)
+            if (!DetectName())
+            {
+                // TODO: report error
+            }
+            // If names are not equal...
+            else if (!preName.Equals(Name, StringComparison.InvariantCulture))
+            {
+                // Name differs
+                // TODO: raise some event
+
+                updateResult.HasNewName = true;
+            }
+
+            #endregion
+
+            #region Update Price
+
+            // Get latest product price
+            var priceNode = mHtmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
+
+            // If node was selected successfully...
+            if (priceNode != null)
+            {
+                // Read price
+                var input = priceNode.TextContent;
+
+                // If price is located within an attribute
+                if (!string.IsNullOrEmpty(PriceInfo.AttributeName))
+                {
+                    input = priceNode.Attributes[PriceInfo.AttributeName]?.Value;
+                }
+
+                // Read price in the input
+                var result = ReadPrice(input, out var parseResult);
+
+                // If the input was parsed and price differs from the current price...
+                if (result && parseResult.Decimal != PriceInfo.Value)
+                {
+                    // Update price details
+                    PriceInfo = new PriceInfo(parseResult.Decimal, Culture)
+                    {
+                        AttributeName = PriceInfo.AttributeName,
+                        PriceXPathOrSelector = priceNode.GetSelector(),
+                        Source = PriceInfo.Source
+                    };
+
+                    updateResult.HasNewPrice = true;
+
+                    // TODO: raise some event
+                }
+                else if (!result)
+                {
+                    // TODO: report error
+                }
+            }
+
+            #endregion
+
+
+            // Raise updated event
+            Updated(updateResult);
+
+            // Return with the result
+            return updateResult;
         }
 
         #endregion

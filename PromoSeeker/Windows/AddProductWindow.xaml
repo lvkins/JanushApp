@@ -9,6 +9,7 @@
     Width="400"
     Height="500"
     d:DataContext="{x:Static local:AddProductDesignModel.Instance}"
+    FocusManager.FocusedElement="{Binding ElementName=ProductURL}"
     mc:Ignorable="d">
 
     <Grid>
@@ -26,7 +27,10 @@
                                 <StackPanel>
                                     <TextBlock>Enter product URL</TextBlock>
 
-                                    <TextBox Tag="https://example.com/product-12345" Text="{Binding Url, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox
+                                        x:Name="ProductURL"
+                                        Tag="https://example.com/product-12345"
+                                        Text="{Binding Url, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}">
                                         <!--  Submit on enter key  -->
                                         <TextBox.InputBindings>
                                             <KeyBinding Key="Return" Command="{Binding AddAutoCommand}" />

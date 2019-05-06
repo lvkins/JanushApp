@@ -1,12 +1,11 @@
-﻿using AngleSharp.Html.Dom;
-
-namespace PromoSeeker.Core
+﻿namespace PromoSeeker.Core
 {
     /// <summary>
     /// Holds all the relevant informations about the product price and it's origin.
     /// </summary>
     public interface IPriceInfo
     {
+        #region Properties
         /// <summary>
         /// The type of price origin.
         /// </summary>
@@ -18,13 +17,20 @@ namespace PromoSeeker.Core
         string AttributeName { get; set; }
 
         /// <summary>
-        /// The origin node where the price was located.
+        /// The selector used to locate the price origin node in the document.
         /// </summary>
-        IHtmlElement SourceNode { get; set; }
+        string PriceXPathOrSelector { get; set; }
 
         /// <summary>
-        /// The price object.
+        /// The price value.
         /// </summary>
-        PriceValue Price { get; set; }
+        decimal Value { get; }
+
+        /// <summary>
+        /// The <see cref="Value"/> decimal value converted to a string that represent a currency amount.
+        /// </summary>
+        string CurrencyAmount { get; }
+
+        #endregion
     }
 }

@@ -139,7 +139,7 @@ namespace PromoSeeker.Core
         /// <param name="input">The string that contains a price.</param>
         /// <param name="culture">The culture to format the input accordingly to.</param>
         /// <returns>Returns a formatted and culture-specifically fixed price value.</returns>
-        public static PriceValue ReadPriceValue(string input, CultureInfo culture)
+        public static PriceReadResult ReadPriceValue(string input, CultureInfo culture)
         {
             // Trim any leading or trailing price separators as they shouldn't be there.
             input = input.Trim(PriceSeparators);
@@ -154,7 +154,7 @@ namespace PromoSeeker.Core
             var lastDigitId = Array.FindLastIndex(priceArray, _ => char.IsDigit(_));
 
             // Create price object
-            var price = new PriceValue();
+            var result = new PriceReadResult();
 
             // If we have the digit position...
             if (firstDigitId != -1)
@@ -194,8 +194,8 @@ namespace PromoSeeker.Core
                 }
 
                 // Set return values
-                price.Original = priceValue;
-                price.Raw = newPriceValue;
+                result.Original = priceValue;
+                result.Raw = newPriceValue;
 
                 // If the price value was changed...
                 if (priceValue != newPriceValue)
@@ -205,19 +205,19 @@ namespace PromoSeeker.Core
                 }
 
                 // Price is valid if can be parsed as decimal in the specified culture
-                price.Valid = decimal.TryParse(input, NumberStyles.Any, culture, out var output);
-                price.Decimal = output;
+                result.Valid = decimal.TryParse(input, NumberStyles.Any, culture, out var output);
+                result.Decimal = output;
 
                 // If price considered valid and currency symbol is found in the input...
-                if (price.Valid && FindCurrencySymbol(input, out var symbol, out var _))
+                if (result.Valid && FindCurrencySymbol(input, out var symbol, out var _))
                 {
                     // Set currency symbol
-                    price.CurrencySymbol = symbol;
+                    result.CurrencySymbol = symbol;
                 }
             }
 
             // Return the price
-            return price;
+            return result;
         }
 
         /// <summary>
