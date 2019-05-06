@@ -421,8 +421,6 @@ namespace PromoSeeker
                 Product.SetTrackingPrice(SelectedPrice);
             }
 
-            // TODO: Save price details [selector and such] so we can load and use them later
-
             // Create setting object
             var productSetting = new ProductSettings
             {

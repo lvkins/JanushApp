@@ -144,7 +144,7 @@
                             <StackPanel>
 
                                 <TextBlock Text="Enter product custom name:" />
-                                <TextBox Tag="My wish item (optional)" />
+                                <TextBox Tag="My wish item (optional)" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
 
                                 <TextBlock Style="{StaticResource HelpBlock}" Text="Your product will appear in the tracker under this name." />
 

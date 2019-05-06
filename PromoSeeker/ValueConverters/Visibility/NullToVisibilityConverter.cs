@@ -11,10 +11,15 @@ namespace PromoSeeker
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            // Also handle string case
+            var isNull = value is string s
+                ? string.IsNullOrEmpty(s)
+                : value == null;
+
             if (parameter == null)
-                return value == null ? Visibility.Collapsed : Visibility.Visible;
+                return isNull ? Visibility.Collapsed : Visibility.Visible;
             else
-                return value == null ? Visibility.Visible : Visibility.Hidden;
+                return isNull ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

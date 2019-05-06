@@ -132,7 +132,6 @@
     <Compile Include="UI\UIManager.cs" />
     <Compile Include="ValueConverters\BaseValueConverter.cs" />
     <Compile Include="ValueConverters\HumanRelativeTimeConverter.cs" />
-    <Compile Include="ValueConverters\Visibility\DecimalToCurrencyStringConverter.cs" />
     <Compile Include="ValueConverters\Visibility\NullToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\Visibility\BooleanToVisibilityConverter.cs" />
     <Compile Include="ViewModels\AddProductViewModel.cs" />
