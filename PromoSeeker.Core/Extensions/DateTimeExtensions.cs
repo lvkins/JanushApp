@@ -16,6 +16,12 @@ namespace PromoSeeker.Core
         {
             // TODO: Localize me
 
+            // If date is unset...
+            if (input == DateTime.MinValue || input == DateTime.MaxValue)
+            {
+                return "never";
+            }
+
             // Get elapsed time
             var elapsed = DateTime.Now.Subtract(input);
 

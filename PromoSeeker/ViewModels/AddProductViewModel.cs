@@ -428,7 +428,8 @@ namespace PromoSeeker
                 Name = Product.Name,
                 DisplayName = DisplayName,
                 Price = Product.PriceInfo,
-                Culture = Product.Culture
+                Culture = Product.Culture,
+                LastChecked = DateTime.Now,
             };
 
             // Add product

@@ -433,7 +433,7 @@
                         <Button.Style>
                             <Style BasedOn="{StaticResource Styleless}" TargetType="Button">
                                 <Setter Property="Foreground" Value="{StaticResource ForegroundVeryDarkBrush}" />
-                                <Setter Property="Content" Value="{Binding DisplayName, FallbackValue=Display Product Name}" />
+                                <Setter Property="Content" Value="{Binding Name, FallbackValue=Product Name}" />
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource AppDarkBlueBrush}" />
@@ -488,7 +488,7 @@
                                         <!--  Edit the product  -->
                                         <MenuItem Header="Edit" />
                                         <!--  Open in browser  -->
-                                        <MenuItem Header="Open in browser" />
+                                        <MenuItem Command="{Binding NavigateCommand}" Header="Open in browser" />
                                         <!--  Toggle tracking  -->
                                         <MenuItem
                                             Command="{Binding StopTrackingCommand}"
@@ -563,7 +563,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="Original name:" />
-                        <TextBlock Grid.Column="1" Text="{Binding Name, FallbackValue=Original Name}" />
+                        <TextBlock Grid.Column="1" Text="{Binding OriginalName, FallbackValue=Original Name}" />
                     </Grid>
                 </Border>
 

@@ -92,10 +92,10 @@ namespace PromoSeeker
             DI.SettingsReader.Settings.Products = Products.Select(_ => new ProductSettings
             {
                 Url = _.Url,
-                Name = _.Name,
+                Name = _.OriginalName,
                 Price = _.Product.PriceInfo,
                 Culture = _.Culture,
-                DisplayName = !_.Name.Equals(_.DisplayName, StringComparison.InvariantCulture) ? _.DisplayName : null,
+                DisplayName = _.DisplayName,
                 Tracked = _.Tracked,
                 LastChecked = _.LastCheck,
                 Created = _.DateAdded,

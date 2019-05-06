@@ -39,14 +39,24 @@ namespace PromoSeeker
         /// </summary>
         private bool _tracked;
 
+        /// <summary>
+        /// The settings object of this product.
+        /// </summary>
+        private ProductSettings _settings;
+
         #endregion
 
         #region Public Properties
 
         /// <summary>
+        /// The product name.
+        /// </summary>
+        public string Name => !string.IsNullOrWhiteSpace(DisplayName) ? DisplayName : OriginalName;
+
+        /// <summary>
         /// The original name of the product.
         /// </summary>
-        public string Name { get; set; }
+        public string OriginalName { get; set; }
 
         /// <summary>
         /// The display, custom name of the product.
@@ -236,11 +246,12 @@ namespace PromoSeeker
         /// </summary>
         public void Load(ProductSettings product)
         {
+            // Store settings object
+            _settings = product;
+
             // Populate properties
-            DisplayName = !string.IsNullOrWhiteSpace(product.DisplayName)
-                ? product.DisplayName
-                : product.Name;
-            Name = product.Name;
+            OriginalName = product.Name;
+            DisplayName = product.DisplayName;
             DateAdded = product.Created;
             LastCheck = product.LastChecked;
             PriceCurrent = product.Price.Value;
@@ -249,7 +260,7 @@ namespace PromoSeeker
             Tracked = product.Tracked;
 
             // Create product instance
-            Product = new Product(Name, Url.ToString(), product.Price, product.Culture);
+            Product = new Product(OriginalName, Url.ToString(), product.Price, product.Culture);
 
             // Subscribe to the events
             Product.TrackingFailed += Product_TrackingFailed;
@@ -275,8 +286,18 @@ namespace PromoSeeker
             // Flag as tracked
             Tracked = true;
 
+            // Set the tracking time interval
+            var interval = Consts.PRODUCT_UPDATE_INTERVAL;
+
+            // If tracking interval should be randomized...
+            if (Consts.PRODUCT_UDPATE_INTERVAL_RANDOMIZE)
+            {
+                // Randomize interval
+                interval += TimeSpan.FromSeconds(new Random().Next(-6, 6));
+            }
+
             // Start tracking tasks
-            await Product.TrackAsync(Consts.PRODUCT_UPDATE_INTERVAL);
+            await Product.TrackAsync(interval);
         }
 
         /// <summary>
@@ -307,7 +328,7 @@ namespace PromoSeeker
             CurrentlyUpdating = true;
 
             // Leave a log message
-            DI.Logger.Info($"> Update [{Name}, {Url}]");
+            DI.Logger.Info($"> Update [{OriginalName}, {Url}]");
         }
 
         /// <summary>
@@ -328,35 +349,37 @@ namespace PromoSeeker
                 return;
             }
 
-            // The notification message
-            var tooltipMessage = string.Empty;
-
             #region Notify The User
 
-            // TODO: add conditional notifications and allow user to customize
-
-            // If new price is higher than current price...
-            if (Product.PriceInfo.Value > PriceCurrent)
-            {
-                tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
-            }
-            // If new price is lower than current price...
-            else if (Product.PriceInfo.Value < PriceCurrent)
-            {
-                tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
-            }
-
             // If a product name has changed...
-            if (result.HasNewName)
-            {
-                tooltipMessage = $"Product has a new name.";
-            }
-
-            // If we have a message to notify...
-            if (!string.IsNullOrEmpty(tooltipMessage))
+            if (result.HasNewName && _settings.NotifyNameChange)
             {
                 // Send notification
-                DI.UIManager.Tray.Notification(tooltipMessage, DisplayName);
+                DI.UIManager.Tray.Notification($"Product name has changed.\nNew product name:\n\n{Product.Name}", DisplayName);
+            }
+
+            // If a product price has changed...
+            if (result.HasNewPrice && _settings.NotifyPriceChange)
+            {
+                // Resulting message
+                var tooltipMessage = string.Empty;
+
+                // If new price is higher than current price...
+                if (Product.PriceInfo.Value > PriceCurrent)
+                {
+                    tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
+                }
+                // If new price is lower than current price...
+                else if (Product.PriceInfo.Value < PriceCurrent)
+                {
+                    tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
+                }
+
+                // If we have a message to notify...
+                if (!string.IsNullOrEmpty(tooltipMessage))
+                {
+                    DI.UIManager.Tray.Notification(tooltipMessage, DisplayName);
+                }
             }
 
             #endregion
@@ -364,11 +387,12 @@ namespace PromoSeeker
             #region Assign New Values
 
             // Set values
-            Name = Product.Name;
+            OriginalName = Product.Name;
             PriceCurrent = Product.PriceInfo.Value;
 
             // Raise property changed events
             OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(OriginalName));
             OnPropertyChanged(nameof(PriceCurrent));
             OnPropertyChanged(nameof(DisplayPrice));
 
@@ -378,7 +402,7 @@ namespace PromoSeeker
             DI.Application.Save();
 
             // Leave a log message
-            DI.Logger.Info($"> Update finished [{Name}]");
+            DI.Logger.Info($"> Update finished [{OriginalName}]");
         }
 
         /// <summary>

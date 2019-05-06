@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AngleSharpTest.cs" />
     <Compile Remove="DataModel\SettingsReader.cs" />
     <Compile Remove="HtmlRequest.cs" />
   </ItemGroup>

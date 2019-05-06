@@ -1081,7 +1081,7 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Updates the already loaded product.
+        /// Load current, up-to-date product properties.
         /// </summary>
         /// <returns>A task that will finish once the product is updated, the task result contains the update result object.</returns>
         private async Task<ProductUpdateResult> UpdateAsync()
@@ -1130,6 +1130,8 @@ namespace PromoSeeker.Core
             #region Update Price
 
             // Get latest product price
+            var w1 = mHtmlDocument.DocumentElement.OuterHtml;
+            var w2 = mHtmlDocument.Body.OuterHtml;
             var priceNode = mHtmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
 
             // If node was selected successfully...
