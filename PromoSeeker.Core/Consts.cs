@@ -44,11 +44,12 @@ namespace PromoSeeker.Core
         /// </summary>
         public static readonly IDictionary<string, string> PRICE_SOURCES = new Dictionary<string, string>
         {
-            // Meta tag is the most trusted price source.
-            {"//meta[@itemprop='price']", "content"},
-            {"//meta[@property='og:price:amount']", "content"},
-            {"//meta[@property='product:price:amount']", "content"},
-            {"//meta[@name='twitter:data1']", "content"}, // Twitter product card - price definition
+            // Meta tag attribute is the most trusted price source.
+            // NOTE: Some of these should appear on meta tag, however seen sites declaring it on different tags
+            {"[itemprop='price']", "content"},
+            {"[property='og:price:amount']", "content"},
+            {"[property='product:price:amount']", "content"},
+            {"[name='twitter:data1']", "content"}, // Twitter product card - price definition
         };
 
         /// <summary>
@@ -56,9 +57,10 @@ namespace PromoSeeker.Core
         /// </summary>
         public static readonly IDictionary<string, string> CURRENCY_SOURCES = new Dictionary<string, string>
         {
-            {"//meta[@itemprop='priceCurrency']", "content"},
-            {"//meta[@property='og:price:currency']", "content"},
-            {"//meta[@property='product:price:currency']", "content"},
+            // NOTE: Some of these should appear on meta tag, however seen sites declaring it on different tags
+            {"[itemProp='priceCurrency']", "content"},
+            {"[property='og:price:currency']", "content"},
+            {"[property='product:price:currency']", "content"},
         };
 
         /// <summary>

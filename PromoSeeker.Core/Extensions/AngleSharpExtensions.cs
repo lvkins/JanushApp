@@ -25,7 +25,7 @@ namespace PromoSeeker.Core
             foreach (var source in sources)
             {
                 // Select node by a selector
-                var result = (HtmlElement)node.SelectSingleNode(source.Key);
+                var result = node.QuerySelectorOrXPath(source.Key);
 
                 // If node exists...
                 if (result != null)

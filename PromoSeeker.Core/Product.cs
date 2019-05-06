@@ -1,6 +1,5 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using AngleSharp.XPath;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -475,6 +474,14 @@ namespace PromoSeeker.Core
         /// <returns><see langword="true"/> if the <paramref name="input"/> value can be parsed to <see cref="decimal"/> value, otherwise <see langword="false"/>.</returns>
         private bool ReadPrice(string input, out PriceReadResult output)
         {
+            // If the input is empty...
+            if (string.IsNullOrEmpty(input))
+            {
+                // Not a price
+                output = default(PriceReadResult);
+                return false;
+            }
+
             // Ensure the proper input
             ParseNodeText(input, out var result);
 
@@ -506,7 +513,7 @@ namespace PromoSeeker.Core
             Debug.WriteLine("> Attempt to detect culture by currency meta tag...");
 
             // Find the currency value in the pre-defined node sources
-            var currencyValue = mHtmlDocument.Body.FindContentFromSource(Consts.CURRENCY_SOURCES);
+            var currencyValue = mHtmlDocument.DocumentElement.FindContentFromSource(Consts.CURRENCY_SOURCES);
 
             // If not empty and culture exists...
             if (!string.IsNullOrWhiteSpace(currencyValue) && CurrencyHelpers.FindCultureByCurrencySymbol(currencyValue, out var culture))
@@ -585,7 +592,7 @@ namespace PromoSeeker.Core
             foreach (var source in Consts.LANG_SOURCES)
             {
                 // Select node by XPath expression
-                var node = (HtmlElement)mHtmlDocument.DocumentElement.SelectSingleNode(source.Key);
+                var node = (HtmlElement)mHtmlDocument.DocumentElement.QuerySelectorOrXPath(source.Key);
 
                 // If node exists...
                 if (node != null)
@@ -729,20 +736,33 @@ namespace PromoSeeker.Core
             {
                 // Find a node in the document
                 // If node exists...
-                if (mHtmlDocument.DocumentElement.SelectSingleNode(source.Key) is HtmlElement node)
+                if (mHtmlDocument.DocumentElement.QuerySelectorOrXPath(source.Key) is IElement node)
                 {
                     // Whether the price is defined within the attribute
                     var isAttribute = !string.IsNullOrEmpty(source.Value);
+                    // Define price result
+                    PriceReadResult price = null;
 
                     // If we are dealing with the attribute source...
-                    var isPrice = isAttribute
+                    if (isAttribute)
+                    {
                         // Read from the attribute
-                        ? ReadPrice(node.GetAttribute(source.Value), out var price)
-                        // Otherwise assume node text
-                        : ReadPrice(node.TextContent, out price);
+                        ReadPrice(node.GetAttribute(source.Value), out price);
+                    }
+
+                    // If price wasn't found yet...
+                    if (price == null)
+                    {
+                        // NOTE: We do allow to parse node content after failed attribute read.
+                        // This is because some sites not follow good practices and define
+                        // values in the node content
+
+                        // Read from the content
+                        ReadPrice(node.TextContent, out price);
+                    }
 
                     // If price read was successful...
-                    if (isPrice)
+                    if (price != null)
                     {
                         // Read from value attribute and store the price source
                         DetectedPrices.Add(new PriceInfo(price.Decimal, Culture)
