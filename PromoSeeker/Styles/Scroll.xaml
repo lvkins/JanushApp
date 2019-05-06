@@ -14,7 +14,7 @@
                         x:Name="rectangle"
                         Width="{TemplateBinding Width}"
                         Height="{TemplateBinding Height}"
-                        Background="{StaticResource AppDarkBlueBrush}"
+                        Background="{StaticResource AppNavyBlueBrush}"
                         CornerRadius="3"
                         SnapsToDevicePixels="True" />
                 </ControlTemplate>
@@ -26,7 +26,7 @@
         <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false" />
         <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
         <Setter Property="Width" Value="14" />
-        <Setter Property="Margin" Value="-14,0,0,0" />
+        <Setter Property="Margin" Value="0" />
         <Setter Property="MinWidth" Value="{Binding Width, RelativeSource={RelativeSource Self}}" />
         <Setter Property="Template">
             <Setter.Value>
@@ -36,10 +36,10 @@
                         Background="Transparent"
                         SnapsToDevicePixels="true">
 
-                        <Border Padding="2,4">
+                        <Border Padding="0">
                             <Track
                                 x:Name="PART_Track"
-                                Width="6"
+                                Width="4"
                                 HorizontalAlignment="Right"
                                 IsDirectionReversed="true"
                                 IsEnabled="{TemplateBinding IsMouseOver}">
@@ -64,7 +64,7 @@
                 <Setter Property="MinWidth" Value="0" />
                 <Setter Property="Height" Value="14" />
                 <Setter Property="MinHeight" Value="{Binding Height, RelativeSource={RelativeSource Self}}" />
-                <Setter Property="Margin" Value="0,-14,0,0" />
+                <Setter Property="Margin" Value="0" />
 
                 <Setter Property="Template">
                     <Setter.Value>
@@ -72,7 +72,7 @@
                             <Grid x:Name="Bg" SnapsToDevicePixels="true">
                                 <Track
                                     x:Name="PART_Track"
-                                    Height="6"
+                                    Height="4"
                                     IsEnabled="{TemplateBinding IsMouseOver}">
                                     <Track.DecreaseRepeatButton>
                                         <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}" Opacity="0" />
@@ -157,12 +157,12 @@
                                     <DoubleAnimation
                                         Storyboard.TargetName="PART_VerticalScrollBar"
                                         Storyboard.TargetProperty="Opacity"
-                                        To="1"
+                                        To="0.8"
                                         Duration="0:0:0.3" />
                                     <DoubleAnimation
                                         Storyboard.TargetName="PART_HorizontalScrollBar"
                                         Storyboard.TargetProperty="Opacity"
-                                        To="1"
+                                        To="0.8"
                                         Duration="0:0:0.3" />
                                 </Storyboard>
                             </BeginStoryboard>
