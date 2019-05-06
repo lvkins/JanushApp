@@ -191,6 +191,11 @@ namespace PromoSeeker
         /// </summary>
         public ICommand StopTrackingCommand { get; set; }
 
+        /// <summary>
+        /// The command for deleting the product from the application.
+        /// </summary>
+        public ICommand DeleteCommand { get; set; }
+
         #endregion
 
         #region Constructor
@@ -233,6 +238,7 @@ namespace PromoSeeker
             });
             StartTrackingCommand = new RelayCommand(StartTrackingAsync);
             StopTrackingCommand = new RelayCommand(StopTrackingAsync);
+            DeleteCommand = new RelayCommand(Delete);
 
             #endregion
         }
@@ -313,6 +319,18 @@ namespace PromoSeeker
 
             // Once stopped, flag as not tracked
             Tracked = false;
+        }
+
+        /// <summary>
+        /// Deletes the product from the application.
+        /// </summary>
+        public void Delete()
+        {
+            // Stop any ongoing tracking tasks
+            StopTrackingAsync();
+
+            // Delete the product
+            DI.Application.DeleteProduct(this);
         }
 
         #endregion
@@ -415,7 +433,6 @@ namespace PromoSeeker
 
             // Mark the product 'error having'
         }
-
 
         #endregion
     }

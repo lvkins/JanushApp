@@ -27,15 +27,35 @@ namespace PromoSeeker
         /// <summary>
         /// Adds a new product to track to the application and stores it in the settings file.
         /// </summary>
-        /// <param name="productSetting">The product settings object.</param>
-        public void AddProduct(ProductSettings productSetting)
+        /// <param name="settings">The product settings object.</param>
+        public void AddProduct(ProductSettings settings)
         {
             // Store the product to the settings file
-            DI.SettingsReader.Settings.Products.Add(productSetting);
+            DI.SettingsReader.Settings.Products.Add(settings);
             DI.SettingsReader.Save();
 
             // Add the product to the collection
-            Products.Add(new ProductViewModel(productSetting));
+            Products.Add(new ProductViewModel(settings));
+        }
+
+        /// <summary>
+        /// Deletes a single product from the application.
+        /// </summary>
+        /// <param name="product">The product to delete.</param>
+        public void DeleteProduct(ProductViewModel product)
+        {
+            // Get this product in the settings
+            var result = DI.SettingsReader.Settings.Products.Where(_ => _.Url == product.Url).FirstOrDefault();
+
+            // If product was found...
+            if (result != null)
+            {
+                DI.SettingsReader.Settings.Products.Remove(result);
+                DI.SettingsReader.Save();
+            }
+
+            // Remove from the collection
+            Products.Remove(product);
         }
 
         /// <summary>
