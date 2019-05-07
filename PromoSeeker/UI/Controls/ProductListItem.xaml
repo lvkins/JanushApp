@@ -485,8 +485,6 @@
                             <Border BorderBrush="{StaticResource ForegroundDarkerBrush}" BorderThickness="0.5">
                                 <StackPanel Background="{StaticResource BackgroundLighterBrush}">
                                     <ItemsControl>
-                                        <!--  Edit the product  -->
-                                        <MenuItem Header="Edit" />
                                         <!--  Open in browser  -->
                                         <MenuItem Command="{Binding NavigateCommand}" Header="Open in browser" />
                                         <!--  Toggle tracking  -->
@@ -500,7 +498,7 @@
                                             Visibility="{Binding Tracked, Converter={local:BooleanToVisibilityConverter}}" />
                                         <!--  Separator  -->
                                         <Separator Background="{StaticResource BackgroundMainBrush}" />
-                                        <!--  Remove  -->
+                                        <!--  Delete  -->
                                         <MenuItem
                                             Command="{Binding DeleteCommand}"
                                             Foreground="#FF0000"

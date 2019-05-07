@@ -39,6 +39,29 @@
                             Text="Make sure everything is set as it should be and detected properties match!"
                             TextAlignment="Justify"
                             TextWrapping="WrapWithOverflow" />
+
+                        <!--  Invalid info notice  -->
+                        <Grid Margin="15,10,15,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Margin="9,0"
+                                FontSize="{StaticResource FontSizeLarge}"
+                                Foreground="{StaticResource AppNavyBlueBrush}"
+                                SnapsToDevicePixels="True"
+                                Text="🛈" />
+
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                FontSize="{StaticResource FontSizeSmall}"
+                                Foreground="{StaticResource AppNavyBlueBrush}"
+                                Text="Something is not right? No luck finding valid product price? Try adding the product manually." />
+                        </Grid>
                     </StackPanel>
 
                     <!--  Status message  -->
@@ -69,40 +92,17 @@
                         <!--  Product price  -->
 
                         <!--  If one product price  -->
-                        <StackPanel Margin="0,10,0,0" Visibility="{Binding Product.DetectedPrices, Converter={local:NullToVisibilityConverter}, ConverterParameter=True}">
+                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HasSeveralPrices, Converter={local:BooleanToVisibilityConverter}}">
                             <TextBlock Text="Current product price:" />
-                            <TextBox IsEnabled="False" Text="{Binding Product.PriceInfo.Value, Mode=OneWay}" />
+                            <TextBox IsEnabled="False" Text="{Binding Product.PriceInfo.CurrencyAmount, Mode=OneWay}" />
                         </StackPanel>
 
                         <!--  If several prices detected  -->
-                        <StackPanel Margin="0,10,0,0" Visibility="{Binding Product.DetectedPrices, Converter={local:NullToVisibilityConverter}}">
+                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HasSeveralPrices, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                             <TextBlock Text="Select current product price:" />
 
-                            <!--  No price info  -->
-                            <Grid Margin="0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Margin="9,0"
-                                    FontSize="{StaticResource FontSizeLarge}"
-                                    Foreground="{StaticResource AppNavyBlueBrush}"
-                                    SnapsToDevicePixels="True"
-                                    Text="🛈" />
-
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    FontSize="{StaticResource FontSizeSmall}"
-                                    Foreground="{StaticResource AppNavyBlueBrush}"
-                                    Text="No luck finding product price on the list? Try adding the product manually." />
-                            </Grid>
-
                             <!--  Prices detected list  -->
-                            <Grid>
+                            <Grid Margin="0,10">
                                 <ComboBox
                                     x:Name="PriceSelector"
                                     DisplayMemberPath="CurrencyAmount"

@@ -140,6 +140,11 @@ namespace PromoSeeker
         /// </summary>
         public PriceInfo SelectedPrice { get; set; }
 
+        /// <summary>
+        /// If the product has several prices detected.
+        /// </summary>
+        public bool HasSeveralPrices => Product?.DetectedPrices.Count > 1;
+
         #endregion
 
         #region Public Commands
@@ -333,6 +338,7 @@ namespace PromoSeeker
 
                 // Raise property changed event
                 OnPropertyChanged(nameof(Product));
+                OnPropertyChanged(nameof(HasSeveralPrices));
 
                 // Show confirmation page
                 StepTwo = true;

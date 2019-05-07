@@ -45,7 +45,9 @@ namespace PromoSeeker.Core
         public static readonly IDictionary<string, string> PRICE_SOURCES = new Dictionary<string, string>
         {
             // Meta tag attribute is the most trusted price source.
-            // NOTE: Some of these should appear on meta tag, however seen sites declaring it on different tags
+            // NOTE: Some of these should appear on meta tag, however
+            //  seen sites declaring it on different tags, hence no 
+            //  specific tag selector
             {"[itemprop='price']", "content"},
             {"[property='og:price:amount']", "content"},
             {"[property='product:price:amount']", "content"},
@@ -57,7 +59,9 @@ namespace PromoSeeker.Core
         /// </summary>
         public static readonly IDictionary<string, string> CURRENCY_SOURCES = new Dictionary<string, string>
         {
-            // NOTE: Some of these should appear on meta tag, however seen sites declaring it on different tags
+            // NOTE: Some of these should appear on meta tag, however
+            //  seen sites declaring it on different tags, hence no 
+            //  specific tag selector
             {"[itemProp='priceCurrency']", "content"},
             {"[property='og:price:currency']", "content"},
             {"[property='product:price:currency']", "content"},

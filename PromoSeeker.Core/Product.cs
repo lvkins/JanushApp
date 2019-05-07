@@ -734,6 +734,7 @@ namespace PromoSeeker.Core
             // Prices from this source are the most eligible
             foreach (var source in Consts.PRICE_SOURCES)
             {
+
                 // Find a node in the document
                 // If node exists...
                 if (mHtmlDocument.DocumentElement.QuerySelectorOrXPath(source.Key) is IElement node)
@@ -751,7 +752,7 @@ namespace PromoSeeker.Core
                     }
 
                     // If price wasn't found yet...
-                    if (price == null)
+                    if (price?.Valid != true)
                     {
                         // NOTE: We do allow to parse node content after failed attribute read.
                         // This is because some sites not follow good practices and define
@@ -761,8 +762,8 @@ namespace PromoSeeker.Core
                         ReadPrice(node.TextContent, out price);
                     }
 
-                    // If price read was successful...
-                    if (price != null)
+                    // If price read was successful and price is unique...
+                    if (price?.Valid == true && !DetectedPrices.Any(_ => _.Value == price.Decimal))
                     {
                         // Read from value attribute and store the price source
                         DetectedPrices.Add(new PriceInfo(price.Decimal, Culture)
@@ -811,6 +812,11 @@ namespace PromoSeeker.Core
             //      'mightBeAPriceIHope' : 1234,
             //      "price" : 4321,
             //      *word boundary*
+            //
+            //      NOTE that Javascript prices are (currently) used only for a reference. 
+            //      This is because of the fact that these prices are not tied to 
+            //      any specific node in DOM.
+            //
             //
             //  2. The values from attributes named after price, eg. data-my-price="1234".
             //     Some e-commerce sites declare the prices in the tag attributes. Accurate or not,
@@ -1064,10 +1070,17 @@ namespace PromoSeeker.Core
                 .OrderByDescending(_ => _.Score)
                 // Take 10 best price groups
                 .Take(10)
+                // Since currently tracking prices without source in node
+                // (eg. the Javascript prices, that are used for reference) is 
+                // currently not supported. Exclude groups having no node prices at all.
+                // (Comparing first element is enough, because of the previously
+                // sorted node-first elements)
+                .Where(_ => _.Source.First()?.Node != null)
                 // Reduct to the first price in each group and create a selector for each price
                 .Select(_ =>
                 {
                     // Get first (top) price in a group
+                    // (NOTE: Prices in the group are previously sorted node-first)
                     var firstPrice = _.Source.First();
 
                     // If price has a node origin...
