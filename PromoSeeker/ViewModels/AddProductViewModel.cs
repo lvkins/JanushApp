@@ -298,15 +298,7 @@ namespace PromoSeeker
                 return;
             }
 
-            /*
-             * 1. Collect required product parameters (name, price, culture info (currency)).
-             * 2. Show results to the user in the review,
-             * 3. If some parameters were incorrect, give the user right to correct them,
-             * 4. Price correction can be made via the dropdown of already detected prices - or via user specified xpath selector.
-             * 5. After product is set - verify one more time,
-             * 6. Store product.
-             */
-
+            // Flag as busy
             IsBusy = true;
 
             // Create product
@@ -354,6 +346,7 @@ namespace PromoSeeker
                 });
             }
 
+            // Unset busy flag
             IsBusy = false;
         }
 

@@ -57,11 +57,6 @@ namespace PromoSeeker.Core
         public CultureInfo Culture { get; set; }
 
         /// <summary>
-        /// The product change price history.
-        /// </summary>
-        public Dictionary<decimal, DateTime> PriceHistory { get; set; }
-
-        /// <summary>
         /// If the product tracking is enabled.
         /// </summary>
         public bool Tracked { get; set; } = true;
@@ -105,6 +100,16 @@ namespace PromoSeeker.Core
                 _price = value;
             }
         }
+
+        /// <summary>
+        /// The product name change history.
+        /// </summary>
+        public Dictionary<string, DateTime> NameHistory { get; set; }
+
+        /// <summary>
+        /// The product price change history.
+        /// </summary>
+        public Dictionary<decimal, DateTime> PriceHistory { get; set; }
 
         #endregion
     }

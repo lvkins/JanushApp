@@ -1,5 +1,6 @@
 ﻿using PromoSeeker.Core;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Timers;
@@ -67,6 +68,16 @@ namespace PromoSeeker
         /// The current price.
         /// </summary>
         public decimal PriceCurrent { get; set; }
+
+        /// <summary>
+        /// The product name change history.
+        /// </summary>
+        public Dictionary<string, DateTime> NameHistory { get; set; }
+
+        /// <summary>
+        /// The product price change history.
+        /// </summary>
+        public Dictionary<decimal, DateTime> PriceHistory { get; set; }
 
         /// <summary>
         /// The formatted price value to be displayed as the product price.
@@ -264,6 +275,8 @@ namespace PromoSeeker
             Culture = product.Culture;
             Url = product.Url;
             Tracked = product.Tracked;
+            NameHistory = product.NameHistory;
+            PriceHistory = product.PriceHistory;
 
             // Create product instance
             Product = new Product(OriginalName, Url.ToString(), product.Price, product.Culture);
@@ -372,13 +385,31 @@ namespace PromoSeeker
             // If a product name has changed...
             if (result.HasNewName && _settings.NotifyNameChange)
             {
+                // Initialize name history dictionary instance
+                if (NameHistory == null)
+                {
+                    NameHistory = new Dictionary<string, DateTime>();
+                }
+
+                // Append to history
+                NameHistory.Add(OriginalName, DateTime.Now);
+
                 // Send notification
-                DI.UIManager.Tray.Notification($"Product name has changed.\nNew product name:\n\n{Product.Name}", DisplayName);
+                DI.UIManager.Tray.Notification($"Product name has changed.\nNew product name:\n\n{Product.Name}", Name);
             }
 
             // If a product price has changed...
             if (result.HasNewPrice && _settings.NotifyPriceChange)
             {
+                // Initialize price history dictionary instance
+                if (PriceHistory == null)
+                {
+                    PriceHistory = new Dictionary<decimal, DateTime>();
+                }
+
+                // Append to history
+                PriceHistory.Add(PriceCurrent, DateTime.Now);
+
                 // Resulting message
                 var tooltipMessage = string.Empty;
 
@@ -396,7 +427,7 @@ namespace PromoSeeker
                 // If we have a message to notify...
                 if (!string.IsNullOrEmpty(tooltipMessage))
                 {
-                    DI.UIManager.Tray.Notification(tooltipMessage, DisplayName);
+                    DI.UIManager.Tray.Notification(tooltipMessage, Name);
                 }
             }
 

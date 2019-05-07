@@ -106,7 +106,7 @@ namespace PromoSeeker
         public void Save()
         {
             // Write diagnostic info
-            Debug.WriteLine($"Save application state {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+            Debug.WriteLine($"Save application state");
 
             // Update products
             DI.SettingsReader.Settings.Products = Products.Select(_ => new ProductSettings
@@ -118,6 +118,8 @@ namespace PromoSeeker
                 DisplayName = _.DisplayName,
                 Tracked = _.Tracked,
                 LastChecked = _.LastCheck,
+                NameHistory = _.NameHistory,
+                PriceHistory = _.PriceHistory,
                 Created = _.DateAdded,
             }).ToList();
 
