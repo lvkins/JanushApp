@@ -439,7 +439,7 @@
                                         <Setter Property="Foreground" Value="{StaticResource AppDarkBlueBrush}" />
                                         <Setter Property="Content">
                                             <Setter.Value>
-                                                <TextBlock Text="{Binding DisplayName}" TextDecorations="Underline" />
+                                                <TextBlock Text="{Binding Name}" TextDecorations="Underline" />
                                             </Setter.Value>
                                         </Setter>
                                     </Trigger>
