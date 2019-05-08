@@ -173,6 +173,11 @@ namespace PromoSeeker
             }
         }
 
+        /// <summary>
+        /// The settings object for this product.
+        /// </summary>
+        public ProductSettings Settings => _settings;
+
         #endregion
 
         #region Public Commands

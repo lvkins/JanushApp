@@ -109,18 +109,21 @@ namespace PromoSeeker
             Debug.WriteLine($"Save application state");
 
             // Update products
-            DI.SettingsReader.Settings.Products = Products.Select(_ => new ProductSettings
+            DI.SettingsReader.Settings.Products = Products.Select(_ =>
             {
-                Url = _.Url,
-                Name = _.OriginalName,
-                Price = _.Product.PriceInfo,
-                Culture = _.Culture,
-                DisplayName = _.DisplayName,
-                Tracked = _.Tracked,
-                LastChecked = _.LastCheck,
-                NameHistory = _.NameHistory,
-                PriceHistory = _.PriceHistory,
-                Created = _.DateAdded,
+                // Update stored settings values with the values in view model
+                _.Settings.Url = _.Url;
+                _.Settings.Name = _.OriginalName;
+                _.Settings.Price = _.Product.PriceInfo;
+                _.Settings.Culture = _.Culture;
+                _.Settings.DisplayName = _.DisplayName;
+                _.Settings.Tracked = _.Tracked;
+                _.Settings.NameHistory = _.NameHistory;
+                _.Settings.PriceHistory = _.PriceHistory;
+                _.Settings.Created = _.DateAdded;
+
+                // Return updates settings
+                return _.Settings;
             }).ToList();
 
             // Save settings
