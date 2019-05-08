@@ -96,6 +96,7 @@
                                     <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
                                 </StackPanel>
                             </Border>
+
                             <!--  Name  -->
                             <Border Margin="0,15">
                                 <StackPanel>
@@ -106,16 +107,18 @@
                                     <TextBlock Style="{StaticResource HelpBlock}">The product name you will see on the list and in the notifications.</TextBlock>
                                 </StackPanel>
                             </Border>
+
                             <!--  Price selector  -->
                             <Border Margin="0,15">
                                 <StackPanel>
-                                    <TextBlock>Enter the current product price (including decimal point) or price selector (XPath or CSS)</TextBlock>
+                                    <TextBlock>Enter XPath or CSS path for the product price</TextBlock>
 
-                                    <TextBox Tag="245.30 or //body/div[1]/strong" Text="{Binding PriceSelector}" />
+                                    <TextBox Tag="head &gt; meta:nth-child(10)" Text="{Binding PriceSelector}" />
 
-                                    <TextBlock Style="{StaticResource HelpBlock}">Help us identify the price for you. Enter a current price product or it's selector.</TextBlock>
+                                    <TextBlock Style="{StaticResource HelpBlock}">Help us identify the price for you. Enter a current price product or specify a selector to the element that holds the price. We will take care of the rest.</TextBlock>
                                 </StackPanel>
                             </Border>
+
                             <!--  Culture  -->
                             <Border Margin="0,15">
                                 <StackPanel>

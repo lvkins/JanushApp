@@ -126,7 +126,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// Whether the product properties like the culture of the website, price selector and name should be loaded automatically.
         /// </summary>
-        public bool IsAutoLoadProperties { get; }
+        public bool IsAutoDetect { get; }
 
         /// <summary>
         /// The task that is handling tracking of this product.
@@ -162,7 +162,7 @@ namespace PromoSeeker.Core
         #region Constructor
 
         /// <summary>
-        /// Automatically attempts loads the product by given <paramref name="url"/>
+        /// Initializes a product that whose data should be loaded automatically from the given <paramref name="url"/>.
         /// </summary>
         /// <param name="url">The product URL.</param>
         public Product(string url)
@@ -171,26 +171,22 @@ namespace PromoSeeker.Core
             Url = url;
 
             // Auto load other necessary properties
-            IsAutoLoadProperties = true;
+            IsAutoDetect = true;
         }
 
         /// <summary>
-        /// Loads the product by manually specified data.
+        /// Initializes a product from the previously created product settings
+        /// object, containing all relevant informations about the product.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="url"></param>
-        /// <param name="priceXPath"></param>
-        /// <param name="culture"></param>
-        public Product(string name, string url, PriceInfo priceInfo, CultureInfo culture)
+        /// <param name="settings">The product settings object.</param>
+        public Product(ProductSettings settings)
         {
-            // We are setting the properties manually
-            IsAutoLoadProperties = false;
-
-            // Set the properties
-            Name = name;
-            Url = url;
-            PriceInfo = priceInfo;
-            Culture = culture;
+            // Set properties
+            Name = settings.Name;
+            Url = settings.Url.ToString();
+            PriceInfo = settings.Price;
+            Culture = settings.Culture;
+            IsAutoDetect = settings.AutoDetect;
         }
 
         #endregion
@@ -198,7 +194,7 @@ namespace PromoSeeker.Core
         #region Public Methods
 
         /// <summary>
-        /// Set a price source for the product that will be used for tracking.
+        /// Sets a price source for the product that will be used for tracking.
         /// </summary>
         /// <param name="price"></param>
         public void SetTrackingPrice(PriceInfo price)
@@ -258,126 +254,15 @@ namespace PromoSeeker.Core
         /// <summary>
         /// Loads the product.
         /// </summary>
-        /// <returns>A task that will finish once the product was loaded. The task result contains a <see cref="ProductLoadResult"/> object.</returns>
-        public async Task<ProductLoadResult> LoadAsync()
+        /// <returns>A task which result will contain a <see cref="ProductLoadResult"/> object.</returns>
+        public Task<ProductLoadResult> LoadAsync()
         {
-            // Once we have the HTML document, we can parse product properties
-            if (mHtmlDocument == null)
-            {
-                // Open product website
-                var result = await OpenAsync();
-
-                // If not successful...
-                if (!result.Success)
-                {
-                    return result;
-                }
-            }
-
             // If properties should be automatically detected...
-            return IsAutoLoadProperties
+            return IsAutoDetect
                 // Load automatically
-                ? await LoadAutoAsync()
+                ? LoadAutoAsync()
                 // Load manually
-                : await LoadManuallyAsync();
-        }
-
-        /// <summary>
-        /// Automatically loads the latest product properties like name, price, culture info.
-        /// </summary>
-        /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the product load.</returns>
-        private Task<ProductLoadResult> LoadAutoAsync()
-        {
-            // Create the result
-            var result = new ProductLoadResult();
-
-            // NOTE: Order of the loading properties is important
-
-            // If failed to detect product website culture...
-            if (!DetectCulture())
-            {
-                result.ErrorType = ProductLoadResultType.ProductUnknownCulture;
-            }
-            // If failed to detect product name...
-            else if (!DetectName())
-            {
-                result.ErrorType = ProductLoadResultType.ProductUnknownName;
-            }
-            // If failed to detect price sources...
-            else if (!DetectPriceSources())
-            {
-                result.ErrorType = ProductLoadResultType.ProductUnknownPrice;
-            }
-            // Success
-            else
-            {
-                // Set successful result
-                result.Success = true;
-
-                // Set the best-scored price detected to use
-                PriceInfo = DetectedPrices.First();
-            }
-
-            // Return the result
-            return Task.FromResult(result);
-        }
-
-        /// <summary>
-        /// Manually loads the latest product properties like name, price.
-        /// </summary>
-        /// <returns>A task that will finish once loading is finished. Task result contains the result of the product load.</returns>
-        private Task<ProductLoadResult> LoadManuallyAsync()
-        {
-            // TODO:
-            // FIX THIS METHOD AND USE PASS IN THE PRICE SELECTOR (and conditionally an attribute) TO SELECT THE PRICE.
-
-            // Create the result
-            var result = new ProductLoadResult { Success = true };
-
-            // Ensure we got all necessary properties set
-            if (Culture == null || string.IsNullOrEmpty(Name) || PriceInfo == null)
-            {
-                result.Success = false;
-                result.ErrorType = ProductLoadResultType.ProductParamNotFound;
-                return Task.FromResult(result);
-            }
-
-            #region Set Price
-
-            // Select node by given xpath query
-            var node = mHtmlDocument.Body.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
-
-            // Because the price xpath query can point to the meta tag, where the price lies
-            // In case of a meta tag node, read the 'content' attribute, instead of the inner text.
-            var isMeta = node?.NodeName.ToUpperInvariant() == "META";
-
-            // Get the value
-            var value = isMeta
-                ? node.GetAttribute("content")
-                : node.TextContent;
-
-            // If unable to read the node value...
-            if (!ReadPrice(value, out var priceValue))
-            {
-                result.Success = false;
-                result.ErrorType = ProductLoadResultType.ProductUnknownPrice;
-
-                // Unable to parse price
-                return Task.FromResult(result);
-            }
-
-            // Set product price
-            PriceInfo = new PriceInfo(priceValue.Decimal, Culture)
-            {
-                AttributeName = isMeta ? "content" : null,
-                Source = isMeta ? PriceSourceType.PriceSourceAttribute : PriceSourceType.PriceSourceText,
-                PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector
-            };
-
-            #endregion
-
-            // Return the result
-            return Task.FromResult(result);
+                : LoadManuallyAsync();
         }
 
         /// <summary>
@@ -772,7 +657,7 @@ namespace PromoSeeker.Core
                             AttributeName = isAttribute ? source.Value : null,
                             Source = isAttribute
                                 ? PriceSourceType.PriceSourceAttribute
-                                : PriceSourceType.PriceSourceText,
+                                : PriceSourceType.PriceSourceNode,
                         });
                     }
                 }
@@ -891,7 +776,7 @@ namespace PromoSeeker.Core
                     _.PriceReadResult,
                     PriceInfo = new PriceInfo(_.PriceReadResult.Decimal, Culture)
                     {
-                        Source = PriceSourceType.PriceSourceText,
+                        Source = PriceSourceType.PriceSourceNode,
                     }
                 });
 
@@ -906,7 +791,7 @@ namespace PromoSeeker.Core
                     int? nameDistance = null;
 
                     // If price has a source node and source price is a price found in the node text (node that *could be* displayed to user)...
-                    if (_.Node != null && _.PriceInfo.Source == PriceSourceType.PriceSourceText)
+                    if (_.Node != null && _.PriceInfo.Source == PriceSourceType.PriceSourceNode)
                     {
                         // NOTE: Since we've switched from HtmlAgilityPack to AngleSharp
                         // We have lost the ability to check the stream position of the element.
@@ -962,7 +847,7 @@ namespace PromoSeeker.Core
                         {
                             ++inJSCount;
                         }
-                        else if (item.PriceInfo.Source == PriceSourceType.PriceSourceText)
+                        else if (item.PriceInfo.Source == PriceSourceType.PriceSourceNode)
                         {
                             ++inNodeCount;
                         }
@@ -1114,6 +999,144 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
+        /// Automatically loads the latest product properties.
+        /// </summary>
+        /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the product load.</returns>
+        private async Task<ProductLoadResult> LoadAutoAsync()
+        {
+            // Once we have the HTML document, we can parse product properties
+            if (mHtmlDocument == null)
+            {
+                // Open product website
+                var loadResult = await OpenAsync();
+
+                // If not successful...
+                if (!loadResult.Success)
+                {
+                    return loadResult;
+                }
+            }
+
+            // Create the result
+            var result = new ProductLoadResult();
+
+            // NOTE: Order of the loading properties is important
+
+            // If failed to detect product website culture...
+            if (!DetectCulture())
+            {
+                result.ErrorType = ProductLoadResultType.ProductUnknownCulture;
+            }
+            // If failed to detect product name...
+            else if (!DetectName())
+            {
+                result.ErrorType = ProductLoadResultType.ProductUnknownName;
+            }
+            // If failed to detect price sources...
+            else if (!DetectPriceSources())
+            {
+                result.ErrorType = ProductLoadResultType.ProductUnknownPrice;
+            }
+            // Success
+            else
+            {
+                // Set successful result
+                result.Success = true;
+
+                // Set the best-scored price detected to use
+                PriceInfo = DetectedPrices.First();
+            }
+
+            // Return the result
+            return result;
+        }
+
+        /// <summary>
+        /// Manually loads the latest product properties.
+        /// </summary>
+        /// <returns>A task that will finish once loading is finished. Task result contains the result of the product load.</returns>
+        private async Task<ProductLoadResult> LoadManuallyAsync()
+        {
+            // Once we have the HTML document, we can parse product properties
+            if (mHtmlDocument == null)
+            {
+                // Open product website
+                var loadResult = await OpenAsync();
+
+                // If not successful...
+                if (!loadResult.Success)
+                {
+                    return loadResult;
+                }
+            }
+
+            // Create the result
+            var result = new ProductLoadResult { Success = true };
+
+            // Ensure we got all necessary properties set
+            if (Culture == null || string.IsNullOrEmpty(Name) || PriceInfo == null)
+            {
+                result.Success = false;
+                result.ErrorType = ProductLoadResultType.ProductParamNotFound;
+                return result;
+            }
+
+            #region Set Price
+
+            // Select node
+            var node = mHtmlDocument.Body.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
+
+            // If node wasn't located in the DOM...
+            if (node == null)
+            {
+                // Return failure
+                result.Success = false;
+                return result;
+            }
+
+            // Set price source to node
+            PriceInfo.Source = PriceSourceType.PriceSourceNode;
+
+            // Find price anywhere in the node (including attributes)
+
+            // Try parse node content and if result is not a valid price...
+            if (!ReadPrice(node.TextContent, out var price))
+            {
+                // Try parse attribute values
+                var attribute = node.Attributes
+                    .FirstOrDefault(_ => _.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) && ReadPrice(_.Value, out price));
+
+                // If failed to find price in the attributes...
+                if (string.IsNullOrEmpty(attribute?.Value))
+                {
+                    // Return failure
+                    result.Success = false;
+                    result.ErrorType = ProductLoadResultType.ProductUnknownPrice;
+                    return result;
+                }
+
+                // Set attribute, where the price was found
+                PriceInfo.AttributeName = attribute.Name;
+                // Set proper price source
+                PriceInfo.Source = PriceSourceType.PriceSourceAttribute;
+            }
+
+            // Recreate price
+            PriceInfo = new PriceInfo(price.Decimal, Culture)
+            {
+                PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector,
+                AttributeName = PriceInfo.AttributeName,
+                Source = PriceInfo.Source
+            };
+
+            #endregion
+
+            // Return the result
+            return result;
+        }
+
+
+        /// <summary>
         /// Load current, up-to-date product properties.
         /// </summary>
         /// <returns>A task that will finish once the product is updated, the task result contains the update result object.</returns>
@@ -1142,20 +1165,28 @@ namespace PromoSeeker.Core
 
             #region Update Name
 
-            var preName = Name;
+            // NOTE: We always use automatic detection for product
+            //  name, if user adds product manually and types whatever
+            //  name, then such name will remain as a custom product name.
 
-            // Get latest product name (we use automatic name detection)
-            if (!DetectName())
+            // If properties should be detected automatically...
+            if (IsAutoDetect)
             {
-                // TODO: report error
-            }
-            // If names are not equal...
-            else if (!preName.Equals(Name, StringComparison.InvariantCulture))
-            {
-                // Name differs
-                // TODO: raise some event
+                var preName = Name;
 
-                updateResult.HasNewName = true;
+                // Get latest product name
+                if (!DetectName())
+                {
+                    // TODO: report error
+                }
+                // If names are not equal...
+                else if (!preName.Equals(Name, StringComparison.InvariantCulture))
+                {
+                    // Name differs
+                    // TODO: raise some event
+
+                    updateResult.HasNewName = true;
+                }
             }
 
             #endregion
@@ -1163,8 +1194,6 @@ namespace PromoSeeker.Core
             #region Update Price
 
             // Get latest product price
-            var w1 = mHtmlDocument.DocumentElement.OuterHtml;
-            var w2 = mHtmlDocument.Body.OuterHtml;
             var priceNode = mHtmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
 
             // If node was selected successfully...

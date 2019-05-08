@@ -57,6 +57,11 @@ namespace PromoSeeker.Core
         public CultureInfo Culture { get; set; }
 
         /// <summary>
+        /// If the product properties should be detected automatically or manually.
+        /// </summary>
+        public bool AutoDetect { get; set; } = true;
+
+        /// <summary>
         /// If the product tracking is enabled.
         /// </summary>
         public bool Tracked { get; set; } = true;

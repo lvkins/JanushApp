@@ -261,25 +261,25 @@ namespace PromoSeeker
         /// <summary>
         /// Loads the product into the view model.
         /// </summary>
-        public void Load(ProductSettings product)
+        public void Load(ProductSettings settings)
         {
             // Store settings object
-            _settings = product;
+            _settings = settings;
 
             // Populate properties
-            OriginalName = product.Name;
-            DisplayName = product.DisplayName;
-            DateAdded = product.Created;
-            LastCheck = product.LastChecked;
-            PriceCurrent = product.Price.Value;
-            Culture = product.Culture;
-            Url = product.Url;
-            Tracked = product.Tracked;
-            NameHistory = product.NameHistory;
-            PriceHistory = product.PriceHistory;
+            OriginalName = settings.Name;
+            DisplayName = settings.DisplayName;
+            DateAdded = settings.Created;
+            LastCheck = settings.LastChecked;
+            PriceCurrent = settings.Price.Value;
+            Culture = settings.Culture;
+            Url = settings.Url;
+            Tracked = settings.Tracked;
+            NameHistory = settings.NameHistory;
+            PriceHistory = settings.PriceHistory;
 
             // Create product instance
-            Product = new Product(OriginalName, Url.ToString(), product.Price, product.Culture);
+            Product = new Product(settings);
 
             // Subscribe to the events
             Product.TrackingFailed += Product_TrackingFailed;
@@ -359,7 +359,7 @@ namespace PromoSeeker
             CurrentlyUpdating = true;
 
             // Leave a log message
-            DI.Logger.Info($"> Update [{OriginalName}, {Url}]");
+            DI.Logger.Info($"> Update started [{OriginalName}, {Url}]");
         }
 
         /// <summary>

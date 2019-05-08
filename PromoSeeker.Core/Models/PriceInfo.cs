@@ -20,7 +20,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// A price that is coming from the raw node text.
         /// </summary>
-        PriceSourceText,
+        PriceSourceNode,
     }
 
     /// <summary>

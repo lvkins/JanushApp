@@ -211,8 +211,6 @@ namespace PromoSeeker
         {
             get
             {
-                Console.WriteLine($"is valid: {columnName}");
-
                 // Url validation
                 if (columnName == null || columnName == nameof(Url))
                 {
@@ -241,6 +239,8 @@ namespace PromoSeeker
                         return "This product has been already added to the tracker.";
                     }
                 }
+
+                // TODO: validate confirmation controls (ProductReviewControl)
 
                 IsValid = true;
                 return string.Empty;
@@ -311,7 +311,7 @@ namespace PromoSeeker
             if (result.Success)
             {
                 // If several prices have been detected...
-                if (product.DetectedPrices.Count > 1)
+                if (product.DetectedPrices?.Count > 1)
                 {
                     // Inform the user about several prices
                     await DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
@@ -362,10 +362,24 @@ namespace PromoSeeker
                 return;
             }
 
+            // Set busy flag
             IsBusy = true;
 
+            // Create user selected culture
+            var formatProvider = new CultureInfo(UserRegion.Name);
+
             // Create product
-            var product = new Product(Name, Url, null/*TODO: fix me*/, new CultureInfo(UserRegion.Name));
+            var product = new Product(new ProductSettings
+            {
+                Name = Name,
+                Url = new Uri(Url),
+                AutoDetect = false,
+                Culture = formatProvider,
+                Price = new PriceInfo(default, formatProvider)
+                {
+                    PriceXPathOrSelector = PriceSelector
+                }
+            });
 
             // Load product and get the result
             var result = await Task.Run(product.LoadAsync);
@@ -393,6 +407,7 @@ namespace PromoSeeker
                 });
             }
 
+            // Unset busy flag
             IsBusy = false;
         }
 
@@ -408,7 +423,7 @@ namespace PromoSeeker
             }
 
             // If user had to select a valid price...
-            if (Product.DetectedPrices.Count > 1)
+            if (Product.DetectedPrices?.Count > 1)
             {
                 // If no price was selected...
                 if (SelectedPrice == null)
@@ -429,6 +444,7 @@ namespace PromoSeeker
                 Price = Product.PriceInfo,
                 Culture = Product.Culture,
                 LastChecked = DateTime.Now,
+                AutoDetect = Product.IsAutoDetect,
             };
 
             // Add product
