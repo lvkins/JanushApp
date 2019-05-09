@@ -76,7 +76,7 @@ namespace PromoSeeker
         /// The regions to select the currency from.
         /// 
         /// TODO: Should we group the currencies by, for example
-        /// the ISOCurrencySymbol to prevent multiple currencies 
+        /// the ISOCurrencySymbol to prevent duplicate currencies in the combo box
         /// and give user the ability to select a currency, rather 
         /// than the country?
         /// 
@@ -342,7 +342,7 @@ namespace PromoSeeker
                 _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
-                    Message = result.Error ?? result.ErrorType.ToString()
+                    Message = result.Error.ToDisplayString()
                 });
             }
 
@@ -403,7 +403,7 @@ namespace PromoSeeker
                 _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
-                    Message = result.Error ?? result.ErrorType.ToString()
+                    Message = result.Error.ToDisplayString()
                 });
             }
 

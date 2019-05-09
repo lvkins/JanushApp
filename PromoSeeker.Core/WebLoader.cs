@@ -23,7 +23,9 @@ namespace PromoSeeker.Core
         /// </summary>
         public static IConfiguration Configuration = AngleSharp.Configuration.Default
                 .WithDefaultLoader()
-                .With(Requester);
+                .With(Requester)
+                // Enable XPath queries in QuerySelector method (*[xpath>'//li[2]'])
+                .WithXPath();
 
         #endregion
 

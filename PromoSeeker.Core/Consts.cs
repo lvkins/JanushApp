@@ -23,7 +23,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The time interval, product will updated within.
         /// </summary>
-        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(30);
+        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(60);
 
         /// <summary>
         /// Whether if the <see cref="PRODUCT_UPDATE_INTERVAL"/> should be randomized by adding small random values.
@@ -74,7 +74,7 @@ namespace PromoSeeker.Core
         public static readonly IDictionary<string, string[]> LANG_SOURCES = new Dictionary<string, string[]>
         {
             // 'lang' attributes on the HTML tag
-            {"//html", new string[] { "lang", "xml:lang" } },
+            {"html", new string[] { "lang", "xml:lang" } },
             {"//meta[@http-equiv='Content-Language']", new string[] {"content"} }
         };
 
