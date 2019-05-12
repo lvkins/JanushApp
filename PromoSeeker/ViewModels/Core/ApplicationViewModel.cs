@@ -120,6 +120,7 @@ namespace PromoSeeker
                 _.Settings.Tracked = _.Tracked;
                 _.Settings.NameHistory = _.NameHistory;
                 _.Settings.PriceHistory = _.PriceHistory;
+                _.Settings.LastChecked = _.LastCheck;
                 _.Settings.Created = _.DateAdded;
 
                 // Return updates settings
@@ -149,7 +150,7 @@ namespace PromoSeeker
                 window.Owner = Application.Current.MainWindow;
                 window.DataContext = viewModel;
                 window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                window.ResizeMode = ResizeMode.NoResize;
+                //window.ResizeMode = ResizeMode.NoResize;
 
                 // If we have close callback...
                 if (onClose != null)

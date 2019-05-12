@@ -18,6 +18,8 @@ namespace PromoSeeker
         /// </summary>
         public static IServiceProvider Provider { get; private set; }
 
+        #region View Models
+
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="ApplicationViewModel"/>.
         /// </summary>
@@ -26,7 +28,14 @@ namespace PromoSeeker
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="AddPromotionViewModel"/>.
         /// </summary>
-        public static IWindowViewModel AddPromotionViewModel => GetService<IWindowViewModel>();
+        public static AddProductViewModel AddPromotionViewModel => GetService<AddProductViewModel>();
+
+        /// <summary>
+        /// A shortcut to access a singleton instance of the <see cref="LogsViewModel"/>.
+        /// </summary>
+        public static LogsViewModel LogsViewModel => GetService<LogsViewModel>();
+
+        #endregion
 
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.

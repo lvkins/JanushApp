@@ -77,7 +77,7 @@ namespace PromoSeeker
         /// <summary>
         /// The product price change history.
         /// </summary>
-        public Dictionary<decimal, DateTime> PriceHistory { get; set; }
+        public Dictionary<string, DateTime> PriceHistory { get; set; }
 
         /// <summary>
         /// The formatted price value to be displayed as the product price.
@@ -381,7 +381,7 @@ namespace PromoSeeker
             if (!result.Success)
             {
                 // TODO: Handle unsuccessful update
-                DI.UIManager.Tray.Notification("Failed to update product", DisplayName, TrayIconNotificationType.Warning);
+                DI.UIManager.Tray.Notification("Failed to update product", Name, TrayIconNotificationType.Warning);
                 return;
             }
 
@@ -409,11 +409,11 @@ namespace PromoSeeker
                 // Initialize price history dictionary instance
                 if (PriceHistory == null)
                 {
-                    PriceHistory = new Dictionary<decimal, DateTime>();
+                    PriceHistory = new Dictionary<string, DateTime>();
                 }
 
                 // Append to history
-                PriceHistory.Add(PriceCurrent, DateTime.Now);
+                PriceHistory.Add(DisplayPrice, DateTime.Now);
 
                 // Resulting message
                 var tooltipMessage = string.Empty;

@@ -10,6 +10,7 @@
     Height="500"
     d:DataContext="{x:Static local:AddProductDesignModel.Instance}"
     FocusManager.FocusedElement="{Binding ElementName=ProductURL}"
+    ResizeMode="NoResize"
     mc:Ignorable="d">
 
     <Grid>

@@ -111,8 +111,13 @@
                     StaysOpen="{Binding IsMouseOver, ElementName=SettingButton}">
                     <StackPanel Background="{StaticResource BackgroundLighterBrush}">
                         <ItemsControl>
+                            <!--  Logs  -->
+                            <MenuItem Command="{Binding OpenLogsWindowCommand}" Header="Logs" />
+                            <!--  Settings  -->
                             <MenuItem Command="{Binding OpenSettingsWindowCommand}" Header="Settings" />
+                            <!--  Separator  -->
                             <Separator Background="{StaticResource BackgroundMainBrush}" />
+                            <!--  Exit  -->
                             <MenuItem Command="{Binding ShutdownCommand}" Header="Exit" />
                         </ItemsControl>
                     </StackPanel>
@@ -143,11 +148,8 @@
         </Border>
 
         <!--  Window content  -->
-        <Border
-            Grid.Row="2"
-            Padding="10"
-            Background="{StaticResource BackgroundMainBrush}">
-            <ScrollViewer>
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <Border Padding="10" Background="{StaticResource BackgroundMainBrush}">
                 <StackPanel>
                     <ItemsControl ItemsSource="{Binding Products, FallbackValue=12345678, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
                         <ItemsControl.ItemTemplate>
@@ -157,8 +159,8 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
-            </ScrollViewer>
-        </Border>
+            </Border>
+        </ScrollViewer>
 
     </Grid>
 

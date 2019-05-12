@@ -58,7 +58,7 @@ namespace PromoSeeker
         /// <param name="timeout"></param>
         /// <param name="type"></param>
         public void Notification(string tipText, string tipTitle = "",
-            TrayIconNotificationType type = TrayIconNotificationType.None, int timeout = 5)
+            TrayIconNotificationType type = TrayIconNotificationType.None, int timeout = int.MaxValue)
             => _trayIcon.ShowBalloonTip(timeout, tipTitle, tipText, (FormsApp.ToolTipIcon)type);
 
         #endregion

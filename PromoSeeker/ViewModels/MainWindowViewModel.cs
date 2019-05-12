@@ -52,6 +52,11 @@ namespace PromoSeeker
         public ICommand OpenAddProductWindowCommand { get; }
 
         /// <summary>
+        /// The command to open the <see cref="LogsWindow"/>.
+        /// </summary>
+        public ICommand OpenLogsWindowCommand { get; }
+
+        /// <summary>
         /// The command to open the <see cref="SettingsWindow"/>.
         /// </summary>
         public ICommand OpenSettingsWindowCommand { get; }
@@ -112,46 +117,12 @@ namespace PromoSeeker
                 OnPropertyChanged(nameof(ShowSettingsPopupMenu));
             });
 
-            OpenSettingsWindowCommand = new RelayCommand(() => ShowChildWindow<SettingsWindow>());
+            OpenSettingsWindowCommand = new RelayCommand(() => DI.Application.ShowWindow<SettingsWindow>(null));
+            OpenLogsWindowCommand = new RelayCommand(() => DI.LogsViewModel.Open());
 
             ShutdownCommand = new RelayCommand(() => Application.Current.Shutdown());
 
             #endregion
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Shows a children window to the user.
-        /// </summary>
-        /// <param name="onClose">The action to be executed when the window was closed.</param>
-        /// <typeparam name="T">The window type to be created.</typeparam>
-        private void ShowChildWindow<T>(Action<object> onClose = null)
-            where T : Window
-        {
-            // Attempt to find the window in the currently initialized windows in our application
-            var window = Application.Current.Windows.OfType<T>().FirstOrDefault();
-
-            // If none window was found...
-            if (window == null)
-            {
-                // Create new window
-                window = Activator.CreateInstance<T>();
-                window.Owner = _window;
-                window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                window.ResizeMode = ResizeMode.NoResize;
-
-                // If we have close callback...
-                if (onClose != null)
-                {
-                    window.Closed += (s, e) => onClose(s);
-                }
-            }
-
-            // Show
-            window.ShowDialog();
         }
 
         #endregion

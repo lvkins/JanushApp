@@ -34,7 +34,8 @@ namespace PromoSeeker
         public static void AddViewModels(this IServiceCollection services)
         {
             services.AddSingleton<ApplicationViewModel>();
-            services.AddSingleton<IWindowViewModel, AddProductViewModel>();
+            services.AddSingleton<AddProductViewModel>();
+            services.AddSingleton<LogsViewModel>();
         }
     }
 }
