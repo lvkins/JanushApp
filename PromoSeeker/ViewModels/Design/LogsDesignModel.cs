@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PromoSeeker.Core;
+using System;
 using System.Collections.ObjectModel;
 
 namespace PromoSeeker
@@ -24,21 +25,28 @@ namespace PromoSeeker
         /// </summary>
         public LogsDesignModel()
         {
-            Data = new ObservableCollection<Tuple<string, string, DateTime>>()
+            // Create a dummy product for the collection
+            var dummyProduct = new ProductViewModel
             {
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World", DateTime.Now),
-                new Tuple<string, string, DateTime>("Sample Product", "Hello World. This is a longer, detailed message for the log entry. I wonder if this would fit nicely into the cell.", DateTime.Today),
+                DisplayName = "Sample Product"
+            };
+
+            // Fill the log container
+            Data = new ObservableCollection<Tuple<ProductViewModel, string, DateTime>>()
+            {
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
+                new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World. This is a longer, detailed message for the log entry. I wonder if this would fit nicely into the cell.", DateTime.Today),
             };
         }
 

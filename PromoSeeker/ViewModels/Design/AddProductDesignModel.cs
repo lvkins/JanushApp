@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-namespace PromoSeeker
+﻿namespace PromoSeeker
 {
     /// <summary>
     /// The design-time data model for a <see cref="AddProductViewModel"/>.

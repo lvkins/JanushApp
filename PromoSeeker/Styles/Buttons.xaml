@@ -51,22 +51,35 @@
     </Style>
     <Style BasedOn="{StaticResource BaseButtonStyle}" TargetType="{x:Type Button}" />
 
-    <!--  A button for image-content buttons  -->
+    <!--  A button that doesn't have particular style  -->
     <Style x:Key="Styleless" TargetType="{x:Type ButtonBase}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="TextBlock.TextWrapping" Value="Wrap" />
 
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ButtonBase}">
                     <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <ContentPresenter />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
+    <!--  A link text buttons  -->
+    <Style TargetType="{x:Type Hyperlink}">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundVeryDarkBrush}" />
+        <Setter Property="TextDecorations" Value="{x:Null}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource AppDarkBlueBrush}" />
+                <Setter Property="TextDecorations" Value="Underline" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 
     <!--  Window control button  -->
     <Style
@@ -98,5 +111,13 @@
 
     </Style>
 
+    <!--  A workaround for the font size in buttons (make raw strings textblocks)  -->
+    <!--<DataTemplate DataType="{x:Type system:String}">
+        <TextBlock Text="{Binding}">
+            <TextBlock.Resources>
+                <Style TargetType="{x:Type TextBlock}" />
+            </TextBlock.Resources>
+        </TextBlock>
+    </DataTemplate>-->
 
 </ResourceDictionary>

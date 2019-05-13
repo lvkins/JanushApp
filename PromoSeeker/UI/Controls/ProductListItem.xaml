@@ -429,24 +429,14 @@
                 <StackPanel>
 
                     <!--  Product Name  -->
-                    <Button Command="{Binding NavigateCommand}" ToolTip="Navigate to the product">
-                        <Button.Style>
-                            <Style BasedOn="{StaticResource Styleless}" TargetType="Button">
-                                <Setter Property="Foreground" Value="{StaticResource ForegroundVeryDarkBrush}" />
-                                <Setter Property="Content" Value="{Binding Name, FallbackValue=Product Name}" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource AppDarkBlueBrush}" />
-                                        <Setter Property="Content">
-                                            <Setter.Value>
-                                                <TextBlock Text="{Binding Name}" TextDecorations="Underline" />
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="{StaticResource FontSizeRegular}"
+                        ToolTip="Open product website in browser">
+                        <Hyperlink Command="{Binding NavigateCommand}">
+                            <Run Text="{Binding Name, Mode=OneWay, FallbackValue=Product Name}" />
+                        </Hyperlink>
+                    </TextBlock>
 
                     <Grid>
                         <Grid.ColumnDefinitions>

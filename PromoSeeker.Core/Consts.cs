@@ -21,6 +21,11 @@ namespace PromoSeeker.Core
         public const int PRODUCT_TITLE_MAX_LENGTH = 96;
 
         /// <summary>
+        /// The number of latest logs messages to show in the log window.
+        /// </summary>
+        public const int LOGS_LIMIT = 100;
+
+        /// <summary>
         /// The time interval, product will updated within.
         /// </summary>
         public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(60);
@@ -82,6 +87,5 @@ namespace PromoSeeker.Core
         /// Parts of attribute names in the document which values can contain a product price.
         /// </summary>
         public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "cost" };
-
     }
 }

@@ -217,7 +217,15 @@ namespace PromoSeeker
         #region Constructor
 
         /// <summary>
-        /// Default constructor
+        /// Default constructor for design time purposes
+        /// </summary>
+        public ProductViewModel()
+        {
+
+        }
+
+        /// <summary>
+        /// Settings constructor
         /// </summary>
         public ProductViewModel(ProductSettings product)
         {

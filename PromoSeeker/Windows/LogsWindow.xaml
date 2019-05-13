@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Event Logs"
-    Width="500"
+    Width="800"
     Height="400"
     MinWidth="500"
     d:DataContext="{x:Static local:LogsDesignModel.Instance}"
@@ -17,10 +17,22 @@
 
     <!--  Apply setters for the grid elements  -->
     <Window.Resources>
-        <Style TargetType="{x:Type DataGridColumnHeader}">
-            <Setter Property="TextBlock.FontWeight" Value="Bold" />
+        <!--  Column header  -->
+        <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="Cursor" Value="Hand" />
         </Style>
 
+        <!--  Grid cell  -->
+        <Style TargetType="{x:Type DataGridCell}">
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AppDarkBlueBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource AppNavyBlueBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  Cell text  -->
         <Style x:Key="ColumnElementStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Margin" Value="4" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -30,7 +42,7 @@
     </Window.Resources>
 
     <Border Padding="10">
-        <Grid x:Name="MainGrid" Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -45,7 +57,6 @@
             </StackPanel>
 
             <!--  Logs Table  -->
-            <!--    -->
             <DataGrid
                 x:Name="LogsTable"
                 Grid.Row="1"
@@ -65,19 +76,44 @@
                 SelectionUnit="FullRow"
                 VerticalGridLinesBrush="{StaticResource ForegroundDarkBrush}">
                 <DataGrid.Columns>
+                    <!--  Message  -->
                     <DataGridTextColumn
-                        Width="*"
+                        Width="5*"
                         MinWidth="300"
                         Binding="{Binding Item2}"
                         ElementStyle="{StaticResource ColumnElementStyle}"
                         Header="Message" />
+
+                    <!--  Product Name  -->
+                    <DataGridTemplateColumn
+                        Width="2*"
+                        Header="Product"
+                        SortMemberPath="Item1">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource ColumnElementStyle}">
+                                    <Hyperlink Command="{Binding Item1.NavigateCommand}">
+                                        <!--  Keep foreground white on selected  -->
+                                        <Hyperlink.Style>
+                                            <Style BasedOn="{StaticResource {x:Type Hyperlink}}" TargetType="{x:Type Hyperlink}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                                        <Setter Property="Foreground" Value="White" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Hyperlink.Style>
+
+                                        <Run Text="{Binding Item1.Name, Mode=OneWay}" />
+                                    </Hyperlink>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!--  Date  -->
                     <DataGridTextColumn
-                        MinWidth="200"
-                        Binding="{Binding Item1}"
-                        ElementStyle="{StaticResource ColumnElementStyle}"
-                        Header="Product" />
-                    <DataGridTextColumn
-                        MinWidth="100"
+                        Width="1*"
                         Binding="{Binding Item3, StringFormat=F, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}"
                         ElementStyle="{StaticResource ColumnElementStyle}"
                         Header="Date"

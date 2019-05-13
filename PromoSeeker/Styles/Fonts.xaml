@@ -8,6 +8,7 @@
     <system:Double x:Key="FontSizeSmaller">10</system:Double>
     <system:Double x:Key="FontSizeSmall">12</system:Double>
     <system:Double x:Key="FontSizeRegular">14</system:Double>
+    <system:Double x:Key="FontSizeMedium">16</system:Double>
     <system:Double x:Key="FontSizeLarge">18</system:Double>
     <system:Double x:Key="FontSizeXLarge">22</system:Double>
     <system:Double x:Key="FontSizeXXLarge">28</system:Double>

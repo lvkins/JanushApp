@@ -137,8 +137,8 @@
     <Compile Include="ViewModels\AddProductViewModel.cs" />
     <Compile Include="ViewModels\Core\ApplicationViewModel.cs" />
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
-    <Compile Include="ViewModels\Design\LogsDesignModel.cs" />
     <Compile Include="ViewModels\Design\AddProductDesignModel.cs" />
+    <Compile Include="ViewModels\Design\LogsDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\BaseDialogWindowViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\ConfirmDialogBoxViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\Design\ConfirmDialogBoxDesignModel.cs" />
@@ -286,7 +286,6 @@
   <ItemGroup>
     <Resource Include="Assets\Application.ico" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\PromoSeeker.Core\PromoSeeker.Core.csproj">
       <Project>{457b18f9-670e-45a7-8ade-98fcf8ceae35}</Project>

@@ -14,7 +14,9 @@ namespace PromoSeeker
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            // Workaround fit to the current window height. Not working perfectly! TODO: Fix me
+            // Adjust DataGrid height to the grid row height - update binding on window resize
+            // Workaround fit to the window available height.
+            // NOTE: Not working perfectly! TODO: Fix me
             LogsTable.GetBindingExpression(HeightProperty).UpdateTarget();
         }
     }
