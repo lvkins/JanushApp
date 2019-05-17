@@ -10,8 +10,29 @@
     Height="450"
     mc:Ignorable="d">
 
-    <Grid Margin="10">
-        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Top">
+    <Grid>
+
+        <Grid.Resources>
+            <!--  Each control separated style  -->
+            <Style TargetType="{x:Type Border}">
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="BorderBrush" Value="{StaticResource ForegroundDarkerBrush}" />
+                <Setter Property="BorderThickness" Value="0,0,0,0.2" />
+            </Style>
+        </Grid.Resources>
+
+        <StackPanel>
+            <Border>
+                <CheckBox Content="Use sound notifications" />
+            </Border>
+
+            <Border>
+                <TextBox Tag="Update interval" />
+            </Border>
+        </StackPanel>
+
+        <!--<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Top">
             <TabItem Header="TabItem">
                 <Grid>
                     <TextBlock Text="Tab1 content" />
@@ -22,7 +43,7 @@
                     <TextBlock Text="Tab2 content" />
                 </Grid>
             </TabItem>
-        </TabControl>
+        </TabControl>-->
     </Grid>
 
 </Window>
