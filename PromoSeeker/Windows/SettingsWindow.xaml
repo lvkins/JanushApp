@@ -10,35 +10,27 @@
     Height="450"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid Margin="10">
+        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <!--  Settings  -->
+            <TabItem Header="Settings">
+                <Border Padding="10">
+                    <StackPanel>
+                        <!--  Sound notification setting  -->
+                        <Label Content="_Use sound notifications" Target="{Binding ElementName=SoundNotification}" />
+                        <CheckBox x:Name="SoundNotification" Content="Use sound notifications" />
 
-        <Grid.Resources>
-            <!--  Each control separated style  -->
-            <Style TargetType="{x:Type Border}">
-                <Setter Property="SnapsToDevicePixels" Value="True" />
-                <Setter Property="Padding" Value="10" />
-                <Setter Property="BorderBrush" Value="{StaticResource ForegroundDarkerBrush}" />
-                <Setter Property="BorderThickness" Value="0,0,0,0.2" />
-            </Style>
-        </Grid.Resources>
+                        <Separator />
 
-        <StackPanel>
-            <Border>
-                <CheckBox Content="Use sound notifications" />
-            </Border>
-
-            <Border>
-                <TextBox Tag="Update interval" />
-            </Border>
-        </StackPanel>
-
-        <!--<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Top">
-            <TabItem Header="TabItem">
-                <Grid>
-                    <TextBlock Text="Tab1 content" />
-                </Grid>
+                        <!--  Update interval  -->
+                        <Label Content="Update interval" Target="{Binding ElementName=UpdateInterval}" />
+                        <TextBox x:Name="UpdateInterval" />
+                    </StackPanel>
+                </Border>
             </TabItem>
-            <TabItem Header="TabItem2">
+
+            <!--  Logs  -->
+            <TabItem Header="Logs">
                 <Grid>
                     <TextBlock Text="Tab2 content" />
                 </Grid>
