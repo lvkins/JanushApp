@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     x:Name="MainWindowElement"
     Title="{x:Static core:Consts.APP_TITLE}"
     Width="500"
@@ -96,32 +97,42 @@
                 <Border Style="{StaticResource TitleBarSeparator}" />
 
                 <!--  Settings button  -->
-                <Button
-                    x:Name="SettingButton"
-                    Command="{Binding ToggleSettingsPopupCommand}"
+                <ToggleButton
+                    x:Name="SettingsButton"
+                    Click="SettingsButton_Click"
                     Content="{StaticResource Vector.Cog}"
-                    Style="{StaticResource WindowControl}"
-                    ToolTip="Settings" />
+                    ContextMenuService.IsEnabled="False"
+                    ContextMenuService.Placement="Bottom"
+                    Style="{StaticResource WindowControlToggle}"
+                    ToolTip="Settings">
+                    <ToggleButton.ContextMenu>
+                        <ContextMenu
+                            x:Name="SettingsContextMenu"
+                            Background="{StaticResource BackgroundLighterBrush}"
+                            Closed="SettingsContextMenu_Closed">
 
-                <!--  Settings popup menu  -->
-                <Popup
-                    IsOpen="{Binding ShowSettingsPopupMenu}"
-                    Placement="Bottom"
-                    PlacementTarget="{Binding ElementName=SettingButton}"
-                    StaysOpen="{Binding IsMouseOver, ElementName=SettingButton}">
-                    <StackPanel Background="{StaticResource BackgroundLighterBrush}">
-                        <ItemsControl>
                             <!--  Logs  -->
                             <MenuItem Command="{Binding OpenLogsWindowCommand}" Header="Logs" />
+
                             <!--  Settings  -->
-                            <MenuItem Command="{Binding OpenSettingsWindowCommand}" Header="Settings" />
+                            <MenuItem
+                                Command="{Binding OpenSettingsWindowCommand}"
+                                Header="Options"
+                                InputGestureText="Ctrl+S" />
+
                             <!--  Separator  -->
                             <Separator Background="{StaticResource BackgroundMainBrush}" />
+
                             <!--  Exit  -->
                             <MenuItem Command="{Binding ShutdownCommand}" Header="Exit" />
-                        </ItemsControl>
-                    </StackPanel>
-                </Popup>
+
+                        </ContextMenu>
+                    </ToggleButton.ContextMenu>
+
+                </ToggleButton>
+
+                <!--  Separator  -->
+                <Border Style="{StaticResource TitleBarSeparator}" />
 
             </StackPanel>
         </Grid>

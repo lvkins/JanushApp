@@ -99,7 +99,7 @@ namespace PromoSeeker
                         p.NameHistory.Aggregate((seed, next) =>
                         {
                             // Add name change message
-                            ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Name has been changed from {seed.Key} to {next.Key}.", seed.Value));
+                            ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Name has changed from {seed.Key} to {next.Key}.", seed.Value));
                             return next;
                         });
 
@@ -107,7 +107,7 @@ namespace PromoSeeker
                         var nameLast = p.NameHistory.Last();
 
                         // Add change to current name message
-                        ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Name has been changed from {nameLast.Key} to {p.Name}", nameLast.Value));
+                        ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Name has changed from {nameLast.Key} to {p.Name}", nameLast.Value));
                     }
 
                     // If product has price history...
@@ -117,7 +117,7 @@ namespace PromoSeeker
                         p.PriceHistory.Aggregate((seed, next) =>
                         {
                             // Add name change message
-                            ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Price has been changed from {seed.Key} to {next.Key}.", seed.Value));
+                            ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Price has changed from {seed.Key} to {next.Key}.", seed.Value));
                             return next;
                         });
 
@@ -125,7 +125,7 @@ namespace PromoSeeker
                         var priceLast = p.PriceHistory.Last();
 
                         // Add change to current price message
-                        ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Price has been changed from {priceLast.Key} to {p.DisplayPrice}", priceLast.Value));
+                        ret.Add(new Tuple<ProductViewModel, string, DateTime>(p, $"Price has changed from {priceLast.Key} to {p.DisplayPrice}", priceLast.Value));
                     }
 
                     // Return messages

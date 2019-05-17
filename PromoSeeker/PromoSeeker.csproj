@@ -118,7 +118,6 @@
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
     <Compile Include="AttachedProperties\BaseAttachedProperty.cs" />
-    <Compile Include="AttachedProperties\StretchParentContentAttachedProperty.cs" />
     <Compile Include="Controls\ProductReviewControl.xaml.cs">
       <DependentUpon>ProductReviewControl.xaml</DependentUpon>
     </Compile>

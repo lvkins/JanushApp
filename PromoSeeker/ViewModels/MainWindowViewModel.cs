@@ -33,11 +33,6 @@ namespace PromoSeeker
         public double WindowHeightMin { get; set; } = 100;
 
         /// <summary>
-        /// Whether if the settings popup menu is currently visible.
-        /// </summary>
-        public bool ShowSettingsPopupMenu { get; set; }
-
-        /// <summary>
         /// The height of the title bar.
         /// </summary>
         public GridLength CaptionHeight { get; } = new GridLength(27);
@@ -60,11 +55,6 @@ namespace PromoSeeker
         /// The command to open the <see cref="SettingsWindow"/>.
         /// </summary>
         public ICommand OpenSettingsWindowCommand { get; }
-
-        /// <summary>
-        /// The command to toggle the settings popup visibility.
-        /// </summary>
-        public ICommand ToggleSettingsPopupCommand { get; }
 
         /// <summary>
         /// The command to shutdown the application.
@@ -107,15 +97,6 @@ namespace PromoSeeker
             #region Create Commands
 
             OpenAddProductWindowCommand = new RelayCommand(() => DI.AddPromotionViewModel.Open());
-
-            ToggleSettingsPopupCommand = new RelayCommand(() =>
-            {
-                // Toggle settings popup visibility
-                ShowSettingsPopupMenu = !ShowSettingsPopupMenu;
-
-                // Notify property changed
-                OnPropertyChanged(nameof(ShowSettingsPopupMenu));
-            });
 
             OpenSettingsWindowCommand = new RelayCommand(() => DI.Application.ShowWindow<SettingsWindow>(null));
             OpenLogsWindowCommand = new RelayCommand(() => DI.LogsViewModel.Open());

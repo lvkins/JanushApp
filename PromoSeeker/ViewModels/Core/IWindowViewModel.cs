@@ -3,7 +3,7 @@
 namespace PromoSeeker
 {
     /// <summary>
-    /// A interface represeting a window view model.
+    /// A interface representing a window view model.
     /// </summary>
     public interface IWindowViewModel
     {

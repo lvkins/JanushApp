@@ -111,6 +111,18 @@
 
     </Style>
 
+    <!--  Toggle window control button  -->
+    <Style
+        x:Key="WindowControlToggle"
+        BasedOn="{StaticResource WindowControl}"
+        TargetType="{x:Type ToggleButton}">
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!--  A workaround for the font size in buttons (make raw strings textblocks)  -->
     <!--<DataTemplate DataType="{x:Type system:String}">
         <TextBlock Text="{Binding}">
