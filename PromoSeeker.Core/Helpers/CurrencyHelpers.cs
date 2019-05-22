@@ -134,7 +134,7 @@ namespace PromoSeeker.Core
         }
 
         /// <summary>
-        /// Reads the price value from the <paramref name="input"/> string and formats it accordingly to the given <paramref name="culture"/>.
+        /// Reads any price value found in the <paramref name="input"/> string and formats it accordingly to the given <paramref name="culture"/>.
         /// </summary>
         /// <param name="input">The string that contains a price.</param>
         /// <param name="culture">The culture to format the input accordingly to.</param>

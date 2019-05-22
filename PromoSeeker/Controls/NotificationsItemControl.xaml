@@ -1,0 +1,88 @@
+﻿<UserControl
+    x:Class="PromoSeeker.NotificationsItemControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gl="clr-namespace:System.Globalization;assembly=mscorlib"
+    xmlns:local="clr-namespace:PromoSeeker"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{x:Static local:NotificationItemDesignModel.Instance}"
+    mc:Ignorable="d">
+
+    <Border
+        x:Name="NotificationBackground"
+        BorderBrush="{StaticResource ForegroundVeryDarkBrush}"
+        BorderThickness="0,0,0,0.3"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="False">
+
+        <!--  Background style  -->
+        <Border.Style>
+            <Style TargetType="{x:Type Border}">
+                <Setter Property="Background" Value="{StaticResource BackgroundLighterBrush}" />
+                <!--  Mouse over effect  -->
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  New notification indicator  -->
+            <Border
+                Width="3"
+                HorizontalAlignment="Left"
+                Background="{StaticResource AppDarkRedBrush}"
+                Visibility="{Binding IsNew, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+
+            <!--  Image  -->
+            <Border
+                Grid.Column="0"
+                Width="20"
+                Height="20"
+                Margin="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <Border.Background>
+                    <VisualBrush Visual="{Binding Type, Converter={local:NotificationTypeToVectorConverter}}" />
+                </Border.Background>
+            </Border>
+
+            <!--  Content  -->
+            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+
+                <!--  Date  -->
+                <TextBlock
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource HelpBlock}"
+                    Text="{Binding Date, StringFormat=F, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
+
+                <!--  Product name  -->
+                <TextBlock
+                    FontWeight="Bold"
+                    TextWrapping="Wrap"
+                    ToolTip="Click to navigate">
+                    <Hyperlink Command="{Binding Product.NavigateCommand}">
+                        <Run Text="{Binding Product.Name, Mode=OneWay}" />
+                    </Hyperlink>
+                </TextBlock>
+
+                <!--  Message  -->
+                <TextBlock
+                    Grid.ColumnSpan="4"
+                    Margin="0,20"
+                    Text="{Binding Message}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+        </Grid>
+    </Border>
+
+</UserControl>

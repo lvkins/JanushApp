@@ -93,12 +93,12 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The product name change history.
         /// </summary>
-        public Dictionary<string, DateTime> NameHistory { get; set; }
+        public List<KeyValuePair<string, DateTime>> NameHistory { get; set; }
 
         /// <summary>
         /// The product price change history.
         /// </summary>
-        public Dictionary<string, DateTime> PriceHistory { get; set; }
+        public List<KeyValuePair<decimal, DateTime>> PriceHistory { get; set; }
 
         #endregion
     }

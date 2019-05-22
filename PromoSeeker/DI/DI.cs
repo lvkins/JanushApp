@@ -33,7 +33,7 @@ namespace PromoSeeker
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="LogsViewModel"/>.
         /// </summary>
-        public static LogsViewModel LogsViewModel => GetService<LogsViewModel>();
+        public static SettingsViewModel SettingsViewModel => GetService<SettingsViewModel>();
 
         #endregion
 

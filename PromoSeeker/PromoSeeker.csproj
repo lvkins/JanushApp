@@ -118,8 +118,17 @@
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
     <Compile Include="AttachedProperties\BaseAttachedProperty.cs" />
+    <Compile Include="AttachedProperties\ScrollBarOffsetAttachedProperty.cs" />
+    <Compile Include="AttachedProperties\TimeTextAttachedProperty.cs" />
+    <Compile Include="AttachedProperties\FocusControlAttachedProperty.cs" />
+    <Compile Include="Controls\NotificationsItemControl.xaml.cs">
+      <DependentUpon>NotificationsItemControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ProductReviewControl.xaml.cs">
       <DependentUpon>ProductReviewControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\NotificationsControl.xaml.cs">
+      <DependentUpon>NotificationsControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\DialogBoxType.cs" />
     <Compile Include="UI\Controls\FormEntry.xaml.cs">
@@ -131,13 +140,16 @@
     <Compile Include="UI\UIManager.cs" />
     <Compile Include="ValueConverters\BaseValueConverter.cs" />
     <Compile Include="ValueConverters\HumanRelativeTimeConverter.cs" />
+    <Compile Include="ValueConverters\NotificationTypeToVectorConverter.cs" />
     <Compile Include="ValueConverters\Visibility\NullToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\Visibility\BooleanToVisibilityConverter.cs" />
     <Compile Include="ViewModels\AddProductViewModel.cs" />
     <Compile Include="ViewModels\Core\ApplicationViewModel.cs" />
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
     <Compile Include="ViewModels\Design\AddProductDesignModel.cs" />
-    <Compile Include="ViewModels\Design\LogsDesignModel.cs" />
+    <Compile Include="ViewModels\Notifications\Design\NotificationsDesignModel.cs" />
+    <Compile Include="ViewModels\Notifications\Design\NotificationItemDesignModel.cs" />
+    <Compile Include="ViewModels\Design\SettingsDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\BaseDialogWindowViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\ConfirmDialogBoxViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\Design\ConfirmDialogBoxDesignModel.cs" />
@@ -145,7 +157,8 @@
     <Compile Include="ViewModels\Dialogs\Design\PromptDialogBoxDesignModel.cs" />
     <Compile Include="ViewModels\Dialogs\PromptDialogBoxViewModel.cs" />
     <Compile Include="ViewModels\Dialogs\MessageDialogBoxViewModel.cs" />
-    <Compile Include="ViewModels\LogsViewModel.cs" />
+    <Compile Include="ViewModels\Notifications\NotificationsViewModel.cs" />
+    <Compile Include="ViewModels\Notifications\NotificationItemViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Windows\AddProductWindow.xaml.cs">
@@ -162,13 +175,18 @@
     <Compile Include="Windows\Dialogs\MessageBoxDialog.xaml.cs">
       <DependentUpon>MessageBoxDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\LogsWindow.xaml.cs">
-      <DependentUpon>LogsWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\NotificationsItemControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\ProductReviewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\NotificationsControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -217,10 +235,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\Dialogs\MessageBoxDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\LogsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

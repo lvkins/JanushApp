@@ -72,12 +72,12 @@ namespace PromoSeeker
         /// <summary>
         /// The product name change history.
         /// </summary>
-        public Dictionary<string, DateTime> NameHistory { get; set; }
+        public List<KeyValuePair<string, DateTime>> NameHistory { get; set; }
 
         /// <summary>
         /// The product price change history.
         /// </summary>
-        public Dictionary<string, DateTime> PriceHistory { get; set; }
+        public List<KeyValuePair<decimal, DateTime>> PriceHistory { get; set; }
 
         /// <summary>
         /// The formatted price value to be displayed as the product price.
@@ -396,51 +396,59 @@ namespace PromoSeeker
             #region Notify The User
 
             // If a product name has changed...
-            if (result.HasNewName && _settings.NotifyNameChange)
+            if (result.HasNewName)
             {
                 // Initialize name history dictionary instance
                 if (NameHistory == null)
                 {
-                    NameHistory = new Dictionary<string, DateTime>();
+                    NameHistory = new List<KeyValuePair<string, DateTime>>();
                 }
 
                 // Append to history
-                NameHistory.Add(OriginalName, DateTime.Now);
+                NameHistory.Add(new KeyValuePair<string, DateTime>(OriginalName, DateTime.Now));
 
-                // Send notification
-                DI.UIManager.Tray.Notification($"Product name has changed.\nNew product name:\n\n{Product.Name}", Name);
+                // If user wishes to be notified...
+                if (_settings.NotifyNameChange)
+                {
+                    // Send notification
+                    DI.UIManager.Tray.Notification($"Product name has changed.\nNew product name:\n\n{Product.Name}", Name);
+                }
             }
 
             // If a product price has changed...
-            if (result.HasNewPrice && _settings.NotifyPriceChange)
+            if (result.HasNewPrice)
             {
                 // Initialize price history dictionary instance
                 if (PriceHistory == null)
                 {
-                    PriceHistory = new Dictionary<string, DateTime>();
+                    PriceHistory = new List<KeyValuePair<decimal, DateTime>>();
                 }
 
                 // Append to history
-                PriceHistory.Add(DisplayPrice, DateTime.Now);
+                PriceHistory.Add(new KeyValuePair<decimal, DateTime>(PriceCurrent, DateTime.Now));
 
-                // Resulting message
-                var tooltipMessage = string.Empty;
+                // If user wishes to be notified...
+                if (_settings.NotifyPriceChange)
+                {
+                    // Resulting message
+                    var tooltipMessage = string.Empty;
 
-                // If new price is higher than current price...
-                if (Product.PriceInfo.Value > PriceCurrent)
-                {
-                    tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
-                }
-                // If new price is lower than current price...
-                else if (Product.PriceInfo.Value < PriceCurrent)
-                {
-                    tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
-                }
+                    // If new price is higher than current price...
+                    if (Product.PriceInfo.Value > PriceCurrent)
+                    {
+                        tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
+                    }
+                    // If new price is lower than current price...
+                    else if (Product.PriceInfo.Value < PriceCurrent)
+                    {
+                        tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
+                    }
 
-                // If we have a message to notify...
-                if (!string.IsNullOrEmpty(tooltipMessage))
-                {
-                    DI.UIManager.Tray.Notification(tooltipMessage, Name);
+                    // If we have a message to notify...
+                    if (!string.IsNullOrEmpty(tooltipMessage))
+                    {
+                        DI.UIManager.Tray.Notification(tooltipMessage, Name);
+                    }
                 }
             }
 

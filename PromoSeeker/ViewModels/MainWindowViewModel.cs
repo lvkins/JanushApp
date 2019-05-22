@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -9,7 +8,7 @@ namespace PromoSeeker
     /// <summary>
     /// The view model for the main application window.
     /// </summary>
-    public class WindowViewModel : BaseViewModel
+    public class MainWindowViewModel : BaseViewModel
     {
         #region Private Members
 
@@ -17,6 +16,11 @@ namespace PromoSeeker
         /// The window this view model handles.
         /// </summary>
         private readonly Window _window;
+
+        /// <summary>
+        /// If the notifications popup dialog is visible.
+        /// </summary>
+        private bool _notificationsVisible;
 
         #endregion
 
@@ -37,6 +41,33 @@ namespace PromoSeeker
         /// </summary>
         public GridLength CaptionHeight { get; } = new GridLength(27);
 
+        /// <summary>
+        /// The notifications container.
+        /// </summary>
+        public NotificationsViewModel Notifications { get; set; }
+
+        /// <summary>
+        /// If the notifications popup dialog is visible.
+        /// </summary>
+        public bool NotificationsVisible
+        {
+            get => _notificationsVisible;
+            set
+            {
+                // Update value
+                _notificationsVisible = value;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(NotificationsVisible));
+                OnPropertyChanged(nameof(AnyPopupVisible));
+            }
+        }
+
+        /// <summary>
+        /// Defines whether any popup within the main window is currently shown and present. 
+        /// </summary>
+        public bool AnyPopupVisible => NotificationsVisible;
+
         #endregion
 
         #region Commands
@@ -47,19 +78,24 @@ namespace PromoSeeker
         public ICommand OpenAddProductWindowCommand { get; }
 
         /// <summary>
-        /// The command to open the <see cref="LogsWindow"/>.
-        /// </summary>
-        public ICommand OpenLogsWindowCommand { get; }
-
-        /// <summary>
         /// The command to open the <see cref="SettingsWindow"/>.
         /// </summary>
         public ICommand OpenSettingsWindowCommand { get; }
 
         /// <summary>
+        /// Toggles a notification popup dialog visibility state.
+        /// </summary>
+        public ICommand ToggleNotificationsPopup { get; }
+
+        /// <summary>
         /// The command to shutdown the application.
         /// </summary>
         public ICommand ShutdownCommand { get; }
+
+        /// <summary>
+        /// The command for when the area outside the popup is clicked.
+        /// </summary>
+        public ICommand PopupClickawayCommand { get; }
 
         #endregion
 
@@ -69,13 +105,15 @@ namespace PromoSeeker
         /// Window constructor.
         /// </summary>
         /// <param name="window">The window this view model belongs to.</param>
-        public WindowViewModel(Window window)
+        public MainWindowViewModel(Window window)
         {
             // Don't bother running in design time
             if (window == null || DesignerProperties.GetIsInDesignMode(window))
             {
                 return;
             }
+
+            #region Style Window
 
             // Set the window we are handling
             _window = window;
@@ -94,18 +132,52 @@ namespace PromoSeeker
             _window.Left = workingArea.Right - _window.Width - 16;
             _window.Top = workingArea.Bottom - _window.Height - 16;
 
+            #endregion
+
             #region Create Commands
 
-            OpenAddProductWindowCommand = new RelayCommand(() => DI.AddPromotionViewModel.Open());
+            OpenAddProductWindowCommand = new RelayCommand(DI.AddPromotionViewModel.Open);
+            OpenSettingsWindowCommand = new RelayCommand(DI.SettingsViewModel.Open);
+            ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
+            PopupClickawayCommand = new RelayCommand(PopupClickaway);
+            ToggleNotificationsPopup = new RelayCommand(() =>
+            {
+                LoadNotifications();
 
-            OpenSettingsWindowCommand = new RelayCommand(() => DI.Application.ShowWindow<SettingsWindow>(null));
-            OpenLogsWindowCommand = new RelayCommand(() => DI.LogsViewModel.Open());
-
-            ShutdownCommand = new RelayCommand(() => Application.Current.Shutdown());
+                NotificationsVisible = !NotificationsVisible;
+            });
 
             #endregion
         }
 
         #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Loads the recent notifications.
+        /// </summary>
+        private void LoadNotifications()
+        {
+            if (Notifications == null)
+            {
+                Notifications = new NotificationsViewModel();
+            }
+
+            Notifications.Load();
+
+            OnPropertyChanged(nameof(Notifications));
+        }
+
+        /// <summary>
+        /// Occurs when the area outside the popup is being clicked.
+        /// </summary>
+        private void PopupClickaway()
+        {
+            NotificationsVisible = false;
+        }
+
+        #endregion
+
     }
 }

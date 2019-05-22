@@ -10,7 +10,7 @@
                         x:Name="rectangle"
                         Width="{TemplateBinding Width}"
                         Height="{TemplateBinding Height}"
-                        Background="{StaticResource AppNavyBlueBrush}"
+                        Background="{StaticResource ForegroundVeryDarkBrush}"
                         CornerRadius="3"
                         SnapsToDevicePixels="True" />
                 </ControlTemplate>

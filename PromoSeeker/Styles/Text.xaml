@@ -22,4 +22,12 @@
         <Setter Property="Margin" Value="0,6" />
     </Style>
 
+    <!--  Condition Block  -->
+    <Style
+        x:Key="ConditionBlock"
+        BasedOn="{StaticResource HelpBlock}"
+        TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{StaticResource AppDarkRedBrush}" />
+    </Style>
+
 </ResourceDictionary>

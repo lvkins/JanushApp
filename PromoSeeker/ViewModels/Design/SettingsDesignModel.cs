@@ -1,20 +1,19 @@
-﻿using PromoSeeker.Core;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 
 namespace PromoSeeker
 {
     /// <summary>
-    /// The design-time data model for a <see cref="LogsViewModel"/>.
+    /// The design-time data model for a <see cref="SettingsViewModel"/>.
     /// </summary>
-    public class LogsDesignModel : LogsViewModel
+    public class SettingsDesignModel : SettingsViewModel
     {
         #region Singleton
 
         /// <summary>
         /// A single instance of the design model.
         /// </summary>
-        public static LogsDesignModel Instance = new LogsDesignModel();
+        public static SettingsDesignModel Instance = new SettingsDesignModel();
 
         #endregion
 
@@ -23,16 +22,21 @@ namespace PromoSeeker
         /// <summary>
         /// Default constructor
         /// </summary>
-        public LogsDesignModel()
+        public SettingsDesignModel()
         {
+            // Set properties
+            EnableSoundNotification = true;
+            CheckInterval = TimeSpan.FromMinutes(10);
+
+
             // Create a dummy product for the collection
             var dummyProduct = new ProductViewModel
             {
                 DisplayName = "Sample Product"
             };
 
-            // Fill the log container
-            Data = new ObservableCollection<Tuple<ProductViewModel, string, DateTime>>()
+            // Fill the logs messages
+            Logs = new ObservableCollection<Tuple<ProductViewModel, string, DateTime>>()
             {
                 new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),
                 new Tuple<ProductViewModel, string, DateTime>(dummyProduct, "Hello World", DateTime.Now),

@@ -73,7 +73,8 @@ namespace PromoSeeker
                 var products = DI.SettingsReader.Settings.Products;
 
                 // Iterate over products list
-                products.OrderBy(_ => !_.Tracked).ToList()
+                products.OrderBy(_ => !_.Tracked)
+                    .ToList()
                     .ForEach(product =>
                     {
                         // Add the product to the collection

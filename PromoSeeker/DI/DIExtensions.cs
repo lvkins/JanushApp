@@ -35,7 +35,7 @@ namespace PromoSeeker
         {
             services.AddSingleton<ApplicationViewModel>();
             services.AddSingleton<AddProductViewModel>();
-            services.AddSingleton<LogsViewModel>();
+            services.AddSingleton<SettingsViewModel>();
         }
     }
 }
