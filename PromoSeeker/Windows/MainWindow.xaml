@@ -30,7 +30,7 @@
             VerticalAlignment="Top"
             Panel.ZIndex="1"
             DataContext="{Binding Notifications}"
-            Visibility="{Binding DataContext.NotificationsVisible, ElementName=MainWindowElement, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, FallbackValue=Collapsed}" />
+            Visibility="{Binding DataContext.NotificationsPopupVisible, ElementName=MainWindowElement, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, FallbackValue=Collapsed}" />
 
         <Grid>
 
@@ -125,7 +125,7 @@
                             Padding="5"
                             Command="{Binding ToggleNotificationsPopup}"
                             Content="{StaticResource Vector.Bell}"
-                            IsChecked="{Binding NotificationsVisible, Mode=OneWay}"
+                            IsChecked="{Binding NotificationsPopupVisible, Mode=OneWay}"
                             Style="{StaticResource WindowControlToggle}"
                             ToolTip="Recent notifications" />
 
@@ -137,7 +137,7 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Fill="{StaticResource AppRedBrush}"
-                            Visibility="{Binding Notifications.New, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+                            Visibility="{Binding Notifications.New, FallbackValue=Collapsed, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
                     </Grid>
 
                     <!--  Separator  -->
@@ -158,14 +158,14 @@
                                 Background="{StaticResource BackgroundLighterBrush}"
                                 Closed="SettingsContextMenu_Closed">
 
-                                <!--  Logs  -->
-                                <MenuItem Command="{Binding OpenLogsWindowCommand}" Header="Logs" />
+                                <!--  Stop tracking  -->
+                                <MenuItem Command="{Binding StopTrackingAllCommand}" Header="Stop all products tracking" />
 
                                 <!--  Settings  -->
                                 <MenuItem
                                     Command="{Binding OpenSettingsWindowCommand}"
                                     Header="Options"
-                                    InputGestureText="Ctrl+S" />
+                                    InputGestureText="Ctrl+O" />
 
                                 <!--  Separator  -->
                                 <Separator Background="{StaticResource BackgroundMainBrush}" />

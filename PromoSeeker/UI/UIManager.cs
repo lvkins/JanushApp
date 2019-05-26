@@ -8,12 +8,7 @@ namespace PromoSeeker
     /// </summary>
     public class UIManager : IUIManager
     {
-        #region Private Members
-
-        /// <summary>
-        /// The main application tray icon.
-        /// </summary>
-        private TrayIcon _trayIcon;
+        #region Properties
 
         #endregion
 
@@ -22,7 +17,7 @@ namespace PromoSeeker
         /// <summary>
         /// The main application tray icon.
         /// </summary>
-        public TrayIcon Tray => _trayIcon;
+        public TrayIcon Tray { get; private set; }
 
         #endregion
 
@@ -33,8 +28,8 @@ namespace PromoSeeker
         /// </summary>
         public void Initialize()
         {
-            // Create tray icon
-            _trayIcon = new TrayIcon();
+            // Initialize tray icon
+            Tray = new TrayIcon();
         }
 
         /// <summary>

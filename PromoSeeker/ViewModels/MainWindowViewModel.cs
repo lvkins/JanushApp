@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -20,7 +21,7 @@ namespace PromoSeeker
         /// <summary>
         /// If the notifications popup dialog is visible.
         /// </summary>
-        private bool _notificationsVisible;
+        private bool _notificationsPopupVisible;
 
         #endregion
 
@@ -49,16 +50,16 @@ namespace PromoSeeker
         /// <summary>
         /// If the notifications popup dialog is visible.
         /// </summary>
-        public bool NotificationsVisible
+        public bool NotificationsPopupVisible
         {
-            get => _notificationsVisible;
+            get => _notificationsPopupVisible;
             set
             {
                 // Update value
-                _notificationsVisible = value;
+                _notificationsPopupVisible = value;
 
                 // Raise property changed event
-                OnPropertyChanged(nameof(NotificationsVisible));
+                OnPropertyChanged(nameof(NotificationsPopupVisible));
                 OnPropertyChanged(nameof(AnyPopupVisible));
             }
         }
@@ -66,7 +67,7 @@ namespace PromoSeeker
         /// <summary>
         /// Defines whether any popup within the main window is currently shown and present. 
         /// </summary>
-        public bool AnyPopupVisible => NotificationsVisible;
+        public bool AnyPopupVisible => NotificationsPopupVisible;
 
         #endregion
 
@@ -96,6 +97,11 @@ namespace PromoSeeker
         /// The command for when the area outside the popup is clicked.
         /// </summary>
         public ICommand PopupClickawayCommand { get; }
+
+        /// <summary>
+        /// The command for disabling tracking of all products.
+        /// </summary>
+        public ICommand StopTrackingAllCommand { get; }
 
         #endregion
 
@@ -143,9 +149,9 @@ namespace PromoSeeker
             ToggleNotificationsPopup = new RelayCommand(() =>
             {
                 LoadNotifications();
-
-                NotificationsVisible = !NotificationsVisible;
+                NotificationsPopupVisible = !NotificationsPopupVisible;
             });
+            StopTrackingAllCommand = new RelayCommand(StopTrackingAll);
 
             #endregion
         }
@@ -174,7 +180,20 @@ namespace PromoSeeker
         /// </summary>
         private void PopupClickaway()
         {
-            NotificationsVisible = false;
+            NotificationsPopupVisible = false;
+        }
+
+        /// <summary>
+        /// Stops all products from tracking.
+        /// </summary>
+        private void StopTrackingAll()
+        {
+            // Iterate over current products
+            foreach (var product in DI.Application.Products)
+            {
+                // Stop tracking
+                product.StopTrackingAsync();
+            }
         }
 
         #endregion

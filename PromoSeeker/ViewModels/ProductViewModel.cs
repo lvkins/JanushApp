@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 
@@ -407,6 +408,9 @@ namespace PromoSeeker
                 // Append to history
                 NameHistory.Add(new KeyValuePair<string, DateTime>(OriginalName, DateTime.Now));
 
+                // Indicate new notifications
+                DI.UIManager.Tray.Indicate(true);
+
                 // If user wishes to be notified...
                 if (_settings.NotifyNameChange)
                 {
@@ -426,6 +430,9 @@ namespace PromoSeeker
 
                 // Append to history
                 PriceHistory.Add(new KeyValuePair<decimal, DateTime>(PriceCurrent, DateTime.Now));
+
+                // Indicate new notifications
+                DI.UIManager.Tray.Indicate(true);
 
                 // If user wishes to be notified...
                 if (_settings.NotifyPriceChange)

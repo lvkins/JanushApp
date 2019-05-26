@@ -1,5 +1,7 @@
 ﻿using PromoSeeker.Core;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 using System.Windows;
 using FormsApp = System.Windows.Forms;
 
@@ -17,6 +19,16 @@ namespace PromoSeeker
         /// </summary>
         private readonly FormsApp.NotifyIcon _trayIcon = new FormsApp.NotifyIcon();
 
+        /// <summary>
+        /// The original tray icon associated with the application.
+        /// </summary>
+        private readonly Icon _originIcon = Icon.ExtractAssociatedIcon(Application.ResourceAssembly.ManifestModule.Name);
+
+        /// <summary>
+        /// The marked tray icon.
+        /// </summary>
+        private Icon _markedIcon;
+
         #endregion
 
         #region Constructor
@@ -27,19 +39,20 @@ namespace PromoSeeker
         public TrayIcon()
         {
             // Retrieve resource icon. TODO: Make use of the Application.Current.MainWindow.Icon?
-            //using (var stream = Application.GetResourceStream(new Uri("pack://application:,,,/PromoSeeker;component/Assets/Application.ico")).Stream)
+            //using (var stream = Application.GetResourceStream(new Uri("pack://application:,,,/PromoSeeker;component/Assets/Application2.ico")).Stream)
             //{
             //    _trayIcon.Icon = new Icon(stream);
             //}
 
             // Use application icon
-            _trayIcon.Icon = Icon.ExtractAssociatedIcon(Application.ResourceAssembly.ManifestModule.Name);
+            _trayIcon.Icon = _originIcon;
 
             // Set tray title
             _trayIcon.Text = Consts.APP_TITLE;
 
             // Subscribe to the events
             _trayIcon.MouseClick += OnMouseClick;
+            _trayIcon.BalloonTipClicked += _trayIcon_BalloonTipClicked;
             Application.Current.Exit += OnAppExit;
 
             // Make it visible
@@ -61,20 +74,57 @@ namespace PromoSeeker
             TrayIconNotificationType type = TrayIconNotificationType.None, int timeout = int.MaxValue)
             => _trayIcon.ShowBalloonTip(timeout, tipTitle, tipText, (FormsApp.ToolTipIcon)type);
 
+        /// <summary>
+        /// Toggles the marked tray icon.
+        /// </summary>
+        /// <param name="flag"><see langword="true"/> if marked icon should be used, otherwise <see langword="false"/>.</param>
+        public void Indicate(bool flag)
+        {
+            // If marked icon is not initialized...
+            if (_markedIcon == null)
+            {
+                // Draw marked icon
+
+                // Create bitmap from original icon
+                var bitmap = _originIcon.ToBitmap();
+
+                // Create graphics
+                var g = Graphics.FromImage(bitmap);
+
+                // Set high quality
+                g.InterpolationMode = InterpolationMode.High;
+                g.SmoothingMode = SmoothingMode.HighQuality;
+                g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                g.CompositingQuality = CompositingQuality.AssumeLinear;
+
+                // Create path
+                var path = new GraphicsPath();
+
+                // Draw mark path
+                path.AddString("!", FontFamily.GenericMonospace,
+                    (int)System.Drawing.FontStyle.Bold,
+                    g.DpiY * 20 / 72, // EM font size
+                    new System.Drawing.Point(bitmap.Width - 16, bitmap.Height - 26),
+                    new StringFormat());
+
+                // Draw outline
+                g.DrawPath(new Pen(Color.Black, 5), path);
+
+                // Fill the path
+                g.FillPath(Brushes.DarkOrange, path);
+
+                // Create icon from the handle
+                _markedIcon = Icon.FromHandle(bitmap.GetHicon());
+            }
+
+            // Set current tray icon
+            _trayIcon.Icon = flag ? _markedIcon : _originIcon;
+        }
+
+
         #endregion
 
         #region Private Methods
-
-        /// <summary>
-        /// Gets called on application exit.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnAppExit(object sender, ExitEventArgs e)
-        {
-            // Dispose tray icon
-            _trayIcon.Dispose();
-        }
 
         /// <summary>
         /// Called whenever a tray icon is clicked.
@@ -93,6 +143,28 @@ namespace PromoSeeker
             // Bring to the top
             mainWnd.Topmost = true;
             mainWnd.Topmost = false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void _trayIcon_BalloonTipClicked(object sender, System.EventArgs e)
+        {
+            // TODO: handle notification click
+        }
+
+
+        /// <summary>
+        /// Gets called on application exit.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnAppExit(object sender, ExitEventArgs e)
+        {
+            // Dispose tray icon
+            _trayIcon.Dispose();
         }
 
         #endregion

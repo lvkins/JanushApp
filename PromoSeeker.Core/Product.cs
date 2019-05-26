@@ -586,8 +586,9 @@ namespace PromoSeeker.Core
                 // If node exists...
                 if (_htmlDocument.DocumentElement.QuerySelectorOrXPath(source.Key) is IElement node)
                 {
-                    // Whether the price is defined within the attribute
+                    // Whether the price is defined within an attribute
                     var isAttribute = !string.IsNullOrEmpty(source.Value);
+
                     // Define price result
                     PriceReadResult price = null;
 
@@ -605,6 +606,9 @@ namespace PromoSeeker.Core
                         // This is because some sites not follow good practices and define
                         // values in the node content
 
+                        // Price wasn't found in the attribute
+                        isAttribute = false;
+
                         // Read from the content
                         ReadPrice(node.TextContent, out price);
                     }
@@ -615,7 +619,7 @@ namespace PromoSeeker.Core
                         // Read from value attribute and store the price source
                         DetectedPrices.Add(new PriceInfo(price.Decimal, Culture)
                         {
-                            PriceXPathOrSelector = node.GetSelector(),
+                            PriceXPathOrSelector = source.Key, // pre-defined source selector is better than generated
                             AttributeName = isAttribute ? source.Value : null,
                             Source = isAttribute
                                 ? PriceSourceType.PriceSourceAttribute
@@ -635,10 +639,10 @@ namespace PromoSeeker.Core
             // If the above failed, attempt to locate price by parsing the document.
             // Some e-commerce sites just make it hard sometimes and decide not to follow the good practices.
 
-            // Compiled regex to find a product name in the document.
+            // Create compiled regex instance to find a product name in the document
             var ProductNameRegex = new Regex($@"\b{Regex.Escape(Name)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-            // Compiled regex to find the Javascript objects values in the document, where key contains either a 'price' or 'cost' word.
+            // Create compiled regex instance to find the Javascript objects values in the document, where key contains either a 'price' or 'cost' word.
             // Sample matches:
             //  ['myPrice' : 123.00,] -> 123.00
             //  ['productCost' : 1234,] -> 1234
@@ -762,10 +766,10 @@ namespace PromoSeeker.Core
 
                                     // Find closest product name position
                                     var result = _.Node.FindClosest(n =>
-                            {
-                                return ProductNameRegex.IsMatch(n.TextContent);
-                                //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                            }, out var node, out var distance);
+                                    {
+                                        return ProductNameRegex.IsMatch(n.TextContent);
+                                        //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
+                                    }, out var node, out var distance);
 
                                     // If closest node was found...
                                     if (result)
@@ -1182,7 +1186,7 @@ namespace PromoSeeker.Core
                     PriceInfo = new PriceInfo(parseResult.Decimal, Culture)
                     {
                         AttributeName = PriceInfo.AttributeName,
-                        PriceXPathOrSelector = priceNode.GetSelector(),
+                        PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector,
                         Source = PriceInfo.Source
                     };
 
@@ -1192,6 +1196,9 @@ namespace PromoSeeker.Core
                 }
                 else if (!result)
                 {
+                    // Let developer know
+                    Debugger.Break();
+
                     // TODO: report error
                 }
             }

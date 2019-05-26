@@ -8,7 +8,7 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The main application name.
         /// </summary>
-        public const string APP_TITLE = "PromoSeeker";
+        public const string APP_TITLE = "Janush";
 
         /// <summary>
         /// The fake user agent to use for the HTTP requests.

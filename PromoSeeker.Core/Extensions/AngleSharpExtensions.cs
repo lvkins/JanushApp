@@ -132,7 +132,8 @@ namespace PromoSeeker.Core
                 else if (parent != null && !node.IsOnlyOfType())
                 {
                     // Get node index in the parent node tree
-                    var index = parent.Children.Where(_ => _.GetType() == node.GetType()).Index(node);
+                    //var index = parent.Children.Where(_ => _.GetType() == node.GetType()).Index(node);
+                    var index = parent.Children.Index(node);
 
                     // Append nth child selector
                     name += $":nth-child({index + 1})";
