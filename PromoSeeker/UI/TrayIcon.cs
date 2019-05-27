@@ -52,7 +52,7 @@ namespace PromoSeeker
 
             // Subscribe to the events
             _trayIcon.MouseClick += OnMouseClick;
-            _trayIcon.BalloonTipClicked += _trayIcon_BalloonTipClicked;
+            _trayIcon.BalloonTipClicked += TrayIcon_BalloonTipClicked;
             Application.Current.Exit += OnAppExit;
 
             // Make it visible
@@ -150,7 +150,7 @@ namespace PromoSeeker
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void _trayIcon_BalloonTipClicked(object sender, System.EventArgs e)
+        private void TrayIcon_BalloonTipClicked(object sender, System.EventArgs e)
         {
             // TODO: handle notification click
         }

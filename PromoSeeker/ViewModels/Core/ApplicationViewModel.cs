@@ -148,6 +148,7 @@ namespace PromoSeeker
             {
                 // Create new window
                 window = Activator.CreateInstance<T>();
+                window.Title = $"{Consts.APP_TITLE} • {window.Title}";
                 window.Owner = Application.Current.MainWindow;
                 window.DataContext = viewModel;
                 window.WindowStartupLocation = WindowStartupLocation.CenterScreen;

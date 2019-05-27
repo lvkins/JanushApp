@@ -184,7 +184,8 @@
             <!--  Title bar drop shadow border  -->
             <Border
                 Grid.Row="1"
-                Height="5"
+                Height="3"
+                SnapsToDevicePixels="True"
                 BorderThickness="0,0.5,0,0">
                 <Border.BorderBrush>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -203,7 +204,10 @@
             </Border>
 
             <!--  Window content  -->
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer
+                Grid.Row="2"
+                VerticalScrollBarVisibility="Auto"
+                Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                 <Border Padding="10" Background="{StaticResource BackgroundMainBrush}">
                     <StackPanel>
                         <ItemsControl ItemsSource="{Binding Products, FallbackValue=12345678, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
@@ -216,6 +220,56 @@
                     </StackPanel>
                 </Border>
             </ScrollViewer>
+
+            <!--  No products content  -->
+            <Border
+                Grid.Row="2"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}}">
+
+                <!--  Background  -->
+                <Border.Background>
+                    <VisualBrush
+                        Opacity=".08"
+                        Stretch="UniformToFill"
+                        Visual="{StaticResource Vector.Janusz}" />
+                </Border.Background>
+
+                <!--  Action block  -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                    <!--  No products text  -->
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Opacity=".4"
+                        Style="{StaticResource HeaderText}"
+                        TextAlignment="Center">
+                        <Run Text="No products added yet." />
+                        <LineBreak />
+                        <Run Text="Go add some!" />
+                    </TextBlock>
+
+                    <!--  Add product button  -->
+                    <Button Command="{Binding OpenAddProductWindowCommand}" Content="Add your first product">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="{x:Type Button}">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
+                                        <Setter Property="Background" Value="{StaticResource AppNavyBlueBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                </StackPanel>
+
+            </Border>
+
         </Grid>
     </Grid>
 
