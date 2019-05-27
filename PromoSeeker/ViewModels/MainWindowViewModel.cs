@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -86,7 +84,7 @@ namespace PromoSeeker
         /// <summary>
         /// Toggles a notification popup dialog visibility state.
         /// </summary>
-        public ICommand ToggleNotificationsPopup { get; }
+        public ICommand ToggleNotificationsPopupCommand { get; }
 
         /// <summary>
         /// The command to shutdown the application.
@@ -146,11 +144,7 @@ namespace PromoSeeker
             OpenSettingsWindowCommand = new RelayCommand(DI.SettingsViewModel.Open);
             ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
             PopupClickawayCommand = new RelayCommand(PopupClickaway);
-            ToggleNotificationsPopup = new RelayCommand(() =>
-            {
-                LoadNotifications();
-                NotificationsPopupVisible = !NotificationsPopupVisible;
-            });
+            ToggleNotificationsPopupCommand = new RelayCommand(ToggleNotificationsPopup);
             StopTrackingAllCommand = new RelayCommand(StopTrackingAll);
 
             #endregion
@@ -161,17 +155,33 @@ namespace PromoSeeker
         #region Private Methods
 
         /// <summary>
+        /// Toggles the notifications popup visibility.
+        /// </summary>
+        private void ToggleNotificationsPopup()
+        {
+            // Prepare notifications
+            LoadNotifications();
+
+            // Toggle notifications popup visibility
+            NotificationsPopupVisible = !NotificationsPopupVisible;
+        }
+
+        /// <summary>
         /// Loads the recent notifications.
         /// </summary>
         private void LoadNotifications()
         {
+            // If notifications are not yet initialized...
             if (Notifications == null)
             {
+                // Initialize
                 Notifications = new NotificationsViewModel();
             }
 
+            // Load notifications
             Notifications.Load();
 
+            // Raise property changed event
             OnPropertyChanged(nameof(Notifications));
         }
 
