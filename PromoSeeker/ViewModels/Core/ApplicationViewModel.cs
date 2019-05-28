@@ -1,9 +1,9 @@
-﻿using System;
+﻿using PromoSeeker.Core;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using PromoSeeker.Core;
 
 namespace PromoSeeker
 {
@@ -19,6 +19,11 @@ namespace PromoSeeker
         /// </summary>
         public ObservableCollection<ProductViewModel> Products { get; set; }
             = new ObservableCollection<ProductViewModel>();
+
+        /// <summary>
+        /// The notifications container.
+        /// </summary>
+        public NotificationsViewModel Notifications { get; set; }
 
         #endregion
 
@@ -133,6 +138,73 @@ namespace PromoSeeker
         }
 
         /// <summary>
+        /// Loads the recent notifications.
+        /// </summary>
+        public void RefreshNotifications()
+        {
+            // If notifications are not yet initialized...
+            if (Notifications == null)
+            {
+                // Initialize
+                Notifications = new NotificationsViewModel();
+            }
+
+            // Reset notification status
+            Notifications.New = false;
+
+            // Indicate no new notifications in tray
+            DI.UIManager.Tray.Indicate(false);
+
+            // Load notifications
+            Notifications.Load();
+
+            // Set current read time to mark as readed
+            DI.SettingsReader.Settings.NotificationLastRead = DateTime.Now;
+
+            // Raise property changed event
+            OnPropertyChanged(nameof(Notifications));
+        }
+
+        /// <summary>
+        /// Handles a single notification message in the application.
+        /// </summary>
+        /// <param name="message">The notification message.</param>
+        /// <param name="product">The product that notification refer to.</param>
+        /// <param name="popToast">Whether to show the toast notification.</param>
+        public void NotificationReceived(string message, ProductViewModel product = null,
+            NotificationType notificationType = NotificationType.None, bool popToast = true)
+        {
+            // If we have a default notification...
+            // NOTE: Right now we only handle default notifications that are displayed in the popup
+            if (notificationType == NotificationType.None)
+            {
+                // If notifications are not yet initialized...
+                if (Notifications == null)
+                {
+                    // Initialize
+                    Notifications = new NotificationsViewModel();
+
+                    // Raise property changed event
+                    OnPropertyChanged(nameof(Notifications));
+                }
+
+                // Flag that new notification is available
+                Notifications.New = true;
+
+                // Indicate new notifications
+                DI.UIManager.Tray.Indicate(true);
+            }
+
+            // If we have a message to notify and should show a toast notification...
+            if (!string.IsNullOrEmpty(message) && popToast)
+            {
+                DI.UIManager.Tray.Notification(message, product?.Name);
+            }
+        }
+
+        #region Window Handling
+
+        /// <summary>
         /// Shows a children window to the user.
         /// </summary>
         /// <param name="onClose">The action to be executed when the window was closed.</param>
@@ -174,6 +246,8 @@ namespace PromoSeeker
         {
             Application.Current.Windows.OfType<T>().ToList().ForEach(_ => _.Close());
         }
+
+        #endregion
 
         #endregion
     }

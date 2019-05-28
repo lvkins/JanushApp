@@ -74,12 +74,6 @@ namespace PromoSeeker
         /// </summary>
         public void Load()
         {
-            // Flag no new notifications are available
-            New = false;
-
-            // Whether this is a first load
-            var firstLoad = Items == null;
-
             // Create product changes log messages
             Items = DI.Application.Products
                 .SelectMany(p =>
@@ -98,8 +92,8 @@ namespace PromoSeeker
                             {
                                 Product = p,
                                 Date = seed.Value,
-                                IsNew = !firstLoad,
-                                Type = NotificationType.NameChange,
+                                IsNew = seed.Value >= DI.SettingsReader.Settings.NotificationLastRead,
+                                Type = NotificationSubjectType.NameChange,
                                 Message = $"Name has changed from {seed.Key} to {next.Key}.",
                             });
                             return next;
@@ -112,9 +106,9 @@ namespace PromoSeeker
                         ret.Add(new NotificationItemViewModel
                         {
                             Product = p,
-                            IsNew = !firstLoad,
+                            IsNew = nameLast.Value >= DI.SettingsReader.Settings.NotificationLastRead,
                             Date = nameLast.Value,
-                            Type = NotificationType.NameChange,
+                            Type = NotificationSubjectType.NameChange,
                             Message = $"Name has changed from {nameLast.Key} to {p.Name}",
                         });
                     }
@@ -124,7 +118,7 @@ namespace PromoSeeker
                     {
                         Price = _.Key,
                         Date = _.Value,
-                        IsNew = !firstLoad,
+                        IsNew = _.Value >= DI.SettingsReader.Settings.NotificationLastRead,
                         PriceFormatted = _.Key.ToString("C2", p.Culture),
                     });
 
@@ -145,8 +139,8 @@ namespace PromoSeeker
                             {
                                 Product = p,
                                 Date = seed.Date,
-                                IsNew = !firstLoad,
-                                Type = seed.Price < next.Price ? NotificationType.PriceUp : NotificationType.PriceDown,
+                                IsNew = seed.Date >= DI.SettingsReader.Settings.NotificationLastRead,
+                                Type = seed.Price < next.Price ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
                                 Message = $"Price has {(seed.Price < next.Price ? "increased" : "decreased")} from {seed.PriceFormatted} to {next.PriceFormatted} ({change.ToString("P")} change).",
                             });
 
@@ -163,9 +157,9 @@ namespace PromoSeeker
                         ret.Add(new NotificationItemViewModel
                         {
                             Product = p,
-                            IsNew = !firstLoad,
                             Date = priceLast.Date,
-                            Type = priceLast.Price < p.PriceCurrent ? NotificationType.PriceUp : NotificationType.PriceDown,
+                            IsNew = priceLast.Date >= DI.SettingsReader.Settings.NotificationLastRead,
+                            Type = priceLast.Price < p.PriceCurrent ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
                             Message = $"Price has {(priceLast.Price < p.PriceCurrent ? "increased" : "decreased")} from {priceLast.PriceFormatted} to {p.DisplayPrice} ({change.ToString("P")} change).",
                         });
                     }
@@ -179,9 +173,6 @@ namespace PromoSeeker
                 .Take(Consts.LOGS_LIMIT)
                 // Make a list
                 .ToList();
-
-            // If there's a new notification, flag it
-            New = Items.Any(_ => _.IsNew);
 
             // Raise property changed event
             OnPropertyChanged(nameof(Items));

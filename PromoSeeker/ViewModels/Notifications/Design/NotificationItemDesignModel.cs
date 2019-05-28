@@ -26,7 +26,7 @@ namespace PromoSeeker
         {
             Product = new ProductViewModel { DisplayName = "Dummy Product" };
             Message = "Product price has decreased!";
-            Type = NotificationType.PriceDown;
+            Type = NotificationSubjectType.PriceDown;
             Date = DateTime.Now;
         }
 

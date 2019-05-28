@@ -8,6 +8,10 @@ namespace PromoSeeker
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Loads the application ready to use.
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -26,6 +30,18 @@ namespace PromoSeeker
 
             // Load application
             DI.Application.Load();
+        }
+
+        /// <summary>
+        /// Handles the application exit, including the state handling. 
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+
+            // Save current state on exit
+            DI.Application.Save();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace PromoSeeker.Core
@@ -17,6 +18,13 @@ namespace PromoSeeker.Core
         /// Interval in which the products are updated.
         /// </summary>
         public TimeSpan UpdateInterval { get; set; }
+
+        /// <summary>
+        /// The date when user last read the notifications.
+        /// <remarks>This setting is not stored into the JSON file and gets reset on each application load.</remarks>
+        /// </summary>
+        [JsonIgnore]
+        public DateTime NotificationLastRead { get; set; } = DateTime.Now;
 
         /// <summary>
         /// The tracking products.

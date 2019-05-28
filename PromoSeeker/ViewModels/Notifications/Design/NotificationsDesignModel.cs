@@ -32,11 +32,11 @@ namespace PromoSeeker
                 new NotificationItemDesignModel()
                 {
                     IsNew = true,
-                    Type = NotificationType.NameChange
+                    Type = NotificationSubjectType.NameChange
                 },
                 new NotificationItemDesignModel()
                 {
-                    Type = NotificationType.NameChange
+                    Type = NotificationSubjectType.NameChange
                 },
                 new NotificationItemDesignModel(),
                 new NotificationItemDesignModel(),

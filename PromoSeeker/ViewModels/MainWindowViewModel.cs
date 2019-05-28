@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -26,24 +27,19 @@ namespace PromoSeeker
         #region Public Properties
 
         /// <summary>
-        /// The window minimum width.
+        /// The window width.
         /// </summary>
-        public double WindowWidthMin { get; set; } = 100;
+        public double WindowWidth { get; set; } = 500;
 
         /// <summary>
-        /// The window minimum height.
+        /// The window height.
         /// </summary>
-        public double WindowHeightMin { get; set; } = 100;
+        public double WindowHeight { get; set; } = 450;
 
         /// <summary>
         /// The height of the title bar.
         /// </summary>
         public GridLength CaptionHeight { get; } = new GridLength(27);
-
-        /// <summary>
-        /// The notifications container.
-        /// </summary>
-        public NotificationsViewModel Notifications { get; set; }
 
         /// <summary>
         /// If the notifications popup dialog is visible.
@@ -119,19 +115,22 @@ namespace PromoSeeker
 
             #region Style Window
 
+            // TODO: Follow MVVM principles
+
             // Set the window we are handling
             _window = window;
 
             // Set window properties
-            _window.MinWidth = WindowWidthMin;
-            _window.MinHeight = WindowHeightMin;
             _window.ResizeMode = ResizeMode.NoResize;
             _window.WindowStartupLocation = WindowStartupLocation.Manual;
+
+            // Hook into deactivated event to hide it on lost focus
             _window.Deactivated += (s, e) =>
             {
                 _window.Hide();
             };
 
+            // Set position
             var workingArea = SystemParameters.WorkArea;
             _window.Left = workingArea.Right - _window.Width - 16;
             _window.Top = workingArea.Bottom - _window.Height - 16;
@@ -160,29 +159,10 @@ namespace PromoSeeker
         private void ToggleNotificationsPopup()
         {
             // Prepare notifications
-            LoadNotifications();
+            DI.Application.RefreshNotifications();
 
             // Toggle notifications popup visibility
             NotificationsPopupVisible = !NotificationsPopupVisible;
-        }
-
-        /// <summary>
-        /// Loads the recent notifications.
-        /// </summary>
-        private void LoadNotifications()
-        {
-            // If notifications are not yet initialized...
-            if (Notifications == null)
-            {
-                // Initialize
-                Notifications = new NotificationsViewModel();
-            }
-
-            // Load notifications
-            Notifications.Load();
-
-            // Raise property changed event
-            OnPropertyChanged(nameof(Notifications));
         }
 
         /// <summary>

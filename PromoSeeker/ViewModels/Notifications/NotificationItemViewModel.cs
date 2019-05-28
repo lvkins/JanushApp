@@ -14,7 +14,7 @@ namespace PromoSeeker
         /// <summary>
         /// The type of this notification.
         /// </summary>
-        public NotificationType Type { get; set; }
+        public NotificationSubjectType Type { get; set; }
 
         /// <summary>
         /// The product this notification applies to.

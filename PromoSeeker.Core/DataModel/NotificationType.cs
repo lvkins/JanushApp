@@ -1,28 +1,28 @@
-﻿namespace PromoSeeker.Core
+﻿namespace PromoSeeker
 {
     /// <summary>
-    /// Types of the product related notifications.
+    /// Defines a set of notification types in the application.
     /// </summary>
     public enum NotificationType
     {
         /// <summary>
-        /// A notification without specific type.
+        /// A default type.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
-        /// Price decrease notification type.
+        /// A informative type.
         /// </summary>
-        PriceDown,
+        Info = 1,
 
         /// <summary>
-        /// Price increase notification type.
+        /// A warning type.
         /// </summary>
-        PriceUp,
+        Warning = 2,
 
         /// <summary>
-        /// Name change notification type.
+        /// A error type.
         /// </summary>
-        NameChange,
+        Error = 3
     }
 }

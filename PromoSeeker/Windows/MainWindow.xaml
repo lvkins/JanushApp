@@ -9,8 +9,8 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     x:Name="MainWindowElement"
     Title="{x:Static core:Consts.APP_TITLE}"
-    Width="500"
-    Height="450"
+    Width="{Binding WindowWidth, FallbackValue=500}"
+    Height="{Binding WindowHeight, FallbackValue=450}"
     Icon="../Assets/Application.ico"
     ShowInTaskbar="False"
     WindowStyle="None"
@@ -31,7 +31,7 @@
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
                 Panel.ZIndex="1"
-                DataContext="{Binding Notifications}"
+                DataContext="{Binding Notifications, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
                 Visibility="{Binding DataContext.NotificationsPopupVisible, ElementName=MainWindowElement, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, FallbackValue=Collapsed}" />
 
             <Grid>
@@ -139,7 +139,7 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Fill="{StaticResource AppRedBrush}"
-                                Visibility="{Binding Notifications.New, FallbackValue=Collapsed, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+                                Visibility="{Binding Notifications.New, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
                         </Grid>
 
                         <!--  Separator  -->

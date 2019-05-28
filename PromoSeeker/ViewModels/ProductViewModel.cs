@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 
@@ -383,6 +382,7 @@ namespace PromoSeeker
         {
             // Update last check time
             LastCheck = DateTime.Now;
+
             // Flag we are no longer updating
             CurrentlyUpdating = false;
 
@@ -390,7 +390,7 @@ namespace PromoSeeker
             if (!result.Success)
             {
                 // TODO: Handle unsuccessful update
-                DI.UIManager.Tray.Notification("Failed to update product", Name, TrayIconNotificationType.Warning);
+                DI.Application.NotificationReceived("Failed to update product", this, NotificationType.Warning);
                 return;
             }
 
@@ -408,15 +408,10 @@ namespace PromoSeeker
                 // Append to history
                 NameHistory.Add(new KeyValuePair<string, DateTime>(OriginalName, DateTime.Now));
 
-                // Indicate new notifications
-                DI.UIManager.Tray.Indicate(true);
-
-                // If user wishes to be notified...
-                if (_settings.NotifyNameChange)
-                {
-                    // Send notification
-                    DI.UIManager.Tray.Notification($"Product name has changed.\nNew product name:\n\n{Product.Name}", Name);
-                }
+                // Handle notification
+                // TODO: localize me
+                DI.Application.NotificationReceived($"Product name has changed.\nNew product name:\n\n{Product.Name}",
+                    this, popToast: _settings.NotifyPriceChange);
             }
 
             // If a product price has changed...
@@ -431,32 +426,15 @@ namespace PromoSeeker
                 // Append to history
                 PriceHistory.Add(new KeyValuePair<decimal, DateTime>(PriceCurrent, DateTime.Now));
 
-                // Indicate new notifications
-                DI.UIManager.Tray.Indicate(true);
-
-                // If user wishes to be notified...
-                if (_settings.NotifyPriceChange)
-                {
-                    // Resulting message
-                    var tooltipMessage = string.Empty;
-
+                // Handle notification
+                // TODO: localize me
+                DI.Application.NotificationReceived(
+                    Product.PriceInfo.Value > PriceCurrent
                     // If new price is higher than current price...
-                    if (Product.PriceInfo.Value > PriceCurrent)
-                    {
-                        tooltipMessage = $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
-                    }
+                    ? $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}"
                     // If new price is lower than current price...
-                    else if (Product.PriceInfo.Value < PriceCurrent)
-                    {
-                        tooltipMessage = $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}";
-                    }
-
-                    // If we have a message to notify...
-                    if (!string.IsNullOrEmpty(tooltipMessage))
-                    {
-                        DI.UIManager.Tray.Notification(tooltipMessage, Name);
-                    }
-                }
+                    : $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}",
+                    this, popToast: _settings.NotifyPriceChange);
             }
 
             #endregion
@@ -475,7 +453,7 @@ namespace PromoSeeker
 
             #endregion
 
-            // Save application state
+            // Save application state after update
             DI.Application.Save();
 
             // Leave a log message
@@ -488,6 +466,8 @@ namespace PromoSeeker
         /// <param name="ex">The exception occurred, if any.</param>
         private void Product_TrackingFailed(Exception ex)
         {
+            // TODO:
+
             // Inform the user
 
             // Mark the product 'error having'

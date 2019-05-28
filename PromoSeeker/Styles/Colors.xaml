@@ -31,7 +31,7 @@
 
     <!--  Specific colors  -->
 
-    <Color x:Key="AppBlue">#15b9ff</Color>
+    <Color x:Key="AppBlue">#007acd</Color>
     <SolidColorBrush x:Key="AppBlueBrush" Color="{StaticResource AppBlue}" />
 
     <Color x:Key="AppDarkBlue">#0c6991</Color>
