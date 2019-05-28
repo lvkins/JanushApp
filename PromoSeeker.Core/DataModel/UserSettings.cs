@@ -20,13 +20,6 @@ namespace PromoSeeker.Core
         public TimeSpan UpdateInterval { get; set; }
 
         /// <summary>
-        /// The date when user last read the notifications.
-        /// <remarks>This setting is not stored into the JSON file and gets reset on each application load.</remarks>
-        /// </summary>
-        [JsonIgnore]
-        public DateTime NotificationLastRead { get; set; } = DateTime.Now;
-
-        /// <summary>
         /// The tracking products.
         /// </summary>
         public List<ProductSettings> Products { get; set; } = new List<ProductSettings>();

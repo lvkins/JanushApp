@@ -25,6 +25,11 @@ namespace PromoSeeker
         /// </summary>
         public NotificationsViewModel Notifications { get; set; }
 
+        /// <summary>
+        /// The date of when the user has readed the notifications.
+        /// </summary>
+        public DateTime NotificationLastRead { get; set; }
+
         #endregion
 
         #region Public Methods
@@ -159,7 +164,7 @@ namespace PromoSeeker
             Notifications.Load();
 
             // Set current read time to mark as readed
-            DI.SettingsReader.Settings.NotificationLastRead = DateTime.Now;
+            NotificationLastRead = DateTime.Now;
 
             // Raise property changed event
             OnPropertyChanged(nameof(Notifications));

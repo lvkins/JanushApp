@@ -92,7 +92,7 @@ namespace PromoSeeker
                             {
                                 Product = p,
                                 Date = seed.Value,
-                                IsNew = seed.Value >= DI.SettingsReader.Settings.NotificationLastRead,
+                                IsNew = seed.Value >= DI.Application.NotificationLastRead,
                                 Type = NotificationSubjectType.NameChange,
                                 Message = $"Name has changed from {seed.Key} to {next.Key}.",
                             });
@@ -106,7 +106,7 @@ namespace PromoSeeker
                         ret.Add(new NotificationItemViewModel
                         {
                             Product = p,
-                            IsNew = nameLast.Value >= DI.SettingsReader.Settings.NotificationLastRead,
+                            IsNew = nameLast.Value >= DI.Application.NotificationLastRead,
                             Date = nameLast.Value,
                             Type = NotificationSubjectType.NameChange,
                             Message = $"Name has changed from {nameLast.Key} to {p.Name}",
@@ -118,7 +118,7 @@ namespace PromoSeeker
                     {
                         Price = _.Key,
                         Date = _.Value,
-                        IsNew = _.Value >= DI.SettingsReader.Settings.NotificationLastRead,
+                        IsNew = _.Value >= DI.Application.NotificationLastRead,
                         PriceFormatted = _.Key.ToString("C2", p.Culture),
                     });
 
@@ -139,7 +139,7 @@ namespace PromoSeeker
                             {
                                 Product = p,
                                 Date = seed.Date,
-                                IsNew = seed.Date >= DI.SettingsReader.Settings.NotificationLastRead,
+                                IsNew = seed.Date >= DI.Application.NotificationLastRead,
                                 Type = seed.Price < next.Price ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
                                 Message = $"Price has {(seed.Price < next.Price ? "increased" : "decreased")} from {seed.PriceFormatted} to {next.PriceFormatted} ({change.ToString("P")} change).",
                             });
@@ -158,7 +158,7 @@ namespace PromoSeeker
                         {
                             Product = p,
                             Date = priceLast.Date,
-                            IsNew = priceLast.Date >= DI.SettingsReader.Settings.NotificationLastRead,
+                            IsNew = priceLast.Date >= DI.Application.NotificationLastRead,
                             Type = priceLast.Price < p.PriceCurrent ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
                             Message = $"Price has {(priceLast.Price < p.PriceCurrent ? "increased" : "decreased")} from {priceLast.PriceFormatted} to {p.DisplayPrice} ({change.ToString("P")} change).",
                         });
