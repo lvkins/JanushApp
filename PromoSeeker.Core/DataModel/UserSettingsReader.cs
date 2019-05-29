@@ -76,8 +76,7 @@ namespace PromoSeeker.Core
             {
                 // If the file doesn't exists or unable to deserialize...
                 if (!File.Exists(SettingsPath) || (Settings = JsonConvert.DeserializeObject<UserSettings>(
-                    File.ReadAllText(SettingsPath),
-                    JsonSerializerSettings)) == null)
+                    File.ReadAllText(SettingsPath), JsonSerializerSettings)) == null)
                 {
                     // Use default
                     Settings = new UserSettings();

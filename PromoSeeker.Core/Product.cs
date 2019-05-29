@@ -224,8 +224,9 @@ namespace PromoSeeker.Core
         /// Starts the product tracking task with the specified time <paramref name="interval"/>.
         /// </summary>
         /// <param name="interval">The time interval to track the product within.</param>
+        /// <param name="randomizeInterval">If the random seconds should be added to the interval on each data pull to prevent being suspicious.</param>
         /// <exception cref="InvalidOperationException">Thrown when product is not ready to be tracked.</exception>
-        public async Task TrackAsync(TimeSpan interval)
+        public async Task TrackAsync(TimeSpan interval, bool randomizeInterval = true)
         {
             // If the product is not set...
             if (!IsReady)
@@ -250,11 +251,25 @@ namespace PromoSeeker.Core
             // Create a task
             TrackingTask = Task.Run(async () =>
             {
+                // Create random object instance
+                var random = new Random();
+
                 // Do this until not interrupted by cancellation token
                 while (true)
                 {
+                    // The delay time
+                    var delay = randomizeInterval
+                        ? interval.Add(TimeSpan.FromSeconds(random.Next(-5, 5)))
+                        : interval;
+
+                    // Implicitly limit the delay to 5 seconds to prevent flood under any circumstances.
+                    if (delay < TimeSpan.FromSeconds(5))
+                    {
+                        delay = TimeSpan.FromSeconds(5);
+                    }
+
                     // Wait for the specified amount of time
-                    await Task.Delay(interval, _trackingCancellation.Token);
+                    await Task.Delay(delay, _trackingCancellation.Token);
 
                     // Abort if cancellation is requested
                     _trackingCancellation.Token.ThrowIfCancellationRequested();

@@ -38,7 +38,7 @@
                 x:Name="SoundNotification"
                 Content="Use sound notifications"
                 IsChecked="{Binding EnableSoundNotification}" />
-            <TextBlock Style="{StaticResource HelpBlock}" Text="Specify how often should the fresh product data be pulled." />
+            <TextBlock Style="{StaticResource HelpBlock}" Text="Check, if you want a fancy sound to be played when a notification occurs." />
 
             <Separator />
 
@@ -47,7 +47,7 @@
             <Grid>
                 <TextBox
                     x:Name="CheckInterval"
-                    local:TimeTextAttachedProperty.MinValue="60"
+                    local:TimeTextAttachedProperty.MinValue="30"
                     local:TimeTextAttachedProperty.Value="{Binding CheckInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock
                     Margin="2,0,0,0"
@@ -60,6 +60,9 @@
 
             <TextBlock Style="{StaticResource ConditionBlock}">
                 <Run Text="&#8226;" />
+                <Run Text="Minimum value: 30 seconds" />
+                <LineBreak />
+                <Run Text="&#8226;" />
                 <Run Text="Allowed format: hh:mm:ss (hours:minutes:seconds)" />
             </TextBlock>
             <TextBlock Style="{StaticResource HelpBlock}" Text="Specify how often should the fresh product data be pulled." />
@@ -67,8 +70,15 @@
             <Separator />
 
             <!--  Randomize check interval  -->
-            <CheckBox Content="Randomize check interval" IsChecked="{Binding RandomizeCheckInterval}" />
-            <TextBlock Style="{StaticResource HelpBlock}" Text="If checked, check interval will be randomized by approximately 10 seconds in order to prevent pulling the product data all together at the same time which may result in various errors or access being denied, depending on the website configuration." />
+            <StackPanel Orientation="Horizontal">
+                <CheckBox Content="Randomize check interval" IsChecked="{Binding RandomizeCheckInterval}" />
+                <TextBlock
+                    Margin="10,0"
+                    Style="{StaticResource ConditionBlock}"
+                    Text="(recommended)" />
+            </StackPanel>
+
+            <TextBlock Style="{StaticResource HelpBlock}" Text="If checked, Janush will be less suspicious - check interval will be extended by a random value of approximately 10 seconds in order to prevent pulling the product data all together at the same time which, depending on the website configuration, could result in various errors or access being denied." />
 
         </StackPanel>
     </Border>

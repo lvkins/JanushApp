@@ -16,7 +16,7 @@
 
     <!--  Help Block  -->
     <Style x:Key="HelpBlock" TargetType="{x:Type TextBlock}">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundDarkBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundDarkerBrush}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSmaller}" />
         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
         <Setter Property="Margin" Value="0,6" />

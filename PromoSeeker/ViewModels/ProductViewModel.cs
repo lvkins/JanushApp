@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 
@@ -261,7 +262,7 @@ namespace PromoSeeker
                 ShowOptionsPopupMenu = !ShowOptionsPopupMenu;
             });
             StartTrackingCommand = new RelayCommand(StartTrackingAsync);
-            StopTrackingCommand = new RelayCommand(StopTrackingAsync);
+            StopTrackingCommand = new RelayCommand(async () => await StopTrackingAsync());
             DeleteCommand = new RelayCommand(Delete);
 
             #endregion
@@ -318,24 +319,15 @@ namespace PromoSeeker
             // Flag as tracked
             Tracked = true;
 
-            // Set the tracking time interval
-            var interval = Consts.PRODUCT_UPDATE_INTERVAL;
-
-            // If tracking interval should be randomized...
-            if (Consts.PRODUCT_UDPATE_INTERVAL_RANDOMIZE)
-            {
-                // Randomize interval
-                interval += TimeSpan.FromSeconds(new Random().Next(-6, 6));
-            }
-
             // Start tracking tasks
-            await Product.TrackAsync(interval);
+            await Product.TrackAsync(DI.SettingsReader.Settings.UpdateInterval,
+                DI.SettingsReader.Settings.RandomizeInterval);
         }
 
         /// <summary>
         /// Disable this product from tracking.
         /// </summary>
-        public async void StopTrackingAsync()
+        public async Task StopTrackingAsync()
         {
             // Close options popup
             ShowOptionsPopupMenu = false;

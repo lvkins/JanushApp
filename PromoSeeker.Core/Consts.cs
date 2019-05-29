@@ -26,12 +26,12 @@ namespace PromoSeeker.Core
         public const int LOGS_LIMIT = 100;
 
         /// <summary>
-        /// The time interval, product will updated within.
+        /// The default time interval, product will updated within.
         /// </summary>
         public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Whether if the <see cref="PRODUCT_UPDATE_INTERVAL"/> should be randomized by adding small random values.
+        /// Whether if the <see cref="PRODUCT_UPDATE_INTERVAL"/> should be randomized by adding a small random values.
         /// </summary>
         public const bool PRODUCT_UDPATE_INTERVAL_RANDOMIZE = true;
 

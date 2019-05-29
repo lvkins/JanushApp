@@ -28,7 +28,7 @@ namespace PromoSeeker
         /// <summary>
         /// The date of when the user has readed the notifications.
         /// </summary>
-        public DateTime NotificationLastRead { get; set; }
+        public DateTime NotificationLastRead { get; set; } = DateTime.Now;
 
         #endregion
 
@@ -214,7 +214,7 @@ namespace PromoSeeker
         /// </summary>
         /// <param name="onClose">The action to be executed when the window was closed.</param>
         /// <typeparam name="T">The window type to be created.</typeparam>
-        public void ShowWindow<T>(BaseViewModel viewModel, Action<object> onClose = null)
+        public void ShowWindow<T>(BaseViewModel viewModel, Action onClose = null)
             where T : Window
         {
             // Attempt to find the window in the currently initialized windows in our application
@@ -234,7 +234,7 @@ namespace PromoSeeker
                 // If we have close callback...
                 if (onClose != null)
                 {
-                    window.Closed += (s, e) => onClose(s);
+                    window.Closed += (s, e) => onClose();
                 }
             }
 
