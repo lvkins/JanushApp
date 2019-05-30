@@ -1,4 +1,5 @@
 ﻿using PromoSeeker.Core;
+using PromoSeeker.Core.Localization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -382,7 +383,7 @@ namespace PromoSeeker
             if (!result.Success)
             {
                 // TODO: Handle unsuccessful update
-                DI.Application.NotificationReceived("Failed to update product", this, NotificationType.Warning);
+                DI.Application.NotificationReceived(result.Error, this, NotificationType.Warning);
                 return;
             }
 
@@ -401,8 +402,7 @@ namespace PromoSeeker
                 NameHistory.Add(new KeyValuePair<string, DateTime>(OriginalName, DateTime.Now));
 
                 // Handle notification
-                // TODO: localize me
-                DI.Application.NotificationReceived($"Product name has changed.\nNew product name:\n\n{Product.Name}",
+                DI.Application.NotificationReceived(string.Format(Strings.NotificationNameChanged, Product.Name),
                     this, popToast: _settings.NotifyPriceChange);
             }
 
@@ -419,13 +419,12 @@ namespace PromoSeeker
                 PriceHistory.Add(new KeyValuePair<decimal, DateTime>(PriceCurrent, DateTime.Now));
 
                 // Handle notification
-                // TODO: localize me
                 DI.Application.NotificationReceived(
                     Product.PriceInfo.Value > PriceCurrent
                     // If new price is higher than current price...
-                    ? $"Aww... price has increased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}"
+                    ? string.Format(Strings.NotificationPriceIncrease, Product.PriceInfo.CurrencyAmount)
                     // If new price is lower than current price...
-                    : $"Ohh... price has decreased!\n\nNew price: {Product.PriceInfo.CurrencyAmount}",
+                    : string.Format(Strings.NotificationPriceDecrease, Product.PriceInfo.CurrencyAmount),
                     this, popToast: _settings.NotifyPriceChange);
             }
 

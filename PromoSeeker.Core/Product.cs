@@ -1,5 +1,6 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using PromoSeeker.Core.Localization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -596,7 +597,6 @@ namespace PromoSeeker.Core
             // Prices from this source are the most eligible
             foreach (var source in Consts.PRICE_SOURCES)
             {
-
                 // Find a node in the document
                 // If node exists...
                 if (_htmlDocument.DocumentElement.QuerySelectorOrXPath(source.Key) is IElement node)
@@ -764,206 +764,206 @@ namespace PromoSeeker.Core
             // Get best prices by concatenating three source lists and scoring each price group.
             DetectedPrices = pricesInJavaScript
                 .Concat(pricesInAttributeValues)
-                            .Concat(pricesInNodes)
-                            // Find each node price distance to product name.
-                            .Select(_ =>
-                            {
-                                // Distance from the price node stream position to the closest product name node stream position.
-                                int? nameDistance = null;
+                .Concat(pricesInNodes)
+                // Find each node price distance to product name.
+                .Select(_ =>
+                {
+                    // Distance from the price node stream position to the closest product name node stream position.
+                    int? nameDistance = null;
 
-                                // If price has a source node and source price is a price found in the node text (node that *could be* displayed to user)...
-                                if (_.Node != null && _.PriceInfo.Source == PriceSourceType.PriceSourceNode)
-                                {
-                                    // NOTE: Since we've switched from HtmlAgilityPack to AngleSharp
-                                    // We have lost the ability to check the stream position of the element.
-                                    // Thats why we use the node 'depth' approach to get the distance - it's not that accurate however.
-                                    // Stream position should be added soon: https://github.com/AngleSharp/AngleSharp/issues/754
+                    // If price has a source node and source price is a price found in the node text (node that *could be* displayed to user)...
+                    if (_.Node != null && _.PriceInfo.Source == PriceSourceType.PriceSourceNode)
+                    {
+                        // NOTE: Since we've switched from HtmlAgilityPack to AngleSharp
+                        // We have lost the ability to check the stream position of the element.
+                        // Thats why we use the node 'depth' approach to get the distance - it's not that accurate however.
+                        // Stream position should be added soon: https://github.com/AngleSharp/AngleSharp/issues/754
 
-                                    // Find closest product name position
-                                    var result = _.Node.FindClosest(n =>
-                                    {
-                                        return ProductNameRegex.IsMatch(n.TextContent);
-                                        //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                                    }, out var node, out var distance);
+                        // Find closest product name position
+                        var result = _.Node.FindClosest(n =>
+                        {
+                            return ProductNameRegex.IsMatch(n.TextContent);
+                            //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
+                        }, out var node, out var distance);
 
-                                    // If closest node was found...
-                                    if (result)
-                                    {
-                                        // Set a distance to the node
-                                        nameDistance = distance; //_.SourceNode.StreamPosition() - distanceToProductName;
-                                    }
-                                }
+                        // If closest node was found...
+                        if (result)
+                        {
+                            // Set a distance to the node
+                            nameDistance = distance; //_.SourceNode.StreamPosition() - distanceToProductName;
+                        }
+                    }
 
-                                // Pass the anonymous type
-                                return new
-                                {
-                                    _.Node,
-                                    _.PriceReadResult,
-                                    _.PriceInfo,
-                                    NameDistance = nameDistance,
-                                };
-                            })
-                            // Group entries by the price and prioritize prices having node sources
-                            .GroupBy(_ => _.PriceReadResult.Decimal, (k, g) => new { Key = k, Prices = g.OrderByDescending(p => p.Node != null) })
-                            // Select price & entries count
-                            .Select(_ =>
-                            {
-                                // Check if any price in this group occurs with the currency symbol in the document...
-                                // Depending on the website and how the price is presented to the user, at least once price should have a currency symbol.
-                                var hasSymbol = _.Prices.Any(p => !string.IsNullOrEmpty(p.PriceReadResult.CurrencySymbol));
+                    // Pass the anonymous type
+                    return new
+                    {
+                        _.Node,
+                        _.PriceReadResult,
+                        _.PriceInfo,
+                        NameDistance = nameDistance,
+                    };
+                })
+                // Group entries by the price and prioritize prices having node sources
+                .GroupBy(_ => _.PriceReadResult.Decimal, (k, g) => new { Key = k, Prices = g.OrderByDescending(p => p.Node != null) })
+                // Select price & entries count
+                .Select(_ =>
+                {
+                    // Check if any price in this group occurs with the currency symbol in the document...
+                    // Depending on the website and how the price is presented to the user, at least once price should have a currency symbol.
+                    var hasSymbol = _.Prices.Any(p => !string.IsNullOrEmpty(p.PriceReadResult.CurrencySymbol));
 
-                                #region Make Counts
+                    #region Make Counts
 
-                                // Particular source counts
-                                int inAttrCount = 0, inJSCount = 0, inNodeCount = 0, totalCount = 0;
+                    // Particular source counts
+                    int inAttrCount = 0, inJSCount = 0, inNodeCount = 0, totalCount = 0;
 
-                                // Get particular prices by source count
-                                foreach (var item in _.Prices)
-                                {
-                                    if (item.PriceInfo.Source == PriceSourceType.PriceSourceAttribute)
-                                    {
-                                        ++inAttrCount;
-                                    }
-                                    else if (item.PriceInfo.Source == PriceSourceType.PriceSourceJavascript)
-                                    {
-                                        ++inJSCount;
-                                    }
-                                    else if (item.PriceInfo.Source == PriceSourceType.PriceSourceNode)
-                                    {
-                                        ++inNodeCount;
-                                    }
+                    // Get particular prices by source count
+                    foreach (var item in _.Prices)
+                    {
+                        if (item.PriceInfo.Source == PriceSourceType.PriceSourceAttribute)
+                        {
+                            ++inAttrCount;
+                        }
+                        else if (item.PriceInfo.Source == PriceSourceType.PriceSourceJavascript)
+                        {
+                            ++inJSCount;
+                        }
+                        else if (item.PriceInfo.Source == PriceSourceType.PriceSourceNode)
+                        {
+                            ++inNodeCount;
+                        }
 
-                                    ++totalCount;
-                                }
+                        ++totalCount;
+                    }
 
-                                #endregion
+                    #endregion
 
-                                #region Compute Price Group Score
+                    #region Compute Price Group Score
 
-                                // Base score
-                                var groupScore = totalCount;
+                    // Base score
+                    var groupScore = totalCount;
 
-                                // We assume, the price appears in either the attributes or the JS code at least once...
-                                if (inAttrCount != 0 || inJSCount != 0)
-                                {
-                                    // If all prices don't come from attributes...
-                                    if (inAttrCount != totalCount)
-                                    {
-                                        // Bonus score for prices found in the attributes...
-                                        groupScore += inAttrCount * 2;
-                                    }
-                                    // Otherwise...
-                                    else
-                                    {
-                                        // Weak source penalty
-                                        groupScore -= (inAttrCount + 20);
-                                    }
+                    // We assume, the price appears in either the attributes or the JS code at least once...
+                    if (inAttrCount != 0 || inJSCount != 0)
+                    {
+                        // If all prices don't come from attributes...
+                        if (inAttrCount != totalCount)
+                        {
+                            // Bonus score for prices found in the attributes...
+                            groupScore += inAttrCount * 2;
+                        }
+                        // Otherwise...
+                        else
+                        {
+                            // Weak source penalty
+                            groupScore -= (inAttrCount + 20);
+                        }
 
-                                    // If all prices don't come from JS code...
-                                    if (inJSCount != totalCount)
-                                    {
-                                        // Bonus score for prices found in the JS code...
-                                        groupScore += inJSCount * 3;
-                                    }
-                                    // Otherwise...
-                                    else
-                                    {
-                                        // Weak source penalty
-                                        groupScore -= (inJSCount + 20);
-                                    }
-                                }
-                                // Otherwise if all prices come from the attributes/JS code...
-                                else
-                                {
-                                    // Weak source penalty
-                                    groupScore -= 5;
-                                }
+                        // If all prices don't come from JS code...
+                        if (inJSCount != totalCount)
+                        {
+                            // Bonus score for prices found in the JS code...
+                            groupScore += inJSCount * 3;
+                        }
+                        // Otherwise...
+                        else
+                        {
+                            // Weak source penalty
+                            groupScore -= (inJSCount + 20);
+                        }
+                    }
+                    // Otherwise if all prices come from the attributes/JS code...
+                    else
+                    {
+                        // Weak source penalty
+                        groupScore -= 5;
+                    }
 
-                                // Score closest price-to-name element distance
+                    // Score closest price-to-name element distance
 
-                                // If at least one price comes from a HTML node...
-                                if (inNodeCount > 0)
-                                {
-                                    // Get the closest distance of a price to the product name in this group
-                                    var closestNameDistance = _.Prices.Where(p => p.NameDistance > -1).Min(p => p.NameDistance);
+                    // If at least one price comes from a HTML node...
+                    if (inNodeCount > 0)
+                    {
+                        // Get the closest distance of a price to the product name in this group
+                        var closestNameDistance = _.Prices.Where(p => p.NameDistance > -1).Min(p => p.NameDistance);
 
-                                    // If no name element was located near the price...
-                                    if (closestNameDistance == null)
-                                    {
-                                        // Set for penalty
-                                        closestNameDistance = MaxNameNodeDistance + 1;
-                                    }
+                        // If no name element was located near the price...
+                        if (closestNameDistance == null)
+                        {
+                            // Set for penalty
+                            closestNameDistance = MaxNameNodeDistance + 1;
+                        }
 
-                                    // If the distance is relatively close...
-                                    if (closestNameDistance > 0 && closestNameDistance <= MaxNameNodeDistance)
-                                    {
-                                        // Add bonus score
-                                        groupScore += 10 - (closestNameDistance.Value - 1);
-                                    }
-                                    // Otherwise, if the distance is long...
-                                    else if (closestNameDistance > MaxNameNodeDistance)
-                                    {
-                                        // Long distance penalty
-                                        // 10 points for each exceeded limit
-                                        groupScore -= closestNameDistance.Value / MaxNameNodeDistance * 10;
-                                    }
-                                }
-                                else
-                                {
-                                    // Weak source penalty
-                                    groupScore -= 5;
-                                }
+                        // If the distance is relatively close...
+                        if (closestNameDistance > 0 && closestNameDistance <= MaxNameNodeDistance)
+                        {
+                            // Add bonus score
+                            groupScore += 10 - (closestNameDistance.Value - 1);
+                        }
+                        // Otherwise, if the distance is long...
+                        else if (closestNameDistance > MaxNameNodeDistance)
+                        {
+                            // Long distance penalty
+                            // 10 points for each exceeded limit
+                            groupScore -= closestNameDistance.Value / MaxNameNodeDistance * 10;
+                        }
+                    }
+                    else
+                    {
+                        // Weak source penalty
+                        groupScore -= 5;
+                    }
 
-                                // If any price in this group occurs with a currency symbol...
-                                if (hasSymbol)
-                                {
-                                    // Add bonus points
-                                    groupScore += 15;
-                                }
+                    // If any price in this group occurs with a currency symbol...
+                    if (hasSymbol)
+                    {
+                        // Add bonus points
+                        groupScore += 15;
+                    }
 
-                                #endregion
+                    #endregion
 
-                                Debug.WriteLine($">> Price detected :: {_.Key} ({groupScore}) ({totalCount})");
+                    Debug.WriteLine($">> Price detected :: {_.Key} ({groupScore}) ({totalCount})");
 
-                                // Return the anonymous type containing useful data
-                                return new
-                                {
-                                    Score = groupScore,
-                                    Source = _.Prices.Select(s => new { s.Node, s.PriceInfo }),
-                                };
-                            })
-                            // Order by the group of prices score
-                            .OrderByDescending(_ => _.Score)
-                            // Take 10 best price groups
-                            .Take(10)
-                            // Since currently tracking prices without source in node
-                            // (eg. the Javascript prices, that are used for reference) is 
-                            // currently not supported. Exclude groups having no node prices at all.
-                            // (Comparing first element is enough, because of the previously
-                            // sorted node-first elements)
-                            .Where(_ => _.Source.First()?.Node != null)
-                            // Reduct to the first price in each group and create a selector for each price
-                            .Select(_ =>
-                            {
-                                // Get first (top) price in a group
-                                // (NOTE: Prices in the group are previously sorted node-first)
-                                var firstPrice = _.Source.First();
+                    // Return the anonymous type containing useful data
+                    return new
+                    {
+                        Score = groupScore,
+                        Source = _.Prices.Select(s => new { s.Node, s.PriceInfo }),
+                    };
+                })
+                // Order by the group of prices score
+                .OrderByDescending(_ => _.Score)
+                // Take 10 best price groups
+                .Take(10)
+                // Since currently tracking prices without source in node
+                // (eg. the Javascript prices, that are used for reference) is 
+                // currently not supported. Exclude groups having no node prices at all.
+                // (Comparing first element is enough, because of the previously
+                // sorted node-first elements)
+                .Where(_ => _.Source.First()?.Node != null)
+                // Reduct to the first price in each group and create a selector for each price
+                .Select(_ =>
+                {
+                    // Get first (top) price in a group
+                    // (NOTE: Prices in the group are previously sorted node-first)
+                    var firstPrice = _.Source.First();
 
-                                // If price has a node origin...
-                                if (firstPrice.Node != null)
-                                {
-                                    // Create a CSS selector for each price
-                                    // NOTE: We do it here at the end, once we gather eligible 
-                                    //  prices - because it is pointless to waste resources to 
-                                    //  create selectors for inappropriate nodes.
-                                    firstPrice.PriceInfo.PriceXPathOrSelector = firstPrice.Node.GetSelector();
-                                }
+                    // If price has a node origin...
+                    if (firstPrice.Node != null)
+                    {
+                        // Create a CSS selector for each price
+                        // NOTE: We do it here at the end, once we gather eligible 
+                        //  prices - because it is pointless to waste resources to 
+                        //  create selectors for inappropriate nodes.
+                        firstPrice.PriceInfo.PriceXPathOrSelector = firstPrice.Node.GetSelector();
+                    }
 
-                                // Reduce
-                                return firstPrice.PriceInfo;
-                            })
-                            // Make list
-                            .ToList();
+                    // Reduce
+                    return firstPrice.PriceInfo;
+                })
+                // Make list
+                .ToList();
 
             // If we have no prices...
             if (!DetectedPrices.Any())
@@ -1116,7 +1116,6 @@ namespace PromoSeeker.Core
             return result;
         }
 
-
         /// <summary>
         /// Load current, up-to-date product properties.
         /// </summary>
@@ -1135,10 +1134,17 @@ namespace PromoSeeker.Core
                 Success = true
             };
 
+            // If load wasn't successful...
             if (!loadResult.Success)
             {
-                // TODO: notify, report error
+                // Set failed result
                 updateResult.Success = false;
+                updateResult.Error = loadResult.Error.ToDisplayString();
+
+                // Raise updated event
+                Updated(updateResult);
+
+                // Return, since we have no result to parse
                 return updateResult;
             }
 
@@ -1159,15 +1165,14 @@ namespace PromoSeeker.Core
                 // Get latest product name
                 if (!DetectName())
                 {
+                    // Set failed result
                     updateResult.Success = false;
-                    // TODO: report error
+                    updateResult.Error = Strings.ErrorProductUpdateName;
                 }
                 // If names are not equal...
                 else if (!preName.Equals(Name, StringComparison.InvariantCulture))
                 {
-                    // Name differs
-                    // TODO: raise some event
-
+                    // Flag that name differs
                     updateResult.HasNewName = true;
                 }
             }
@@ -1206,16 +1211,26 @@ namespace PromoSeeker.Core
                     };
 
                     updateResult.HasNewPrice = true;
-
-                    // TODO: raise some event
                 }
                 else if (!result)
                 {
                     // Let developer know
                     Debugger.Break();
 
-                    // TODO: report error
+                    // Set failed result
+                    updateResult.Success = false;
+                    updateResult.Error = Strings.ErrorProductUpdatePriceRead;
                 }
+            }
+            else
+            {
+                // Price element wasn't located in the DOM
+
+                // TODO: If IsAutoDetect, then attempt to detect new price selector
+
+                // Set failed result
+                updateResult.Success = false;
+                updateResult.Error = Strings.ErrorProductUpdatePriceElementNotFound;
             }
 
             #endregion

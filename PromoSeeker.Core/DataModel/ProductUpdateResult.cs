@@ -6,6 +6,11 @@
     public class ProductUpdateResult
     {
         /// <summary>
+        /// An update error, if any.
+        /// </summary>
+        public string Error { get; set; }
+
+        /// <summary>
         /// Whether the update was successful.
         /// </summary>
         public bool Success { get; set; }

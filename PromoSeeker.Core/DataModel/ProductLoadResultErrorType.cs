@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PromoSeeker.Core.Localization;
+using System;
 
 namespace PromoSeeker.Core
 {
@@ -58,20 +59,13 @@ namespace PromoSeeker.Core
             // TODO: localize
             switch (type)
             {
-                case ProductLoadResultErrorType.NoResponse:
-                    return "No response received. Please ensure that the given URL is valid and the product website is currently reachable.";
-                case ProductLoadResultErrorType.InvalidResponse:
-                    return "Invalid response received. Please ensure that product website is currently reachable and not under maintenance work.";
-                case ProductLoadResultErrorType.ProductNotDetected:
-                    return "Sorry, we were unable to detect a valid product under given URL.";
-                case ProductLoadResultErrorType.ProductParamNotFound:
-                    return "Sorry, we were unable to detect the product properties.";
-                case ProductLoadResultErrorType.ProductUnknownPrice:
-                    return "Sorry, we were unable to detect a valid price for the product.";
-                case ProductLoadResultErrorType.ProductUnknownName:
-                    return "Sorry, we were unable to detect a valid name for the product.";
-                case ProductLoadResultErrorType.ProductUnknownCulture:
-                    return "Sorry, we were unable to detect a valid language for the product.";
+                case ProductLoadResultErrorType.NoResponse: return Strings.ErrorProductLoadNoResponse;
+                case ProductLoadResultErrorType.InvalidResponse: return Strings.ErrorProductLoadInvalidResponse;
+                case ProductLoadResultErrorType.ProductNotDetected: return Strings.ErrorProductLoadNotDetected;
+                case ProductLoadResultErrorType.ProductParamNotFound: return Strings.ErrorProductLoadNotFound;
+                case ProductLoadResultErrorType.ProductUnknownPrice: return Strings.ErrorProductLoadUnknownPrice;
+                case ProductLoadResultErrorType.ProductUnknownName: return Strings.ErrorProductLoadUnknownName;
+                case ProductLoadResultErrorType.ProductUnknownCulture: return Strings.ErrorProductLoadUnknownCulture;
                 default: throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
