@@ -167,11 +167,14 @@ namespace PromoSeeker.Core
         /// <returns></returns>
         public async Task<ProductLoadResult> OpenAsync()
         {
+            // Create web loader instance
+            var loader = new WebLoader();
+
             // Attempt to load HTML
             try
             {
-                // Wait for the HTML document
-                _htmlDocument = await WebLoader.LoadReadyAsync(Url);
+                // Load the HTML document
+                _htmlDocument = await loader.LoadReadyAsync(Url);
             }
             catch (Exception e)
             {
@@ -185,22 +188,49 @@ namespace PromoSeeker.Core
             // If status code is not successful..
             if (_htmlDocument == null || !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
             {
-                // Return with the result
+                // Leave a log message
+                CoreDI.Logger.Error($"Load unsuccessful > {_htmlDocument?.StatusCode}");
+
+                // Return failure result
                 return new ProductLoadResult
                 {
-                    // Load wasn't successful
                     Success = false,
-                    // Set no response or invalid response,
                     Error = _htmlDocument == null
                         ? ProductLoadResultErrorType.NoResponse
                         : ProductLoadResultErrorType.InvalidResponse,
                 };
             }
 
+            // If requested was redirected...
+            if (loader.Redirected)
+            {
+                // Handle redirected request
+
+                // Get last segments of each URI and compare them to
+                // make sure if wasn't a typical redirect like example.com to www.example.com
+                var lastSegment = new Uri(Url).Segments.LastOrDefault();
+                var newLastSegment = new Uri(_htmlDocument.Url).Segments.LastOrDefault();
+
+                // If last segments don't match...
+                if (!lastSegment.Equals(newLastSegment, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Leave a log message
+                    CoreDI.Logger.Error($"Redirect mismatch encountered [{lastSegment}, {newLastSegment}]");
+
+                    // Product is probably no longer available
+                    // Return failure result
+                    return new ProductLoadResult
+                    {
+                        Success = false,
+                        Error = ProductLoadResultErrorType.Redirected
+                    };
+                }
+            }
+
             // Set properties
             Title = _htmlDocument.Title;
 
-            // Return with the successful result
+            // Return successful result
             return new ProductLoadResult
             {
                 Success = true

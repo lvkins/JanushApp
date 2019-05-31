@@ -106,6 +106,15 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A redirect was encountered during product load. Please ensure that the product is still there and available..
+        /// </summary>
+        public static string ErrorProductLoadRedirected {
+            get {
+                return ResourceManager.GetString("ErrorProductLoadRedirected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sorry, we were unable to detect a valid language for the product..
         /// </summary>
         public static string ErrorProductLoadUnknownCulture {

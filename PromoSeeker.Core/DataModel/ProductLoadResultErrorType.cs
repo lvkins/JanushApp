@@ -19,6 +19,12 @@ namespace PromoSeeker.Core
         InvalidResponse,
 
         /// <summary>
+        /// A redirection was encountered while loading.
+        /// Product could be moved or is no longer available.
+        /// </summary>
+        Redirected,
+
+        /// <summary>
         /// Unable to detect product at the specified endpoint.
         /// </summary>
         ProductNotDetected,
@@ -56,11 +62,11 @@ namespace PromoSeeker.Core
         /// <returns></returns>
         public static string ToDisplayString(this ProductLoadResultErrorType type)
         {
-            // TODO: localize
             switch (type)
             {
                 case ProductLoadResultErrorType.NoResponse: return Strings.ErrorProductLoadNoResponse;
                 case ProductLoadResultErrorType.InvalidResponse: return Strings.ErrorProductLoadInvalidResponse;
+                case ProductLoadResultErrorType.Redirected: return Strings.ErrorProductLoadRedirected;
                 case ProductLoadResultErrorType.ProductNotDetected: return Strings.ErrorProductLoadNotDetected;
                 case ProductLoadResultErrorType.ProductParamNotFound: return Strings.ErrorProductLoadNotFound;
                 case ProductLoadResultErrorType.ProductUnknownPrice: return Strings.ErrorProductLoadUnknownPrice;

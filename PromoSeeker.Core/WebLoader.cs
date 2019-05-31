@@ -11,21 +11,57 @@ namespace PromoSeeker.Core
     /// </summary>
     public sealed class WebLoader
     {
+        #region Private Members
+
+        /// <summary>
+        /// A context instance for the requests.
+        /// </summary>
+        private readonly IBrowsingContext _context;
+
+        #endregion
+
         #region Public Properties
 
         /// <summary>
         /// A requester to be used for the HTTP requests.
         /// </summary>
-        public static IRequester Requester = CreateRequester();
+        public IRequester Requester { get; }
 
         /// <summary>
         /// The configuration to be used in the context.
         /// </summary>
-        public static IConfiguration Configuration = AngleSharp.Configuration.Default
-                .WithDefaultLoader()
+        public IConfiguration Configuration { get; }
+
+        /// <summary>
+        /// If the redirection status code was encountered during the request route.
+        /// </summary>
+        public bool Redirected { get; private set; }
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public WebLoader()
+        {
+            // Create a requester
+            Requester = CreateRequester();
+
+            // Create a configuration for the browsing context
+            Configuration = AngleSharp.Configuration.Default
                 .With(Requester)
+                .WithDefaultLoader(new LoaderOptions
+                {
+                    IsResourceLoadingEnabled = false,
+                })
                 // Enable XPath queries in QuerySelector method (*[xpath>'//li[2]'])
                 .WithXPath();
+
+            // Create a browsing context
+            _context = BrowsingContext.New(Configuration);
+        }
 
         #endregion
 
@@ -34,13 +70,10 @@ namespace PromoSeeker.Core
         /// </summary>
         /// <param name="url"></param>
         /// <returns>The loaded document instance.</returns>
-        public static async Task<IDocument> LoadAsync(string url)
+        public async Task<IDocument> LoadAsync(string url)
         {
-            // Create a context for the request using our configuration
-            var context = BrowsingContext.New(Configuration);
-
             // Return the document once loaded
-            return await context.OpenAsync(url);
+            return await _context.OpenAsync(url);
         }
 
         /// <summary>
@@ -48,7 +81,7 @@ namespace PromoSeeker.Core
         /// </summary>
         /// <param name="url"></param>
         /// <returns>The loaded document instance.</returns>
-        public static async Task<IDocument> LoadReadyAsync(string url)
+        public async Task<IDocument> LoadReadyAsync(string url)
         {
             // Load document
             var document = await LoadAsync(url);
@@ -66,17 +99,39 @@ namespace PromoSeeker.Core
         /// Creates a requester to be used for the HTTP requests.
         /// </summary>
         /// <returns></returns>
-        private static IRequester CreateRequester()
+        private IRequester CreateRequester()
         {
+            // Create default requester
             var requester = new DefaultHttpRequester()
             {
                 Timeout = TimeSpan.FromSeconds(10),
             };
 
+            // Set headers
             requester.Headers[HeaderNames.UserAgent] = Consts.USER_AGENT;
             requester.Headers["dnt"] = "1";
 
+            // Hook into requested event to monitor a single request in the requester
+            requester.Requested += Requester_Requested;
+
             return requester;
+        }
+
+        /// <summary>
+        /// A callback that is called when there was a request in the requester.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="ev"></param>
+        private void Requester_Requested(object sender, AngleSharp.Dom.Events.Event ev)
+        {
+            // If we have request event and redirect code...
+            if (ev is AngleSharp.Dom.Events.RequestEvent req &&
+                (int)req.Response.StatusCode >= 300 &&
+                (int)req.Response.StatusCode < 399)
+            {
+                // Flag as redirected
+                Redirected = true;
+            }
         }
 
         #endregion

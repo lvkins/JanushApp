@@ -382,7 +382,6 @@ namespace PromoSeeker
             // If the update wasn't successful...
             if (!result.Success)
             {
-                // TODO: Handle unsuccessful update
                 DI.Application.NotificationReceived(result.Error, this, NotificationType.Warning);
                 return;
             }
