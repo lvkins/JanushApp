@@ -94,22 +94,17 @@ namespace PromoSeeker.Core
         #region Public Events
 
         /// <summary>
-        /// The event that raises when application failed to load product properties.
-        /// </summary>
-        public event Action LoadFailed = () => { };
-
-        /// <summary>
-        /// The event that raises when tracking was unexpectedly aborted.
+        /// The event that raises when the tracking has encountered a failure.
         /// </summary>
         public event Action<Exception> TrackingFailed = (exception) => { };
 
         /// <summary>
-        /// The event that raises when the product is updating.
+        /// The event that raises when the product update has started.
         /// </summary>
         public event Action Updating = () => { };
 
         /// <summary>
-        /// The event that raises when the product was updated.
+        /// The event that raises when the product update has finished, whether successfully or not.
         /// </summary>
         public event Action<ProductUpdateResult> Updated = (result) => { };
 
