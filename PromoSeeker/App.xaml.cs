@@ -19,14 +19,14 @@ namespace PromoSeeker
             // Setup dependency injection
             DI.Setup();
 
-            // Bind logger into the core solution
-            CoreDI.Logger = DI.Logger;
+            // Register a provider for the class library
+            CoreDI.Provider = DI.Provider;
 
             // Initialize UI components.
             DI.UIManager.Initialize();
 
             // Log startup
-            DI.Logger.Info("Application started");
+            CoreDI.Logger.Info("Application started");
 
             // Load application
             DI.Application.Load();

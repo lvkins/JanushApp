@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -144,7 +145,7 @@ namespace PromoSeeker
             ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
             PopupClickawayCommand = new RelayCommand(PopupClickaway);
             ToggleNotificationsPopupCommand = new RelayCommand(ToggleNotificationsPopup);
-            StopTrackingAllCommand = new RelayCommand(StopTrackingAll);
+            StopTrackingAllCommand = new RelayCommand(async () => await StopTrackingAllAsync());
 
             #endregion
         }
@@ -176,13 +177,13 @@ namespace PromoSeeker
         /// <summary>
         /// Stops all products from tracking.
         /// </summary>
-        private void StopTrackingAll()
+        private async Task StopTrackingAllAsync()
         {
             // Iterate over current products
             foreach (var product in DI.Application.Products)
             {
                 // Stop tracking
-                product.StopTrackingAsync();
+                await product.StopTrackingAsync();
             }
         }
 

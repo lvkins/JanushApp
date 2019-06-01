@@ -38,16 +38,6 @@ namespace PromoSeeker
         #endregion
 
         /// <summary>
-        /// A shortcut to access a singleton instance of the <see cref="Core.UserSettings"/>.
-        /// </summary>
-        public static IUserSettingsReader SettingsReader => GetService<IUserSettingsReader>();
-
-        /// <summary>
-        /// A shortcut to access a singleton instance of the <see cref="PromoSeeker.Logger"/>.
-        /// </summary>
-        public static ILogger Logger => GetService<ILogger>();
-
-        /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="PromoSeeker.UIManager"/>.
         /// </summary>
         public static IUIManager UIManager => GetService<IUIManager>();
@@ -56,11 +46,6 @@ namespace PromoSeeker
         /// A shortcut to access a singleton instance of the app configuration <see cref="IConfiguration"/>.
         /// </summary>
         public static IConfiguration Configuration => GetService<IConfiguration>();
-
-        /// <summary>
-        /// A shortcut to access a singleton instance of the <see cref="System.Random"/>.
-        /// </summary>
-        //public static Random Random => Provider.GetService<Random>();
 
         #endregion
 
@@ -83,27 +68,11 @@ namespace PromoSeeker
                 // configure.AddEnvironmentVariables();
             });
 
-            #region Add application services to be used
-
             // Add view model services
             serviceCollection.AddViewModels();
 
-            // Add a singleton user settings reader.
-            serviceCollection.AddSingleton<IUserSettingsReader, SettingsReader>();
-
-            // Add a singleton UI manager object
-            serviceCollection.AddSingleton<IUIManager, UIManager>();
-
-            // Add a singleton logger.
-            serviceCollection.AddSingleton<ILogger, Logger>(_ => new Logger("logs/application.log", new LoggerConfiguration
-            {
-                LogLevel = Configuration.GetValue("Logging:LogLevel", LogLevel.Info),
-            }));
-
-            // Add singleton Random
-            //serviceCollection.AddSingleton<Random>(); 
-
-            #endregion
+            // Add application services
+            serviceCollection.AddCoreServices();
 
             // Build and store the provider
             Provider = serviceCollection.BuildServiceProvider();
@@ -112,7 +81,7 @@ namespace PromoSeeker
         /// <summary>
         /// Gets an injected service of type <typeparamref name="T"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the service to get.</typeparam>
+        /// <typeparam name="T">The type of the service to get from the provider.</typeparam>
         /// <returns></returns>
         public static T GetService<T>()
         {

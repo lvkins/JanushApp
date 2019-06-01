@@ -41,8 +41,8 @@ namespace PromoSeeker
         public void AddProduct(ProductSettings settings)
         {
             // Store the product to the settings file
-            DI.SettingsReader.Settings.Products.Add(settings);
-            DI.SettingsReader.Save();
+            CoreDI.SettingsReader.Settings.Products.Add(settings);
+            CoreDI.SettingsReader.Save();
 
             // Add the product to the collection
             Products.Add(new ProductViewModel(settings));
@@ -55,13 +55,13 @@ namespace PromoSeeker
         public void DeleteProduct(ProductViewModel product)
         {
             // Get this product in the settings
-            var result = DI.SettingsReader.Settings.Products.Where(_ => _.Url == product.Url).FirstOrDefault();
+            var result = CoreDI.SettingsReader.Settings.Products.Where(_ => _.Url == product.Url).FirstOrDefault();
 
             // If product was found...
             if (result != null)
             {
-                DI.SettingsReader.Settings.Products.Remove(result);
-                DI.SettingsReader.Save();
+                CoreDI.SettingsReader.Settings.Products.Remove(result);
+                CoreDI.SettingsReader.Save();
             }
 
             // Remove from the collection
@@ -77,10 +77,10 @@ namespace PromoSeeker
             {
                 // Load user settings here to catch all the exceptions and handle corrupted
                 // user settings in one place
-                DI.SettingsReader.Load();
+                CoreDI.SettingsReader.Load();
 
                 // Get the stored products list
-                var products = DI.SettingsReader.Settings.Products;
+                var products = CoreDI.SettingsReader.Settings.Products;
 
                 // Iterate over products list
                 products.OrderBy(_ => !_.Tracked)
@@ -97,8 +97,8 @@ namespace PromoSeeker
                 Debugger.Break();
 
                 // Unable to load application 
-                DI.Logger.Fatal("Load failed");
-                DI.Logger.Exception(ex);
+                CoreDI.Logger.Fatal("Load failed");
+                CoreDI.Logger.Exception(ex);
 
                 // Show error to the user
                 DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
@@ -120,7 +120,7 @@ namespace PromoSeeker
             Debug.WriteLine($"Save application state");
 
             // Update products
-            DI.SettingsReader.Settings.Products = Products.Select(_ =>
+            CoreDI.SettingsReader.Settings.Products = Products.Select(_ =>
             {
                 // Update stored settings values with the values in view model
                 _.Settings.Url = _.Url;
@@ -139,7 +139,7 @@ namespace PromoSeeker
             }).ToList();
 
             // Save settings
-            DI.SettingsReader.Save();
+            CoreDI.SettingsReader.Save();
         }
 
         /// <summary>

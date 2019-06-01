@@ -249,7 +249,7 @@
       <DependentUpon>ProductListItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="DI\DI.cs" />
-    <Compile Include="DI\DIExtensions.cs" />
+    <Compile Include="DI\DICompositionExtensions.cs" />
     <Compile Include="ViewModels\Core\BaseViewModel.cs" />
     <Compile Include="ViewModels\ProductViewModel.cs" />
     <Compile Include="ViewModels\Core\RelayCommand.cs" />

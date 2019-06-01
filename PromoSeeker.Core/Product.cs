@@ -167,14 +167,17 @@ namespace PromoSeeker.Core
         /// <returns></returns>
         public async Task<ProductLoadResult> OpenAsync()
         {
-            // Create web loader instance
-            var loader = new WebLoader();
+            // Loader result
+            WebLoaderResult result = default;
 
             // Attempt to load HTML
             try
             {
-                // Load the HTML document
-                _htmlDocument = await loader.LoadReadyAsync(Url);
+                // Load the product website
+                result = await CoreDI.WebLoader.LoadReadyAsync(Url);
+
+                // Set document
+                _htmlDocument = result?.Document;
             }
             catch (Exception e)
             {
@@ -185,8 +188,9 @@ namespace PromoSeeker.Core
                 CoreDI.Logger.Exception(e);
             }
 
-            // If status code is not successful..
-            if (_htmlDocument == null || !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
+            // If document is not loaded properly...
+            if (string.IsNullOrWhiteSpace(_htmlDocument?.DocumentElement?.TextContent) ||
+                !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
             {
                 // Leave a log message
                 CoreDI.Logger.Error($"Load unsuccessful > {_htmlDocument?.StatusCode}");
@@ -202,7 +206,7 @@ namespace PromoSeeker.Core
             }
 
             // If requested was redirected...
-            if (loader.Redirected)
+            if (result.Redirected)
             {
                 // Handle redirected request
 
@@ -598,7 +602,7 @@ namespace PromoSeeker.Core
             Name = pageTitle;
 
             // Leave a message
-            Console.WriteLine($"> Setting product name: {Name}");
+            Console.WriteLine($"> Detected current product name: {Name}");
 
             // Setting the title was successful if it's not empty
             return !string.IsNullOrWhiteSpace(Name);

@@ -264,7 +264,7 @@ namespace PromoSeeker
             });
             StartTrackingCommand = new RelayCommand(StartTrackingAsync);
             StopTrackingCommand = new RelayCommand(async () => await StopTrackingAsync());
-            DeleteCommand = new RelayCommand(Delete);
+            DeleteCommand = new RelayCommand(async () => await DeleteAsync());
 
             #endregion
         }
@@ -321,8 +321,8 @@ namespace PromoSeeker
             Tracked = true;
 
             // Start tracking tasks
-            await Product.TrackAsync(DI.SettingsReader.Settings.UpdateInterval,
-                DI.SettingsReader.Settings.RandomizeInterval);
+            await Product.TrackAsync(CoreDI.SettingsReader.Settings.UpdateInterval,
+                CoreDI.SettingsReader.Settings.RandomizeInterval);
         }
 
         /// <summary>
@@ -343,10 +343,10 @@ namespace PromoSeeker
         /// <summary>
         /// Deletes the product from the application.
         /// </summary>
-        public void Delete()
+        public async Task DeleteAsync()
         {
             // Stop any ongoing tracking tasks
-            StopTrackingAsync();
+            await StopTrackingAsync();
 
             // Delete the product
             DI.Application.DeleteProduct(this);
@@ -365,7 +365,7 @@ namespace PromoSeeker
             CurrentlyUpdating = true;
 
             // Leave a log message
-            DI.Logger.Info($"> Update started [{OriginalName}, {Url}]");
+            CoreDI.Logger.Info($"> Update started [{OriginalName}, {Url}]");
         }
 
         /// <summary>
@@ -447,7 +447,7 @@ namespace PromoSeeker
             DI.Application.Save();
 
             // Leave a log message
-            DI.Logger.Info($"> Update finished [{OriginalName}]");
+            CoreDI.Logger.Info($"> Update finished [{OriginalName}]");
         }
 
         /// <summary>

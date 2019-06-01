@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PromoSeeker.Core;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -196,7 +197,7 @@ namespace PromoSeeker
             PropertyChanged -= Settings_PropertyChanged;
 
             // Get the user settings object
-            var userSettings = DI.SettingsReader.Settings;
+            var userSettings = CoreDI.SettingsReader.Settings;
 
             // Set current values
             EnableSoundNotification = userSettings.SoundNotification;
@@ -216,7 +217,7 @@ namespace PromoSeeker
             Debug.WriteLine("SettingsViewModel::Save");
 
             // Get settings
-            var settings = DI.SettingsReader.Settings;
+            var settings = CoreDI.SettingsReader.Settings;
 
             // Flag for tracking restart if related settings was changed
             _needTrackRestart = _needTrackRestart || settings.RandomizeInterval != RandomizeCheckInterval ||
@@ -228,7 +229,7 @@ namespace PromoSeeker
             settings.UpdateInterval = CheckInterval;
 
             // Save
-            DI.SettingsReader.Save();
+            CoreDI.SettingsReader.Save();
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace PromoSeeker.Core
     /// <summary>
     /// A website document loader utility class.
     /// </summary>
-    public sealed class WebLoader
+    public sealed class WebLoader : IWebLoader
     {
         #region Private Members
 
@@ -31,11 +31,6 @@ namespace PromoSeeker.Core
         /// The configuration to be used in the context.
         /// </summary>
         public IConfiguration Configuration { get; }
-
-        /// <summary>
-        /// If the redirection status code was encountered during the request route.
-        /// </summary>
-        public bool Redirected { get; private set; }
 
         #endregion
 
@@ -65,15 +60,37 @@ namespace PromoSeeker.Core
 
         #endregion
 
+        #region Public Methods
+
         /// <summary>
         /// Asynchronously loads a document from the provider <paramref name="url"/> address.
         /// </summary>
         /// <param name="url"></param>
         /// <returns>The loaded document instance.</returns>
-        public async Task<IDocument> LoadAsync(string url)
+        public async Task<WebLoaderResult> LoadAsync(string url)
         {
+            // If the route was redirected
+            var redirected = false;
+
+            // Prepare the requester callback
+            DomEventHandler requesterCallback = (object s, AngleSharp.Dom.Events.Event e)
+                => Requester_Requested(e as AngleSharp.Dom.Events.RequestEvent, ref redirected);
+
+            // Hook into requested event to monitor a single request in the requester
+            Requester.Requested += requesterCallback;
+
+            // Create the result
+            var result = new WebLoaderResult
+            {
+                Redirected = redirected,
+                Document = await _context.OpenAsync(url),
+            };
+
+            // Once loaded, release hook
+            Requester.Requested -= requesterCallback;
+
             // Return the document once loaded
-            return await _context.OpenAsync(url);
+            return result;
         }
 
         /// <summary>
@@ -81,17 +98,19 @@ namespace PromoSeeker.Core
         /// </summary>
         /// <param name="url"></param>
         /// <returns>The loaded document instance.</returns>
-        public async Task<IDocument> LoadReadyAsync(string url)
+        public async Task<WebLoaderResult> LoadReadyAsync(string url)
         {
-            // Load document
-            var document = await LoadAsync(url);
+            // Get load result
+            var result = await LoadAsync(url);
 
             // Wait until the document is ready
-            await document.WaitForReadyAsync();
+            await result.Document.WaitForReadyAsync();
 
             // Return the document
-            return document;
+            return result;
         }
+
+        #endregion
 
         #region Private Methods
 
@@ -111,26 +130,22 @@ namespace PromoSeeker.Core
             requester.Headers[HeaderNames.UserAgent] = Consts.USER_AGENT;
             requester.Headers["dnt"] = "1";
 
-            // Hook into requested event to monitor a single request in the requester
-            requester.Requested += Requester_Requested;
-
             return requester;
         }
 
         /// <summary>
-        /// A callback that is called when there was a request in the requester.
+        /// A requester callback to capture each request response.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="ev"></param>
-        private void Requester_Requested(object sender, AngleSharp.Dom.Events.Event ev)
+        /// <param name="e"></param>
+        /// <param name="redirected"></param>
+        private static void Requester_Requested(AngleSharp.Dom.Events.RequestEvent e, ref bool redirected)
         {
             // If we have request event and redirect code...
-            if (ev is AngleSharp.Dom.Events.RequestEvent req &&
-                (int)req.Response.StatusCode >= 300 &&
-                (int)req.Response.StatusCode < 399)
+            if ((int)e.Response.StatusCode >= 300 &&
+                (int)e.Response.StatusCode < 399)
             {
                 // Flag as redirected
-                Redirected = true;
+                redirected = true;
             }
         }
 
