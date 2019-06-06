@@ -118,11 +118,19 @@
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
     <Compile Include="AttachedProperties\BaseAttachedProperty.cs" />
+    <Compile Include="Extensions\DependencyObjectExtensions.cs" />
+    <Compile Include="AttachedProperties\ScrollToSelectedAttachedProperty.cs" />
     <Compile Include="AttachedProperties\ScrollBarOffsetAttachedProperty.cs" />
     <Compile Include="AttachedProperties\TimeTextAttachedProperty.cs" />
     <Compile Include="AttachedProperties\FocusControlAttachedProperty.cs" />
     <Compile Include="Controls\NotificationsItemControl.xaml.cs">
       <DependentUpon>NotificationsItemControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ProductListItemCondensed.xaml.cs">
+      <DependentUpon>ProductListItemCondensed.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ProductDetailsViewControl.xaml.cs">
+      <DependentUpon>ProductDetailsViewControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ProductReviewControl.xaml.cs">
       <DependentUpon>ProductReviewControl.xaml</DependentUpon>
@@ -131,9 +139,6 @@
       <DependentUpon>NotificationsControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\DialogBoxType.cs" />
-    <Compile Include="UI\Controls\FormEntry.xaml.cs">
-      <DependentUpon>FormEntry.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UI\IUIManager.cs" />
     <Compile Include="UI\TrayIcon.cs" />
     <Compile Include="UI\UIManager.cs" />
@@ -143,8 +148,9 @@
     <Compile Include="ValueConverters\Visibility\NullToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\Visibility\BooleanToVisibilityConverter.cs" />
     <Compile Include="ViewModels\AddProductViewModel.cs" />
-    <Compile Include="ViewModels\Core\ApplicationViewModel.cs" />
+    <Compile Include="ViewModels\ApplicationViewModel.cs" />
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
+    <Compile Include="ViewModels\Design\ApplicationDesignModel.cs" />
     <Compile Include="ViewModels\Design\AddProductDesignModel.cs" />
     <Compile Include="ViewModels\Notifications\Design\NotificationsDesignModel.cs" />
     <Compile Include="ViewModels\Notifications\Design\NotificationItemDesignModel.cs" />
@@ -181,6 +187,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\ProductListItemCondensed.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\ProductDetailsViewControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\ProductReviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -197,11 +211,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\Controls\FormEntry.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Controls\ProductListItem.xaml">
+    <Page Include="Controls\ProductListItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -245,7 +255,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UI\Controls\ProductListItem.xaml.cs">
+    <Compile Include="Controls\ProductListItem.xaml.cs">
       <DependentUpon>ProductListItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="DI\DI.cs" />

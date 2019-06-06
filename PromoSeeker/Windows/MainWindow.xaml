@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     x:Name="MainWindowElement"
     Title="{x:Static core:Consts.APP_TITLE}"
     Width="{Binding WindowWidth, FallbackValue=500}"
@@ -17,11 +16,14 @@
     mc:Ignorable="d">
     <!--  d:DataContext="{x:Static local:WindowDesignModel.Instance}"  -->
 
-    <WindowChrome.WindowChrome>
+    <!--<WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="27" CornerRadius="0" />
-    </WindowChrome.WindowChrome>
+    </WindowChrome.WindowChrome>-->
 
-    <Border BorderBrush="{StaticResource AppBlueBrush}" BorderThickness="1">
+    <Border
+        x:Name="RootBorder"
+        BorderBrush="{StaticResource AppBlueBrush}"
+        BorderThickness="1">
 
         <Grid>
             <!--  Notifications overlay dialog  -->
@@ -32,7 +34,7 @@
                 VerticalAlignment="Top"
                 Panel.ZIndex="1"
                 DataContext="{Binding Notifications, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
-                Visibility="{Binding DataContext.NotificationsPopupVisible, ElementName=MainWindowElement, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, FallbackValue=Collapsed}" />
+                Visibility="{Binding NotificationsPopupVisible, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
 
             <Grid>
 
@@ -53,7 +55,7 @@
                     Grid.RowSpan="2"
                     Panel.ZIndex="1"
                     Background="Transparent"
-                    Visibility="{Binding AnyPopupVisible, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                    Visibility="{Binding AnyPopupVisible, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                     <Border.InputBindings>
                         <MouseBinding Command="{Binding PopupClickawayCommand}" MouseAction="LeftClick" />
                     </Border.InputBindings>
@@ -127,7 +129,7 @@
                                 Padding="5"
                                 Command="{Binding ToggleNotificationsPopupCommand}"
                                 Content="{StaticResource Vector.Bell}"
-                                IsChecked="{Binding NotificationsPopupVisible, Mode=OneWay}"
+                                IsChecked="{Binding NotificationsPopupVisible, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Mode=OneWay}"
                                 Style="{StaticResource WindowControlToggle}"
                                 ToolTip="Recent notifications" />
 
@@ -186,42 +188,67 @@
                 <!--  Title bar drop shadow border  -->
                 <Border
                     Grid.Row="1"
-                    Height="3"
                     BorderThickness="0,0.5,0,0"
                     SnapsToDevicePixels="True">
+
                     <Border.BorderBrush>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Offset="0.0" Color="{StaticResource BackgroundLight}" />
+                            <GradientStop Offset="0.0" Color="{StaticResource BackgroundLighter}" />
                             <GradientStop Offset="0.5" Color="{StaticResource ForegroundDark}" />
-                            <GradientStop Offset="1.0" Color="{StaticResource BackgroundLight}" />
+                            <GradientStop Offset="1.0" Color="{StaticResource BackgroundLighter}" />
                         </LinearGradientBrush>
                     </Border.BorderBrush>
 
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Offset="0.0" Color="{StaticResource BackgroundLight}" />
-                            <GradientStop Offset="1.0" Color="{StaticResource BackgroundMain}" />
-                        </LinearGradientBrush>
-                    </Border.Background>
                 </Border>
 
                 <!--  Window content  -->
-                <ScrollViewer
-                    Grid.Row="2"
-                    VerticalScrollBarVisibility="Auto"
-                    Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
-                    <Border Padding="10" Background="{StaticResource BackgroundMainBrush}">
-                        <StackPanel>
-                            <ItemsControl ItemsSource="{Binding Products, FallbackValue=12345678, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <local:ProductListItem />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
-                </ScrollViewer>
+                <Border Grid.Row="2" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+
+                    <ListBox
+                        Margin="0"
+                        Padding="-1"
+                        HorizontalContentAlignment="Stretch"
+                        local:ScrollToSelectedAttachedProperty.Value="True"
+                        Background="{x:Null}"
+                        BorderBrush="{x:Null}"
+                        BorderThickness="0"
+                        DataContext="{Binding Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                        IsTextSearchEnabled="True"
+                        ItemsSource="{Binding Products, FallbackValue=12345678}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        SelectedItem="{Binding SelectedProduct}"
+                        TextSearch.TextPath="DisplayName">
+
+                        <!--  Get rid of the container style  -->
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <!--  Bind IsSelected behavior to the bound item property  -->
+                                <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+                                <Setter Property="Focusable" Value="False" />
+
+                                <!--  Override the template to get rid of useless stuff, like effects and so on  -->
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                            <!--  Simply display the content item template  -->
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+
+                        <!--  Declare list item template  -->
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <local:ProductListItemCondensed />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
+
+                </Border>
 
                 <!--  No products content  -->
                 <Border Grid.Row="2" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}}">

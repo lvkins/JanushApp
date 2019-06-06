@@ -8,7 +8,7 @@
     <Style
         x:Key="BaseButtonStyle"
         BasedOn="{StaticResource BaseStyle}"
-        TargetType="{x:Type Button}">
+        TargetType="{x:Type ButtonBase}">
         <Setter Property="Background" Value="{StaticResource BackgroundLighterBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ForegroundDarkBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -49,7 +49,15 @@
             </Setter.Value>
         </Setter>
     </Style>
+
     <Style BasedOn="{StaticResource BaseButtonStyle}" TargetType="{x:Type Button}" />
+    <Style BasedOn="{StaticResource BaseButtonStyle}" TargetType="{x:Type ToggleButton}">
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 
     <!--  A button that doesn't have particular style  -->
     <Style x:Key="Styleless" TargetType="{x:Type ButtonBase}">
@@ -124,12 +132,12 @@
     </Style>
 
     <!--  A workaround for the font size in buttons (make raw strings textblocks)  -->
-    <!--<DataTemplate DataType="{x:Type system:String}">
+    <DataTemplate DataType="{x:Type system:String}">
         <TextBlock Text="{Binding}">
             <TextBlock.Resources>
                 <Style TargetType="{x:Type TextBlock}" />
             </TextBlock.Resources>
         </TextBlock>
-    </DataTemplate>-->
+    </DataTemplate>
 
 </ResourceDictionary>

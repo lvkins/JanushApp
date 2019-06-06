@@ -43,9 +43,9 @@ namespace PromoSeeker
         private bool _tracked;
 
         /// <summary>
-        /// The settings object of this product.
+        /// If the product is selected in the UI.
         /// </summary>
-        private ProductSettings _settings;
+        private bool _isSelected;
 
         #endregion
 
@@ -123,6 +123,11 @@ namespace PromoSeeker
         public Product Product { get; internal set; }
 
         /// <summary>
+        /// The settings object for this product.
+        /// </summary>
+        public ProductSettings Settings { get; private set; }
+
+        /// <summary>
         /// If the product options popup menu is currently expanded.
         /// </summary>
         public bool ShowOptionsPopupMenu
@@ -137,11 +142,6 @@ namespace PromoSeeker
                 OnPropertyChanged(nameof(ShowOptionsPopupMenu));
             }
         }
-
-        /// <summary>
-        /// Whether the product instance is set and loaded.
-        /// </summary>
-        public bool IsLoaded => Product?.IsLoaded == true;
 
         /// <summary>
         /// Whether the product is currently being updated.
@@ -176,9 +176,25 @@ namespace PromoSeeker
         }
 
         /// <summary>
-        /// The settings object for this product.
+        /// If the product is selected in the UI.
         /// </summary>
-        public ProductSettings Settings => _settings;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                // Update value
+                _isSelected = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(IsSelected));
+            }
+        }
+
+        /// <summary>
+        /// Whether the product instance is set and loaded.
+        /// </summary>
+        public bool IsLoaded => Product?.IsLoaded == true;
 
         #endregion
 
@@ -193,6 +209,11 @@ namespace PromoSeeker
         /// The command for opening the product in the browser.
         /// </summary>
         public ICommand NavigateCommand { get; set; }
+
+        /// <summary>
+        /// The command for selecting the product in the list.
+        /// </summary>
+        public ICommand SelectCommand { get; set; }
 
         /// <summary>
         /// The command for expanding the product options popup menu.
@@ -256,7 +277,8 @@ namespace PromoSeeker
             #region Create Commands
 
             LoadCommand = new RelayParamCommand((param) => Load((ProductSettings)param));
-            NavigateCommand = new RelayCommand(() => Process.Start(Url.ToString()));
+            NavigateCommand = new RelayCommand(Navigate);
+            SelectCommand = new RelayCommand(Select);
             ToggleOptionsPopupCommand = new RelayCommand(() =>
             {
                 // Toggle value
@@ -279,7 +301,7 @@ namespace PromoSeeker
         public void Load(ProductSettings settings)
         {
             // Store settings object
-            _settings = settings;
+            Settings = settings;
 
             // Populate properties
             OriginalName = settings.Name;
@@ -307,6 +329,30 @@ namespace PromoSeeker
                 // Start tracking
                 StartTrackingAsync();
             }
+        }
+
+        /// <summary>
+        /// Navigates to the product website.
+        /// </summary>
+        public void Navigate()
+        {
+            // Start navigating
+            Process.Start(Url.ToString());
+
+            // Close popup menu
+            ShowOptionsPopupMenu = false;
+        }
+
+        /// <summary>
+        /// Selects the product in the overall products list.
+        /// </summary>
+        public void Select()
+        {
+            // Close popup menu
+            ShowOptionsPopupMenu = false;
+
+            // Set selected product
+            DI.Application.SelectedProduct = this;
         }
 
         /// <summary>
@@ -402,7 +448,7 @@ namespace PromoSeeker
 
                 // Handle notification
                 DI.Application.NotificationReceived(string.Format(Strings.NotificationNameChanged, Product.Name),
-                    this, popToast: _settings.NotifyPriceChange);
+                    this, popToast: Settings.NotifyPriceChange);
             }
 
             // If a product price has changed...
@@ -424,7 +470,7 @@ namespace PromoSeeker
                     ? string.Format(Strings.NotificationPriceIncrease, Product.PriceInfo.CurrencyAmount)
                     // If new price is lower than current price...
                     : string.Format(Strings.NotificationPriceDecrease, Product.PriceInfo.CurrencyAmount),
-                    this, popToast: _settings.NotifyPriceChange);
+                    this, popToast: Settings.NotifyPriceChange);
             }
 
             #endregion

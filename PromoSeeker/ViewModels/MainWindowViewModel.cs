@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -17,11 +16,6 @@ namespace PromoSeeker
         /// The window this view model handles.
         /// </summary>
         private readonly Window _window;
-
-        /// <summary>
-        /// If the notifications popup dialog is visible.
-        /// </summary>
-        private bool _notificationsPopupVisible;
 
         #endregion
 
@@ -41,28 +35,6 @@ namespace PromoSeeker
         /// The height of the title bar.
         /// </summary>
         public GridLength CaptionHeight { get; } = new GridLength(27);
-
-        /// <summary>
-        /// If the notifications popup dialog is visible.
-        /// </summary>
-        public bool NotificationsPopupVisible
-        {
-            get => _notificationsPopupVisible;
-            set
-            {
-                // Update value
-                _notificationsPopupVisible = value;
-
-                // Raise property changed event
-                OnPropertyChanged(nameof(NotificationsPopupVisible));
-                OnPropertyChanged(nameof(AnyPopupVisible));
-            }
-        }
-
-        /// <summary>
-        /// Defines whether any popup within the main window is currently shown and present. 
-        /// </summary>
-        public bool AnyPopupVisible => NotificationsPopupVisible;
 
         #endregion
 
@@ -116,8 +88,6 @@ namespace PromoSeeker
 
             #region Style Window
 
-            // TODO: Follow MVVM principles
-
             // Set the window we are handling
             _window = window;
 
@@ -144,7 +114,7 @@ namespace PromoSeeker
             OpenSettingsWindowCommand = new RelayCommand(DI.SettingsViewModel.Open);
             ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
             PopupClickawayCommand = new RelayCommand(PopupClickaway);
-            ToggleNotificationsPopupCommand = new RelayCommand(ToggleNotificationsPopup);
+            ToggleNotificationsPopupCommand = new RelayCommand(DI.Application.ToggleNotifications);
             StopTrackingAllCommand = new RelayCommand(async () => await StopTrackingAllAsync());
 
             #endregion
@@ -155,23 +125,11 @@ namespace PromoSeeker
         #region Private Methods
 
         /// <summary>
-        /// Toggles the notifications popup visibility.
-        /// </summary>
-        private void ToggleNotificationsPopup()
-        {
-            // Prepare notifications
-            DI.Application.RefreshNotifications();
-
-            // Toggle notifications popup visibility
-            NotificationsPopupVisible = !NotificationsPopupVisible;
-        }
-
-        /// <summary>
         /// Occurs when the area outside the popup is being clicked.
         /// </summary>
         private void PopupClickaway()
         {
-            NotificationsPopupVisible = false;
+            DI.Application.NotificationsPopupVisible = false;
         }
 
         /// <summary>

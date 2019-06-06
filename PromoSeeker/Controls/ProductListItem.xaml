@@ -7,9 +7,9 @@
     xmlns:local="clr-namespace:PromoSeeker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignWidth="400"
-    Background="{StaticResource BackgroundMainBrush}"
     SnapsToDevicePixels="True"
     mc:Ignorable="d">
+
     <UserControl.Resources>
         <SolidColorBrush x:Key="Expander.MouseOver.Circle.Stroke" Color="#FF5593FF" />
         <SolidColorBrush x:Key="Expander.MouseOver.Circle.Fill" Color="#FFF3F9FF" />
@@ -370,8 +370,8 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsExpanded" Value="true">
                                 <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible" />
-                                <Setter Property="Background" Value="{StaticResource ForegroundLightBrush}" />
-                                <Setter Property="BorderBrush" Value="{StaticResource ForegroundDarkerBrush}" />
+                                <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+                                <!--<Setter Property="BorderBrush" Value="{StaticResource ForegroundDarkerBrush}" />-->
                             </Trigger>
                             <Trigger Property="ExpandDirection" Value="Right">
                                 <Setter TargetName="ExpandSite" Property="DockPanel.Dock" Value="Right" />
@@ -398,11 +398,27 @@
         </Style>
     </UserControl.Resources>
 
-    <Border Padding="0,10" BorderThickness="0,0,0,0.5">
+    <Border Padding="0" SnapsToDevicePixels="True">
+
+        <!--  Line Separator  -->
+        <!--<Border.BorderBrush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0.0" Color="{StaticResource BackgroundLighter}" />
+                <GradientStop Offset="0.5" Color="{StaticResource ForegroundDarker}" />
+                <GradientStop Offset="1.0" Color="{StaticResource BackgroundLighter}" />
+            </LinearGradientBrush>
+        </Border.BorderBrush>-->
+
         <!--  Faded effect if product tracking is disabled  -->
         <Border.Style>
             <Style TargetType="{x:Type Border}">
+                <Setter Property="Background" Value="{StaticResource BackgroundLighterBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AppBlueBrush}" />
+                <Setter Property="BorderThickness" Value="0,0,0,0.5" />
                 <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource BackgroundMainBrush}" />
+                    </Trigger>
                     <DataTrigger Binding="{Binding Tracked}" Value="False">
                         <Setter Property="Opacity" Value="0.5" />
                     </DataTrigger>
@@ -410,21 +426,27 @@
             </Style>
         </Border.Style>
 
-        <!--  Line Separator  -->
-        <Border.BorderBrush>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                <GradientStop Offset="0.0" Color="{StaticResource BackgroundLight}" />
-                <GradientStop Offset="0.5" Color="{StaticResource ForegroundDark}" />
-                <GradientStop Offset="1.0" Color="{StaticResource BackgroundLight}" />
-            </LinearGradientBrush>
-        </Border.BorderBrush>
-
         <!--  The product values  -->
         <Expander
             Margin="0"
-            Padding="0"
-            IsExpanded="False"
+            Padding="10"
+            Background="Transparent"
+            BorderThickness="0"
+            IsExpanded="{Binding IsSelected}"
             Style="{StaticResource ExpanderStyle1}">
+
+            <!--<Expander.Style>
+                <Style BasedOn="{StaticResource ExpanderStyle1}" TargetType="{x:Type Expander}">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BackgroundMainBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Expander.Style>-->
+
+            <!--  Expander header content  -->
             <Expander.Header>
                 <StackPanel>
 
@@ -438,29 +460,32 @@
                         </Hyperlink>
                     </TextBlock>
 
+                    <!--  Price and options button  -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <!--  Current price  -->
                             <ColumnDefinition Width="*" />
 
                             <!--  Options button  -->
-                            <ColumnDefinition Width=".07*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <!--  Current price  -->
                         <TextBlock
                             Grid.Column="0"
                             FontSize="{StaticResource FontSizeXLarge}"
-                            Text="{Binding DisplayPrice, FallbackValue=1234$}" />
+                            Text="{Binding DisplayPrice, FallbackValue=1234$}"
+                            TextWrapping="Wrap" />
 
                         <!--  Product options  -->
                         <Button
                             x:Name="OptionsButton"
                             Grid.Column="1"
-                            Padding="0"
+                            Padding="10,0"
                             VerticalAlignment="Center"
                             Command="{Binding ToggleOptionsPopupCommand}"
-                            Content="..." />
+                            Content="..."
+                            Visibility="{Binding IsMouseOver, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Expander}}}" />
 
                         <!--  Product options popup menu  -->
                         <Popup
@@ -499,7 +524,8 @@
                         </Popup>
                     </Grid>
 
-                    <Grid Grid.Row="2">
+                    <!--  Host and last check  -->
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -525,7 +551,7 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Orientation="Horizontal"
-                            Visibility="{Binding CurrentlyUpdating, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                            Visibility="{Binding CurrentlyUpdating, FallbackValue=Collapsed, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                             <Border
                                 Width="12"
                                 Height="12"
@@ -535,6 +561,7 @@
                                     <VisualBrush Visual="{StaticResource Vector.Spinner}" />
                                 </Border.Background>
                             </Border>
+
                             <TextBlock Text="Updating..." />
                         </StackPanel>
                     </Grid>
@@ -543,8 +570,8 @@
             </Expander.Header>
 
             <!--  Expanded content  -->
+            <StackPanel>
 
-            <StackPanel Margin="10">
                 <!--  Original name  -->
                 <Border Margin="0,5">
                     <Grid>
@@ -596,6 +623,7 @@
                         <TextBlock Grid.Column="1" Text="{Binding DateAdded, StringFormat=f, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
                     </Grid>
                 </Border>
+
             </StackPanel>
         </Expander>
     </Border>

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PromoSeeker.Core;
 using System;
 
 namespace PromoSeeker

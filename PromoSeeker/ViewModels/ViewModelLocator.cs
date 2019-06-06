@@ -13,8 +13,8 @@ namespace PromoSeeker
         /// </summary>
         public static ApplicationViewModel ApplicationViewModel
             = DesignerProperties.GetIsInDesignMode(new DependencyObject())
-            // If we are in design time, just return new instance
-            ? new ApplicationViewModel()
+            // If we are in design time, just return new design instance
+            ? new ApplicationDesignModel()
             // Otherwise return dependency
             : DI.Application;
     }

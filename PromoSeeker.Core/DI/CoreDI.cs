@@ -17,7 +17,7 @@ namespace PromoSeeker.Core
         public static IServiceProvider Provider { get; set; }
 
         /// <summary>
-        /// A shortcut to access a instance of the <see cref="PromoSeeker.Logger"/>.
+        /// A shortcut to access a instance of the <see cref="Core.Logger"/>.
         /// </summary>
         public static ILogger Logger => GetService<ILogger>();
 
@@ -39,6 +39,7 @@ namespace PromoSeeker.Core
         /// Gets an injected service of type <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">The type of the service to get from the provider.</typeparam>
+        /// <exception cref="InvalidOperationException"><see cref="Provider"/> is not set.</exception>
         /// <returns></returns>
         public static T GetService<T>()
         {

@@ -45,7 +45,7 @@
                             <!--  Submit button  -->
                             <Button Command="{Binding AddAutoCommand}">
                                 <Button.Style>
-                                    <Style BasedOn="{StaticResource BaseButtonStyle}" TargetType="{x:Type Button}">
+                                    <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="{x:Type Button}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsValid}" Value="False">
                                                 <DataTrigger.Setters>

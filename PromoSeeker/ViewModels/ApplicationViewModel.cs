@@ -12,6 +12,20 @@ namespace PromoSeeker
     /// </summary>
     public class ApplicationViewModel : BaseViewModel
     {
+        #region Private Members
+
+        /// <summary>
+        /// The currently selected product in the list.
+        /// </summary>
+        private ProductViewModel selectedProduct;
+
+        /// <summary>
+        /// If the notifications popup is currently visible.
+        /// </summary>
+        private bool _notificationsPopupVisible;
+
+        #endregion
+
         #region Public Properties
 
         /// <summary>
@@ -21,14 +35,56 @@ namespace PromoSeeker
             = new ObservableCollection<ProductViewModel>();
 
         /// <summary>
+        /// The currently selected product in the list.
+        /// </summary>
+        public ProductViewModel SelectedProduct
+        {
+            get => selectedProduct;
+            set
+            {
+                // Update value
+                selectedProduct = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(SelectedProduct));
+            }
+        }
+
+        #region Notifications
+
+        /// <summary>
         /// The notifications container.
         /// </summary>
         public NotificationsViewModel Notifications { get; set; }
 
         /// <summary>
+        /// If the notifications popup is currently visible.
+        /// </summary>
+        public bool NotificationsPopupVisible
+        {
+            get => _notificationsPopupVisible;
+            set
+            {
+                // Update value
+                _notificationsPopupVisible = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(NotificationsPopupVisible));
+                OnPropertyChanged(nameof(AnyPopupVisible));
+            }
+        }
+
+        /// <summary>
         /// The date of when the user has readed the notifications.
         /// </summary>
         public DateTime NotificationLastRead { get; set; } = DateTime.Now;
+
+        #endregion
+
+        /// <summary>
+        /// Defines whether any popup within the main window is currently visible and present. 
+        /// </summary>
+        public bool AnyPopupVisible => NotificationsPopupVisible;
 
         #endregion
 
@@ -51,11 +107,11 @@ namespace PromoSeeker
         /// <summary>
         /// Deletes a single product from the application.
         /// </summary>
-        /// <param name="product">The product to delete.</param>
-        public void DeleteProduct(ProductViewModel product)
+        /// <param name="productViewModel">The product to delete.</param>
+        public void DeleteProduct(ProductViewModel productViewModel)
         {
             // Get this product in the settings
-            var result = CoreDI.SettingsReader.Settings.Products.Where(_ => _.Url == product.Url).FirstOrDefault();
+            var result = CoreDI.SettingsReader.Settings.Products.Where(_ => _.Url == productViewModel.Url).FirstOrDefault();
 
             // If product was found...
             if (result != null)
@@ -64,8 +120,11 @@ namespace PromoSeeker
                 CoreDI.SettingsReader.Save();
             }
 
+            // Cleanup
+            productViewModel.Product?.Dispose();
+
             // Remove from the collection
-            Products.Remove(product);
+            Products.Remove(productViewModel);
         }
 
         /// <summary>
@@ -85,11 +144,8 @@ namespace PromoSeeker
                 // Iterate over products list
                 products.OrderBy(_ => !_.Tracked)
                     .ToList()
-                    .ForEach(product =>
-                    {
-                        // Add the product to the collection
-                        Products.Add(new ProductViewModel(product));
-                    });
+                    // Add the product to the collection
+                    .ForEach(product => Products.Add(new ProductViewModel(product)));
             }
             catch (Exception ex)
             {
@@ -142,6 +198,8 @@ namespace PromoSeeker
             CoreDI.SettingsReader.Save();
         }
 
+        #region Notifications
+
         /// <summary>
         /// Loads the recent notifications.
         /// </summary>
@@ -168,6 +226,18 @@ namespace PromoSeeker
 
             // Raise property changed event
             OnPropertyChanged(nameof(Notifications));
+        }
+
+        /// <summary>
+        /// Toggles the notifications popup visibility.
+        /// </summary>
+        public void ToggleNotifications()
+        {
+            // Reload
+            RefreshNotifications();
+
+            // Toggle visibility
+            NotificationsPopupVisible = !NotificationsPopupVisible;
         }
 
         /// <summary>
@@ -206,6 +276,8 @@ namespace PromoSeeker
                 DI.UIManager.Tray.Notification(message, product?.Name);
             }
         }
+
+        #endregion
 
         #region Window Handling
 

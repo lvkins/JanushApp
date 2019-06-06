@@ -171,6 +171,9 @@ namespace PromoSeeker.Core
                 // Load the product website
                 result = await CoreDI.WebLoader.LoadReadyAsync(Url);
 
+                // Dispose of any current document
+                _htmlDocument?.Dispose();
+
                 // Set document
                 _htmlDocument = result?.Document;
             }
