@@ -1,9 +1,12 @@
-﻿using PromoSeeker.Core;
+﻿using LiveCharts;
+using LiveCharts.Wpf;
+using PromoSeeker.Core;
 using PromoSeeker.Core.Localization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
@@ -11,11 +14,16 @@ using System.Windows.Input;
 namespace PromoSeeker
 {
     /// <summary>
-    /// The view model representing the product in the tracker.
+    /// The view model representing the product in the application.
     /// </summary>
     public class ProductViewModel : BaseViewModel
     {
         #region Private Members
+
+        /// <summary>
+        /// The culture to use for the currency formatting.
+        /// </summary>
+        private CultureInfo _culture;
 
         /// <summary>
         /// Date when the product was checked.
@@ -84,12 +92,66 @@ namespace PromoSeeker
         /// <summary>
         /// The formatted price value to be displayed as the product price.
         /// </summary>
-        public string DisplayPrice => PriceCurrent.ToString("C2", Culture);
+        public string DisplayPrice => PriceCurrent.ToString(Consts.CURRENCY_FORMAT, Culture);
+
+        /// <summary>
+        /// The highest price along with the <see cref="DateTime"/> of when it occurred.
+        /// </summary>
+        public KeyValuePair<decimal, DateTime> HighestPrice
+        {
+            get
+            {
+                // Find highest price history entry
+                var historyPrice = PriceHistory?.Aggregate((seed, next) => seed.Key > next.Key ? seed : next);
+
+                // If we don't have pricing history...
+                return historyPrice == null
+                    // Return current price as the highest
+                    ? new KeyValuePair<decimal, DateTime>(PriceCurrent, Settings.Created)
+                    // Return highest price in the history
+                    : historyPrice.Value;
+            }
+        }
+
+        /// <summary>
+        /// The lowest price along with the <see cref="DateTime"/> of when it occurred.
+        /// </summary>
+        public KeyValuePair<decimal, DateTime> LowestPrice
+        {
+            get
+            {
+                // Find lowest price history entry
+                var historyPrice = PriceHistory?.Aggregate((seed, next) => seed.Key < next.Key ? seed : next);
+
+                // If we don't have pricing history...
+                return historyPrice == null
+                    // Return current price as the lowest
+                    ? new KeyValuePair<decimal, DateTime>(PriceCurrent, Settings.Created)
+                    // Return lowest price in the history
+                    : historyPrice.Value;
+            }
+        }
 
         /// <summary>
         /// The culture to use for the currency formatting.
         /// </summary>
-        public CultureInfo Culture { get; set; }
+        public CultureInfo Culture
+        {
+            get => _culture;
+            set
+            {
+                // Update value
+                _culture = value;
+
+                // Update region for the culture
+                CultureRegion = new RegionInfo(_culture.Name);
+            }
+        }
+
+        /// <summary>
+        /// The region info for the current product <see cref="Culture"/>.
+        /// </summary>
+        public RegionInfo CultureRegion { get; private set; }
 
         /// <summary>
         /// Date when the product was created.
@@ -156,6 +218,7 @@ namespace PromoSeeker
 
                 // Raise property changed
                 OnPropertyChanged(nameof(CurrentlyUpdating));
+                OnPropertyChanged(nameof(TrackingStatus));
             }
         }
 
@@ -172,11 +235,43 @@ namespace PromoSeeker
 
                 // Raise property changed
                 OnPropertyChanged(nameof(Tracked));
+                OnPropertyChanged(nameof(TrackingStatus));
             }
         }
 
         /// <summary>
-        /// If the product is selected in the UI.
+        /// The tracking status of this product.
+        /// </summary>
+        public ProductTrackingStatusType TrackingStatus
+        {
+            get
+            {
+                // If product is updating...
+                if (CurrentlyUpdating)
+                {
+                    return ProductTrackingStatusType.Updating;
+                }
+
+                // If we are not tracking this product...
+                if (!Tracked)
+                {
+                    return ProductTrackingStatusType.Disabled;
+                }
+
+                // TODO: return more types
+
+                // If tracking task is active...
+                return Product?.IsTrackingRunning == true
+                    // Product is tracked
+                    ? ProductTrackingStatusType.Tracking
+                    // Product is idle
+                    : ProductTrackingStatusType.Idle;
+            }
+        }
+
+        /// <summary>
+        /// If the product is selected in the overall product list.
+        /// This is used to highlight the product and if set to <see langword="true"/>.
         /// </summary>
         public bool IsSelected
         {
@@ -195,6 +290,26 @@ namespace PromoSeeker
         /// Whether the product instance is set and loaded.
         /// </summary>
         public bool IsLoaded => Product?.IsLoaded == true;
+
+        #region Charts
+
+        /// <summary>
+        /// The money formatted callback. Formats the input using the current
+        /// product <see cref="Culture"/> and returns formatted currency amount.
+        /// </summary>
+        public Func<double, string> MoneyFormatter { get; set; }
+
+        /// <summary>
+        /// The Y axis labels.
+        /// </summary>
+        public List<string> Labels { get; private set; }
+
+        /// <summary>
+        /// The line plot container.
+        /// </summary>
+        public SeriesCollection SeriesViews { get; set; }
+
+        #endregion
 
         #endregion
 
@@ -231,6 +346,16 @@ namespace PromoSeeker
         public ICommand StopTrackingCommand { get; set; }
 
         /// <summary>
+        /// The command for showing a product overall details page.
+        /// </summary>
+        public ICommand ShowDetailsPageCommand { get; set; }
+
+        /// <summary>
+        /// The command for closing a product overall details page.
+        /// </summary>
+        public ICommand HideDetailsPageCommand { get; set; }
+
+        /// <summary>
         /// The command for deleting the product from the application.
         /// </summary>
         public ICommand DeleteCommand { get; set; }
@@ -261,6 +386,36 @@ namespace PromoSeeker
             // Load product from settings
             Load(product);
 
+            #region Charts
+
+            // Create chart data to display; if product doesn't have a price history
+            // use current price as default
+            var chartData = PriceHistory ?? new List<KeyValuePair<decimal, DateTime>>
+            {
+                new KeyValuePair<decimal, DateTime>(PriceCurrent, Settings.Created)
+            };
+
+            // Create money formatter callback
+            MoneyFormatter = (input) => input.ToString(Consts.CURRENCY_FORMAT, Culture);
+
+            // Set x-axis date labels
+            Labels = chartData.Select(_ => _.Value.ToShortDateString()).ToList();
+
+            // Create chart
+            SeriesViews = new SeriesCollection
+            {
+                new LineSeries
+                {
+                    Title = Strings.Price,
+                    Values = new ChartValues<decimal>(chartData.Select(_ => _.Key)),
+                    DataLabels = true
+                }
+            };
+
+            #endregion
+
+            #region Last check timer
+
             // Create the last check refreshing timer
             _lastCheckTimer = new Timer
             {
@@ -269,10 +424,9 @@ namespace PromoSeeker
                 Enabled = true,
             };
 
-            _lastCheckTimer.Elapsed += (s, e) =>
-            {
-                OnPropertyChanged(nameof(LastCheck));
-            };
+            _lastCheckTimer.Elapsed += (s, e) => OnPropertyChanged(nameof(LastCheck));
+
+            #endregion
 
             #region Create Commands
 
@@ -286,6 +440,8 @@ namespace PromoSeeker
             });
             StartTrackingCommand = new RelayCommand(StartTrackingAsync);
             StopTrackingCommand = new RelayCommand(async () => await StopTrackingAsync());
+            ShowDetailsPageCommand = new RelayCommand(ShowDetailsPage);
+            HideDetailsPageCommand = new RelayCommand(HideDetailsPage);
             DeleteCommand = new RelayCommand(async () => await DeleteAsync());
 
             #endregion
@@ -354,6 +510,24 @@ namespace PromoSeeker
             // Set selected product
             DI.Application.SelectedProduct = this;
         }
+
+        /// <summary>
+        /// Shows the details page for this product.
+        /// </summary>
+        public void ShowDetailsPage()
+        {
+            // Close popup menu
+            ShowOptionsPopupMenu = false;
+
+            // Assign details page view model
+            DI.Application.CurrentProductDetails = this;
+        }
+
+        /// <summary>
+        /// Hides the details page.
+        /// </summary>
+        public void HideDetailsPage() =>
+            DI.Application.CurrentProductDetails = null;
 
         /// <summary>
         /// Starts the tracking task for this product.
@@ -432,36 +606,54 @@ namespace PromoSeeker
                 return;
             }
 
-            #region Notify The User
+            #region Record & Notify
 
-            // If a product name has changed...
+            // If a product original name has changed...
             if (result.HasNewName)
             {
-                // Initialize name history dictionary instance
+                // Initialize name history
                 if (NameHistory == null)
                 {
-                    NameHistory = new List<KeyValuePair<string, DateTime>>();
+                    // Initialize with old name in the history
+                    NameHistory = new List<KeyValuePair<string, DateTime>>
+                    {
+                        new KeyValuePair<string, DateTime>(OriginalName, Settings.Created)
+                    };
                 }
 
-                // Append to history
-                NameHistory.Add(new KeyValuePair<string, DateTime>(OriginalName, DateTime.Now));
+                // Append new name to history
+                NameHistory.Add(new KeyValuePair<string, DateTime>(Product.Name, DateTime.Now));
 
                 // Handle notification
                 DI.Application.NotificationReceived(string.Format(Strings.NotificationNameChanged, Product.Name),
                     this, popToast: Settings.NotifyPriceChange);
+
+                // Update name
+                OriginalName = Product.Name;
+
+                // Raise property changed events
+                OnPropertyChanged(nameof(OriginalName));
+                OnPropertyChanged(nameof(Name));
             }
 
             // If a product price has changed...
             if (result.HasNewPrice)
             {
-                // Initialize price history dictionary instance
+                // Initialize price history
                 if (PriceHistory == null)
                 {
-                    PriceHistory = new List<KeyValuePair<decimal, DateTime>>();
+                    // Initialize with old price in the history
+                    PriceHistory = new List<KeyValuePair<decimal, DateTime>>{
+                        new KeyValuePair<decimal, DateTime>(PriceCurrent, Settings.Created)
+                    };
                 }
 
-                // Append to history
-                PriceHistory.Add(new KeyValuePair<decimal, DateTime>(PriceCurrent, DateTime.Now));
+                // Append new price to history
+                PriceHistory.Add(new KeyValuePair<decimal, DateTime>(Product.PriceInfo.Value, DateTime.Now));
+
+                // Update chart
+                SeriesViews.First().Values.Add(Product.PriceInfo.Value);
+                Labels.Add(DateTime.Now.ToShortDateString());
 
                 // Handle notification
                 DI.Application.NotificationReceived(
@@ -471,26 +663,25 @@ namespace PromoSeeker
                     // If new price is lower than current price...
                     : string.Format(Strings.NotificationPriceDecrease, Product.PriceInfo.CurrencyAmount),
                     this, popToast: Settings.NotifyPriceChange);
+
+                // Update price
+                PriceCurrent = Product.PriceInfo.Value;
+
+                // Raise property changed events
+                OnPropertyChanged(nameof(PriceCurrent));
+                OnPropertyChanged(nameof(DisplayPrice));
+                OnPropertyChanged(nameof(LowestPrice));
+                OnPropertyChanged(nameof(HighestPrice));
             }
 
             #endregion
 
-            #region Assign New Values
-
-            // Set values
-            OriginalName = Product.Name;
-            PriceCurrent = Product.PriceInfo.Value;
-
-            // Raise property changed events
-            OnPropertyChanged(nameof(Name));
-            OnPropertyChanged(nameof(OriginalName));
-            OnPropertyChanged(nameof(PriceCurrent));
-            OnPropertyChanged(nameof(DisplayPrice));
-
-            #endregion
-
-            // Save application state after update
-            DI.Application.Save();
+            // If product has changed...
+            if (result.Changed)
+            {
+                // Save application state after update
+                DI.Application.Save();
+            }
 
             // Leave a log message
             CoreDI.Logger.Info($"> Update finished [{OriginalName}]");

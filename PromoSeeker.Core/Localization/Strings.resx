@@ -162,4 +162,25 @@
   <data name="ErrorProductLoadRedirected" xml:space="preserve">
     <value>A redirect was encountered during product load. Please ensure that the product is still there and available.</value>
   </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="TrackingStatusIdle" xml:space="preserve">
+    <value>Tracking is about to start shortly...</value>
+  </data>
+  <data name="TrackingStatusActive" xml:space="preserve">
+    <value>Tracking is currently active. Your product is being watched periodically.</value>
+  </data>
+  <data name="TrackingStatusUpdating" xml:space="preserve">
+    <value>The fresh data for this product is currently being pulled.</value>
+  </data>
+  <data name="TrackingStatusError" xml:space="preserve">
+    <value>An error occurred during tracking for this product.</value>
+  </data>
+  <data name="TrackingStatusDisabled" xml:space="preserve">
+    <value>This product is disabled from tracking. To enable it, use product options.</value>
+  </data>
 </root>

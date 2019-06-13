@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 
 namespace PromoSeeker
@@ -17,12 +18,17 @@ namespace PromoSeeker
         /// <summary>
         /// The currently selected product in the list.
         /// </summary>
-        private ProductViewModel selectedProduct;
+        private ProductViewModel _selectedProduct;
 
         /// <summary>
         /// If the notifications popup is currently visible.
         /// </summary>
         private bool _notificationsPopupVisible;
+
+        /// <summary>
+        /// The view model for the currently shown product details.
+        /// </summary>
+        private ProductViewModel _currentProductDetails;
 
         #endregion
 
@@ -35,18 +41,35 @@ namespace PromoSeeker
             = new ObservableCollection<ProductViewModel>();
 
         /// <summary>
-        /// The currently selected product in the list.
+        /// The currently selected product in the overall product list.
         /// </summary>
         public ProductViewModel SelectedProduct
         {
-            get => selectedProduct;
+            get => _selectedProduct;
             set
             {
                 // Update value
-                selectedProduct = value;
+                _selectedProduct = value;
 
                 // Raise property changed
                 OnPropertyChanged(nameof(SelectedProduct));
+            }
+        }
+
+        /// <summary>
+        /// The view model for the currently shown product details.
+        /// </summary>
+        public ProductViewModel CurrentProductDetails
+        {
+            get => _currentProductDetails;
+            set
+            {
+                // Update value
+                _currentProductDetails = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(CurrentProductDetails));
+                OnPropertyChanged(nameof(ProductDetailsPageVisible));
             }
         }
 
@@ -85,6 +108,11 @@ namespace PromoSeeker
         /// Defines whether any popup within the main window is currently visible and present. 
         /// </summary>
         public bool AnyPopupVisible => NotificationsPopupVisible;
+
+        /// <summary>
+        /// <see langword="true"/> if the product details is shown.
+        /// </summary>
+        public bool ProductDetailsPageVisible => CurrentProductDetails != null;
 
         #endregion
 

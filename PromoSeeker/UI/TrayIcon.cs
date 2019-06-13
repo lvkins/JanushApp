@@ -131,7 +131,28 @@ namespace PromoSeeker
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnMouseClick(object sender, FormsApp.MouseEventArgs e)
+        private void OnMouseClick(object sender, FormsApp.MouseEventArgs e) => ShowApplication();
+
+        /// <summary>
+        /// Called whenever balloon tip is clicked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TrayIcon_BalloonTipClicked(object sender, System.EventArgs e) => ShowApplication();
+
+        /// <summary>
+        /// Gets called on application exit.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnAppExit(object sender, ExitEventArgs e) =>
+            // Dispose tray icon
+            _trayIcon.Dispose();
+
+        /// <summary>
+        /// Shows the application window.
+        /// </summary>
+        private void ShowApplication()
         {
             // Get main window
             var mainWnd = Application.Current.MainWindow;
@@ -143,28 +164,6 @@ namespace PromoSeeker
             // Bring to the top
             mainWnd.Topmost = true;
             mainWnd.Topmost = false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void TrayIcon_BalloonTipClicked(object sender, System.EventArgs e)
-        {
-            // TODO: handle notification click
-        }
-
-
-        /// <summary>
-        /// Gets called on application exit.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnAppExit(object sender, ExitEventArgs e)
-        {
-            // Dispose tray icon
-            _trayIcon.Dispose();
         }
 
         #endregion

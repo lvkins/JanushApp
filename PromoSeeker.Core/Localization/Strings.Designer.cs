@@ -61,6 +61,15 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Date.
+        /// </summary>
+        public static string Date {
+            get {
+                return ResourceManager.GetString("Date", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         public static string Error {
@@ -192,6 +201,60 @@ namespace PromoSeeker.Core.Localization {
         public static string NotificationPriceIncrease {
             get {
                 return ResourceManager.GetString("NotificationPriceIncrease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Price.
+        /// </summary>
+        public static string Price {
+            get {
+                return ResourceManager.GetString("Price", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking is currently active. Your product is being watched periodically..
+        /// </summary>
+        public static string TrackingStatusActive {
+            get {
+                return ResourceManager.GetString("TrackingStatusActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This product is disabled from tracking. To enable it, use product options..
+        /// </summary>
+        public static string TrackingStatusDisabled {
+            get {
+                return ResourceManager.GetString("TrackingStatusDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred during tracking for this product..
+        /// </summary>
+        public static string TrackingStatusError {
+            get {
+                return ResourceManager.GetString("TrackingStatusError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking is about to start shortly....
+        /// </summary>
+        public static string TrackingStatusIdle {
+            get {
+                return ResourceManager.GetString("TrackingStatusIdle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fresh data for this product is currently being pulled..
+        /// </summary>
+        public static string TrackingStatusUpdating {
+            get {
+                return ResourceManager.GetString("TrackingStatusUpdating", resourceCulture);
             }
         }
     }

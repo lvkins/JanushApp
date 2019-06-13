@@ -26,6 +26,7 @@
         BorderThickness="1">
 
         <Grid>
+
             <!--  Notifications overlay dialog  -->
             <local:NotificationsControl
                 MaxHeight="300"
@@ -205,26 +206,26 @@
                 <Border Grid.Row="2" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
 
                     <ListBox
+                        x:Name="ProductList"
                         Margin="0"
                         Padding="-1"
                         HorizontalContentAlignment="Stretch"
+                        local:DelayedDeselectAttachedProperty.Value="True"
                         local:ScrollToSelectedAttachedProperty.Value="True"
                         Background="{x:Null}"
                         BorderBrush="{x:Null}"
                         BorderThickness="0"
                         DataContext="{Binding Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
-                        IsTextSearchEnabled="True"
                         ItemsSource="{Binding Products, FallbackValue=12345678}"
                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        SelectedItem="{Binding SelectedProduct}"
-                        TextSearch.TextPath="DisplayName">
+                        SelectedItem="{Binding SelectedProduct}">
 
                         <!--  Get rid of the container style  -->
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="{x:Type ListBoxItem}">
                                 <!--  Bind IsSelected behavior to the bound item property  -->
-                                <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <Setter Property="Focusable" Value="False" />
 
                                 <!--  Override the template to get rid of useless stuff, like effects and so on  -->
@@ -294,7 +295,37 @@
 
                 </Border>
 
+                <!--  Product details page  -->
+                <local:ProductDetailsPageControl
+                    Grid.Row="2"
+                    DataContext="{Binding CurrentProductDetails, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                    Visibility="{Binding ProductDetailsPageVisible, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
+
+                    <local:ProductDetailsPageControl.Style>
+                        <!--  Fade in animation  -->
+                        <Style TargetType="{x:Type local:ProductDetailsPageControl}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                            <Style.Triggers>
+                                <Trigger Property="Visibility" Value="Visible">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0.0"
+                                                    To="1.0"
+                                                    Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </local:ProductDetailsPageControl.Style>
+
+                </local:ProductDetailsPageControl>
             </Grid>
+
         </Grid>
 
     </Border>

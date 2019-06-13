@@ -26,9 +26,14 @@ namespace PromoSeeker.Core
         private IDocument _htmlDocument;
 
         /// <summary>
-        /// The tracking task cancellation token.
+        /// A tracking task cancellation token.
         /// </summary>
         private CancellationTokenSource _trackingCancellation;
+
+        /// <summary>
+        /// A task that is handling tracking of this product.
+        /// </summary>
+        private Task _trackingTask;
 
         #endregion
 
@@ -65,11 +70,6 @@ namespace PromoSeeker.Core
         public string Title { get; private set; }
 
         /// <summary>
-        /// Whether the product data is stored in the database.
-        /// </summary>
-        public bool IsSaved { get; private set; }
-
-        /// <summary>
         /// Whether the product <see cref="_htmlDocument"/> has been loaded.
         /// </summary>
         public bool IsLoaded => _htmlDocument != null && !string.IsNullOrEmpty(Title);
@@ -85,9 +85,9 @@ namespace PromoSeeker.Core
         public bool IsAutoDetect { get; }
 
         /// <summary>
-        /// The task that is handling tracking of this product.
+        /// Whether the product tracking task is currently active.
         /// </summary>
-        public Task TrackingTask { get; private set; }
+        public bool IsTrackingRunning => _trackingTask != null && !_trackingTask.IsCompleted;
 
         #endregion
 
@@ -269,7 +269,7 @@ namespace PromoSeeker.Core
             }
 
             // If a tracking task that is not completed already exists...
-            if (TrackingTask != null && !TrackingTask.IsCompleted)
+            if (IsTrackingRunning)
             {
                 // Do nothing, shall properly stop tracking first
                 return;
@@ -282,7 +282,7 @@ namespace PromoSeeker.Core
             _trackingCancellation = new CancellationTokenSource();
 
             // Create a task
-            TrackingTask = Task.Run(async () =>
+            _trackingTask = Task.Run(async () =>
             {
                 // Create random object instance
                 var random = new Random();
@@ -326,7 +326,7 @@ namespace PromoSeeker.Core
             }, TaskContinuationOptions.OnlyOnCanceled);
 
             // Wait for the task to finish
-            await TrackingTask;
+            await _trackingTask;
         }
 
         /// <summary>
@@ -338,7 +338,7 @@ namespace PromoSeeker.Core
             _trackingCancellation?.Cancel();
 
             // Wait while task is completing...
-            while (TrackingTask != null && !TrackingTask.IsCompleted)
+            while (IsTrackingRunning)
             {
                 await Task.Delay(100);
             }

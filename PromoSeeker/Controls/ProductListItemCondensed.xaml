@@ -7,7 +7,44 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <!--  Selected item styling  -->
+
+        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="{x:Type TextBlock}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style BasedOn="{StaticResource {x:Type Hyperlink}}" TargetType="Hyperlink">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style
+            x:Key="HelpBlock"
+            BasedOn="{StaticResource HelpBlock}"
+            TargetType="{x:Type TextBlock}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+    </UserControl.Resources>
+
     <Border x:Name="MainBorder">
+
+        <!--  Show details on double click  -->
+        <Border.InputBindings>
+            <MouseBinding Command="{Binding ShowDetailsPageCommand}" MouseAction="LeftDoubleClick" />
+        </Border.InputBindings>
 
         <Border.Style>
             <Style TargetType="{x:Type Border}">
@@ -21,17 +58,27 @@
                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
                         <Setter Property="Background" Value="{StaticResource AppBlueBrush}" />
 
-                        <!--  Go back to initial color  -->
-                        <DataTrigger.EnterActions>
+                        <!--  Animate to default color  -->
+                        <DataTrigger.ExitActions>
                             <BeginStoryboard>
                                 <Storyboard>
                                     <ColorAnimation
-                                        BeginTime="0:0:05"
                                         Storyboard.TargetProperty="Background.Color"
-                                        To="{StaticResource BackgroundLighter}" />
+                                        From="{StaticResource AppBlue}"
+                                        To="{StaticResource BackgroundLighter}"
+                                        Duration="0:0:.5" />
                                 </Storyboard>
                             </BeginStoryboard>
-                        </DataTrigger.EnterActions>
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
+
+                    <!--  Background for product having disabled tracking  -->
+                    <DataTrigger Binding="{Binding Tracked}" Value="False">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Opacity=".2" Color="{StaticResource AppRed}" />
+                            </Setter.Value>
+                        </Setter>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -39,6 +86,9 @@
 
         <Grid VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
+                <!--  Icon  -->
+                <ColumnDefinition Width="Auto" />
+
                 <!--  Name / Summary  -->
                 <ColumnDefinition Width="*" />
 
@@ -59,7 +109,7 @@
             <!--  Right side overlay effect on mouse over  -->
             <Border
                 x:Name="OptionsOverlay"
-                Grid.ColumnSpan="2"
+                Grid.ColumnSpan="3"
                 Panel.ZIndex="3"
                 IsHitTestVisible="False">
 
@@ -86,6 +136,16 @@
                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                 <Setter Property="Background" Value="Transparent" />
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding Tracked}" Value="False">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush Opacity=".2" StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0.75" Color="Transparent" />
+                                            <GradientStop Offset="0.87" Color="{StaticResource AppRed}" />
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
@@ -93,7 +153,7 @@
 
             <!--  Highlight effect when selected  -->
             <Border
-                Grid.ColumnSpan="2"
+                Grid.ColumnSpan="3"
                 IsHitTestVisible="False"
                 Visibility="{Binding IsSelected, FallbackValue=Collapsed, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                 <Border.Background>
@@ -104,8 +164,25 @@
                 </Border.Background>
             </Border>
 
-            <StackPanel
+            <!--  Icon  -->
+            <Border
                 Grid.Column="0"
+                Width="18"
+                Height="18"
+                Margin="5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                SnapsToDevicePixels="True"
+                ToolTip="{Binding TrackingStatus, Converter={local:TrackingStatusToDisplayStringConverter}}"
+                UseLayoutRounding="True">
+                <Border.Background>
+                    <VisualBrush Stretch="Uniform" Visual="{Binding TrackingStatus, Converter={local:TrackingStatusToVectorConverter}}" />
+                </Border.Background>
+            </Border>
+
+            <!--  Name / Summary  -->
+            <StackPanel
+                Grid.Column="1"
                 Margin="5"
                 VerticalAlignment="Center"
                 Orientation="Vertical">
@@ -118,54 +195,20 @@
                     ToolTip="Open product website in browser">
                     <Hyperlink Command="{Binding NavigateCommand}">
                         <Run Text="{Binding Name, Mode=OneWay, FallbackValue=Product Name}" />
-
-                        <!--  Light foreground when selected  -->
-                        <Hyperlink.Style>
-                            <Style BasedOn="{StaticResource {x:Type Hyperlink}}" TargetType="{x:Type Hyperlink}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
-
-                                        <!--  Go back to initial color  -->
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation
-                                                        BeginTime="0:0:05"
-                                                        Storyboard.TargetProperty="Foreground"
-                                                        To="{x:Null}" />
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Hyperlink.Style>
                     </Hyperlink>
                 </TextBlock>
 
                 <!--  Summary  -->
-                <TextBlock>
-
+                <TextBlock Style="{StaticResource HelpBlock}">
                     <Run Text="{Binding Url.Host, Mode=OneWay, FallbackValue=example.com}" /><Run Text="," />
                     <Run Text="{Binding LastCheck, Mode=OneWay, FallbackValue=5 minutes ago, Converter={local:HumanRelativeTimeConverter}}" />
-
-                    <!--  Light foreground when selected  -->
-                    <TextBlock.Style>
-                        <Style BasedOn="{StaticResource HelpBlock}" TargetType="{x:Type TextBlock}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
                 </TextBlock>
+
             </StackPanel>
 
             <!--  Price  -->
             <TextBlock
-                Grid.Column="1"
+                Grid.Column="2"
                 Margin="5"
                 VerticalAlignment="Center"
                 FontSize="{StaticResource FontSizeXLarge}"
@@ -191,7 +234,7 @@
             <!--  Options button  -->
             <ToggleButton
                 x:Name="OptionsButton"
-                Grid.Column="1"
+                Grid.Column="2"
                 Margin="5"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -229,7 +272,10 @@
                     <StackPanel Background="{StaticResource BackgroundLighterBrush}">
                         <ItemsControl>
                             <!--  Details  -->
-                            <MenuItem Command="{Binding ToggleDetailsOverlay}" Header="Details" />
+                            <MenuItem
+                                Command="{Binding ShowDetailsPageCommand}"
+                                FontWeight="SemiBold"
+                                Header="Details" />
 
                             <!--  Open in browser  -->
                             <MenuItem Command="{Binding NavigateCommand}" Header="Open in browser" />
