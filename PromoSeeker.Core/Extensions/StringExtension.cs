@@ -35,30 +35,5 @@ namespace PromoSeeker.Core
 
             return false;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        public static StringAnalyze AnalyzeString(this string source)
-        {
-            var ret = new StringAnalyze();
-
-            foreach (var c in source)
-            {
-                if (char.IsLetter(c))
-                {
-                    ret.Letters++;
-                }
-                else if (char.IsDigit(c))
-                {
-                    ret.Digits++;
-                }
-
-            }
-
-            return ret;
-        }
     }
 }

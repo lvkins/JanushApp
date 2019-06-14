@@ -20,6 +20,15 @@
         <WindowChrome CaptionHeight="27" CornerRadius="0" />
     </WindowChrome.WindowChrome>-->
 
+    <!--  Keyboard shortcuts  -->
+    <Window.InputBindings>
+        <!--  Open settings window shortcut  -->
+        <KeyBinding
+            Key="O"
+            Command="{Binding OpenSettingsWindowCommand}"
+            Modifiers="Ctrl" />
+    </Window.InputBindings>
+
     <Border
         x:Name="RootBorder"
         BorderBrush="{StaticResource AppBlueBrush}"

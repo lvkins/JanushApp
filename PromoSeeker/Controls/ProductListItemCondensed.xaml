@@ -98,7 +98,7 @@
 
             <!--  Selected item inner border  -->
             <Rectangle
-                Grid.ColumnSpan="2"
+                Grid.ColumnSpan="3"
                 Margin="1"
                 Panel.ZIndex="1"
                 Opacity=".3"
@@ -175,9 +175,11 @@
                 SnapsToDevicePixels="True"
                 ToolTip="{Binding TrackingStatus, Converter={local:TrackingStatusToDisplayStringConverter}}"
                 UseLayoutRounding="True">
+
                 <Border.Background>
                     <VisualBrush Stretch="Uniform" Visual="{Binding TrackingStatus, Converter={local:TrackingStatusToVectorConverter}}" />
                 </Border.Background>
+
             </Border>
 
             <!--  Name / Summary  -->
