@@ -44,6 +44,7 @@
 
                     <!--  Back button  -->
                     <Button
+                        x:Name="BackButton"
                         Grid.Column="0"
                         Margin="5"
                         Command="{Binding HideDetailsPageCommand}"
@@ -84,7 +85,7 @@
                     VerticalScrollBarVisibility="Auto">
 
                     <!--  Product data  -->
-                    <StackPanel Grid.Row="1" Margin="10">
+                    <StackPanel Margin="10">
                         <StackPanel.Resources>
                             <!--  Grid descendants style  -->
                             <Style TargetType="{x:Type Grid}">

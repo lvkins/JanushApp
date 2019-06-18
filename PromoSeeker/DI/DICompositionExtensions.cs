@@ -42,6 +42,9 @@ namespace PromoSeeker
 
             // Bind to a single instance of settings view model
             services.AddSingleton<SettingsViewModel>();
+
+            // Bind to a single instance of notifications view model
+            services.AddSingleton<NotificationsViewModel>();
         }
 
 

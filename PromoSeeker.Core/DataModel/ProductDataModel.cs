@@ -5,9 +5,9 @@ using System.Globalization;
 namespace PromoSeeker.Core
 {
     /// <summary>
-    /// A class representing the product settings data.
+    /// The data model representing the product settings data.
     /// </summary>
-    public sealed class ProductSettings
+    public sealed class ProductDataModel
     {
         #region Private Members
 

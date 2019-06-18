@@ -1,6 +1,5 @@
 ﻿using PromoSeeker.Core;
-using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace PromoSeeker
 {
@@ -26,8 +25,15 @@ namespace PromoSeeker
         public NotificationsDesignModel()
         {
             // Fill the list
-            Items = new List<NotificationItemViewModel>
+            Items = new ObservableCollection<NotificationItemViewModel>
             {
+                // Notification without particular product
+                new NotificationItemViewModel()
+                {
+                    Title = "Custom notification item",
+                    Message = "Sample notification without particular product assigned!",
+                    Type = NotificationSubjectType.Warning,
+                },
                 new NotificationItemDesignModel(),
                 new NotificationItemDesignModel()
                 {

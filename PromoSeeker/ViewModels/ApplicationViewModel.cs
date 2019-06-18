@@ -41,6 +41,11 @@ namespace PromoSeeker
             = new ObservableCollection<ProductViewModel>();
 
         /// <summary>
+        /// The shop ordered by product sales count and overall product count.
+        /// </summary>
+        public TopSellerViewModel TopSeller { get; set; }
+
+        /// <summary>
         /// The currently selected product in the overall product list.
         /// </summary>
         public ProductViewModel SelectedProduct
@@ -76,11 +81,6 @@ namespace PromoSeeker
         #region Notifications
 
         /// <summary>
-        /// The notifications container.
-        /// </summary>
-        public NotificationsViewModel Notifications { get; set; }
-
-        /// <summary>
         /// If the notifications popup is currently visible.
         /// </summary>
         public bool NotificationsPopupVisible
@@ -96,11 +96,6 @@ namespace PromoSeeker
                 OnPropertyChanged(nameof(AnyPopupVisible));
             }
         }
-
-        /// <summary>
-        /// The date of when the user has readed the notifications.
-        /// </summary>
-        public DateTime NotificationLastRead { get; set; } = DateTime.Now;
 
         #endregion
 
@@ -122,7 +117,7 @@ namespace PromoSeeker
         /// Adds a new product to track to the application and stores it in the settings file.
         /// </summary>
         /// <param name="settings">The product settings object.</param>
-        public void AddProduct(ProductSettings settings)
+        public void AddProduct(ProductDataModel settings)
         {
             // Store the product to the settings file
             CoreDI.SettingsReader.Settings.Products.Add(settings);
@@ -174,6 +169,9 @@ namespace PromoSeeker
                     .ToList()
                     // Add the product to the collection
                     .ForEach(product => Products.Add(new ProductViewModel(product)));
+
+                // Set top shop
+                UpdateTopShop();
             }
             catch (Exception ex)
             {
@@ -226,86 +224,55 @@ namespace PromoSeeker
             CoreDI.SettingsReader.Save();
         }
 
-        #region Notifications
-
         /// <summary>
-        /// Loads the recent notifications.
+        /// Updates the current top shop.
         /// </summary>
-        public void RefreshNotifications()
+        public void UpdateTopShop()
         {
-            // If notifications are not yet initialized...
-            if (Notifications == null)
-            {
-                // Initialize
-                Notifications = new NotificationsViewModel();
-            }
+            // Update property
+            TopSeller = Products
+                     // Group product by host
+                     .GroupBy(_ => new Uri(_.Url.GetLeftPart(UriPartial.Authority).Replace("www.", "")))
+                     // Gather data
+                     .Select(_ => new TopSellerViewModel
+                     {
+                         // Set shop URL
+                         Url = _.Key,
+                         // Set product count in the group
+                         ProductCount = _.Count(),
+                         // Set sales count relying on the price history
+                         SaleCount = _.Where(p => p.PriceHistory != null)
+                             .Select(p =>
+                             {
+                                 // Number of sales for product
+                                 var sales = 0;
 
-            // Reset notification status
-            Notifications.New = false;
+                                 p.PriceHistory.Aggregate((seed, next) =>
+                                {
+                                    // If next price is lower than current...
+                                    if (next.Key < seed.Key)
+                                    {
+                                        // We have a sale
+                                        sales++;
+                                    }
 
-            // Indicate no new notifications in tray
-            DI.UIManager.Tray.Indicate(false);
+                                    return next;
+                                });
 
-            // Load notifications
-            Notifications.Load();
+                                 return sales;
+                             })
+                             // Get total number of sales for products in this shop
+                             .Sum()
+                     })
+                     // Order by sales count, ultimately by the product count in the shop
+                     .OrderByDescending(s => s.SaleCount)
+                     .ThenByDescending(s => s.ProductCount)
+                     // Get top result
+                     .FirstOrDefault();
 
-            // Set current read time to mark as readed
-            NotificationLastRead = DateTime.Now;
-
-            // Raise property changed event
-            OnPropertyChanged(nameof(Notifications));
+            // Raise property changed
+            OnPropertyChanged(nameof(TopSeller));
         }
-
-        /// <summary>
-        /// Toggles the notifications popup visibility.
-        /// </summary>
-        public void ToggleNotifications()
-        {
-            // Reload
-            RefreshNotifications();
-
-            // Toggle visibility
-            NotificationsPopupVisible = !NotificationsPopupVisible;
-        }
-
-        /// <summary>
-        /// Handles a single notification message in the application.
-        /// </summary>
-        /// <param name="message">The notification message.</param>
-        /// <param name="product">The product that notification refer to.</param>
-        /// <param name="popToast">Whether to show the toast notification.</param>
-        public void NotificationReceived(string message, ProductViewModel product = null,
-            NotificationType notificationType = NotificationType.None, bool popToast = true)
-        {
-            // If we have a default notification...
-            // NOTE: Right now we only handle default notifications that are displayed in the popup
-            if (notificationType == NotificationType.None)
-            {
-                // If notifications are not yet initialized...
-                if (Notifications == null)
-                {
-                    // Initialize
-                    Notifications = new NotificationsViewModel();
-
-                    // Raise property changed event
-                    OnPropertyChanged(nameof(Notifications));
-                }
-
-                // Flag that new notification is available
-                Notifications.New = true;
-
-                // Indicate new notifications
-                DI.UIManager.Tray.Indicate(true);
-            }
-
-            // If we have a message to notify and should show a toast notification...
-            if (!string.IsNullOrEmpty(message) && popToast)
-            {
-                DI.UIManager.Tray.Notification(message, product?.Name);
-            }
-        }
-
-        #endregion
 
         #region Window Handling
 

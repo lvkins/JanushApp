@@ -10,9 +10,9 @@ namespace PromoSeeker
         #region Properties
 
         /// <summary>
-        /// The main application tray icon.
+        /// Gets a value that indicates whether the window is active.
         /// </summary>
-        TrayIcon Tray { get; }
+        bool MainWindowActive { get; }
 
         #endregion
 
@@ -43,6 +43,21 @@ namespace PromoSeeker
         /// <param name="viewModel">The view model representing the <see cref="PromptBoxDialog"/>.</param>
         /// <returns>A task that will finish once the dialog is closed, task result contains the user input.</returns>
         Task<string> ShowPromptDialogBoxAsync(PromptDialogBoxViewModel viewModel);
+
+        /// <summary>
+        /// Toggles the marked tray icon.
+        /// </summary>
+        /// <param name="flag"><see langword="true"/> if marked icon should be used, otherwise <see langword="false"/>.</param>
+        void TrayIndicate(bool flag);
+
+        /// <summary>
+        /// Shows a notification near the tray icon.
+        /// </summary>
+        /// <param name="tipText"></param>
+        /// <param name="tipTitle"></param>
+        /// <param name="timeout"></param>
+        /// <param name="type"></param>
+        void TrayNotification(string tipText, string tipTitle = "", ToastNotificationType type = ToastNotificationType.None, int timeout = int.MaxValue);
 
         #endregion
     }

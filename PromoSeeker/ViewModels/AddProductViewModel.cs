@@ -369,7 +369,7 @@ namespace PromoSeeker
             var formatProvider = new CultureInfo(UserRegion.Name);
 
             // Create product
-            var product = new Product(new ProductSettings
+            var product = new Product(new ProductDataModel
             {
                 Name = Name,
                 Url = new Uri(Url),
@@ -436,9 +436,9 @@ namespace PromoSeeker
             }
 
             // Create setting object
-            var productSetting = new ProductSettings
+            var productSetting = new ProductDataModel
             {
-                Url = new Uri(Product.Url),
+                Url = new Uri(Product.Url.Replace("://www.", "://")),
                 Name = Product.Name,
                 DisplayName = DisplayName,
                 Price = Product.PriceInfo,

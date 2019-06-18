@@ -12,6 +12,11 @@ namespace PromoSeeker
         #region Public Properties
 
         /// <summary>
+        /// The notification title for notifications without particular <see cref="Product"/> assigned.
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
         /// The type of this notification.
         /// </summary>
         public NotificationSubjectType Type { get; set; }
@@ -27,14 +32,14 @@ namespace PromoSeeker
         public string Message { get; set; }
 
         /// <summary>
-        /// The notification date.
+        /// The date of when notification was received.
         /// </summary>
-        public DateTime Date { get; set; }
+        public DateTime Date { get; set; } = DateTime.Now;
 
         /// <summary>
         /// If this is a new notification.
         /// </summary>
-        public bool IsNew { get; set; }
+        public bool IsNew { get; set; } = true;
 
         #endregion
 
@@ -85,7 +90,7 @@ namespace PromoSeeker
         /// </summary>
         private void Select()
         {
-            // Select
+            // Select the product, if notification is assigned to any
             Product?.Select();
 
             // Close notifications popup

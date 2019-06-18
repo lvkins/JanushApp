@@ -15,9 +15,10 @@ namespace PromoSeeker
         {
             switch ((NotificationSubjectType)value)
             {
-                case NotificationSubjectType.PriceDown: return Application.Current.Resources["Vector.PriceDown"];
-                case NotificationSubjectType.PriceUp: return Application.Current.Resources["Vector.PriceUp"];
-                case NotificationSubjectType.NameChange: return Application.Current.Resources["Vector.TypeName"];
+                case NotificationSubjectType.PriceDown: return Application.Current.Resources["Vector.NotificationPriceDown"];
+                case NotificationSubjectType.PriceUp: return Application.Current.Resources["Vector.NotificationPriceUp"];
+                case NotificationSubjectType.NameChange: return Application.Current.Resources["Vector.NotificationNameChange"];
+                case NotificationSubjectType.Warning: return Application.Current.Resources["Vector.NotificationWarning"];
             }
             return null;
         }

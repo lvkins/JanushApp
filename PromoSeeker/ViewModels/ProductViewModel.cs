@@ -187,7 +187,7 @@ namespace PromoSeeker
         /// <summary>
         /// The settings object for this product.
         /// </summary>
-        public ProductSettings Settings { get; private set; }
+        public ProductDataModel Settings { get; private set; }
 
         /// <summary>
         /// If the product options popup menu is currently expanded.
@@ -258,7 +258,7 @@ namespace PromoSeeker
                     return ProductTrackingStatusType.Disabled;
                 }
 
-                // TODO: return more types
+                // TODO: handle error
 
                 // If tracking task is active...
                 return Product?.IsTrackingRunning == true
@@ -375,7 +375,7 @@ namespace PromoSeeker
         /// <summary>
         /// Settings constructor
         /// </summary>
-        public ProductViewModel(ProductSettings product)
+        public ProductViewModel(ProductDataModel product)
         {
             // If we have no product settings...
             if (product == null)
@@ -430,7 +430,7 @@ namespace PromoSeeker
 
             #region Create Commands
 
-            LoadCommand = new RelayParamCommand((param) => Load((ProductSettings)param));
+            LoadCommand = new RelayParamCommand((param) => Load((ProductDataModel)param));
             NavigateCommand = new RelayCommand(Navigate);
             SelectCommand = new RelayCommand(Select);
             ToggleOptionsPopupCommand = new RelayCommand(() =>
@@ -454,7 +454,7 @@ namespace PromoSeeker
         /// <summary>
         /// Loads the product into the view model.
         /// </summary>
-        public void Load(ProductSettings settings)
+        public void Load(ProductDataModel settings)
         {
             // Store settings object
             Settings = settings;
@@ -602,7 +602,14 @@ namespace PromoSeeker
             // If the update wasn't successful...
             if (!result.Success)
             {
-                DI.Application.NotificationReceived(result.Error, this, NotificationType.Warning);
+                // Store error notification
+                DI.NotificationsViewModel.Add(new NotificationItemViewModel
+                {
+                    Product = this,
+                    Type = NotificationSubjectType.Warning,
+                    Message = result.Error
+                });
+
                 return;
             }
 
@@ -624,9 +631,13 @@ namespace PromoSeeker
                 // Append new name to history
                 NameHistory.Add(new KeyValuePair<string, DateTime>(Product.Name, DateTime.Now));
 
-                // Handle notification
-                DI.Application.NotificationReceived(string.Format(Strings.NotificationNameChanged, Product.Name),
-                    this, popToast: Settings.NotifyPriceChange);
+                // Store notification
+                DI.NotificationsViewModel.Add(new NotificationItemViewModel
+                {
+                    Type = NotificationSubjectType.NameChange,
+                    Message = string.Format(Strings.NotificationNameChanged, Product.Name),
+                    Product = this,
+                }, popToast: Settings.NotifyNameChange);
 
                 // Update name
                 OriginalName = Product.Name;
@@ -655,14 +666,24 @@ namespace PromoSeeker
                 SeriesViews.First().Values.Add(Product.PriceInfo.Value);
                 Labels.Add(DateTime.Now.ToShortDateString());
 
-                // Handle notification
-                DI.Application.NotificationReceived(
-                    Product.PriceInfo.Value > PriceCurrent
-                    // If new price is higher than current price...
-                    ? string.Format(Strings.NotificationPriceIncrease, Product.PriceInfo.CurrencyAmount)
-                    // If new price is lower than current price...
-                    : string.Format(Strings.NotificationPriceDecrease, Product.PriceInfo.CurrencyAmount),
-                    this, popToast: Settings.NotifyPriceChange);
+                // Store notification
+                DI.NotificationsViewModel.Add(new NotificationItemViewModel
+                {
+                    Type = Product.PriceInfo.Value > PriceCurrent ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
+                    Message = Product.PriceInfo.Value > PriceCurrent
+                        // If new price is higher than current price...
+                        ? string.Format(Strings.NotificationPriceIncrease, Product.PriceInfo.CurrencyAmount)
+                        // If new price is lower than current price...
+                        : string.Format(Strings.NotificationPriceDecrease, Product.PriceInfo.CurrencyAmount),
+                    Product = this,
+                }, popToast: Settings.NotifyPriceChange);
+
+                // If price decreased (sale)...
+                if (Product.PriceInfo.Value < PriceCurrent)
+                {
+                    // Update top shop to include this change
+                    DI.Application.UpdateTopShop();
+                }
 
                 // Update price
                 PriceCurrent = Product.PriceInfo.Value;
@@ -693,11 +714,14 @@ namespace PromoSeeker
         /// <param name="ex">The exception occurred, if any.</param>
         private void Product_TrackingFailed(Exception ex)
         {
-            // TODO:
-
             // Inform the user
-
-            // Mark the product 'error having'
+            DI.NotificationsViewModel.Add(new NotificationItemViewModel
+            {
+                Title = Name,
+                Product = this,
+                Message = Strings.NotificationTrackingGenericError,
+                Type = NotificationSubjectType.Warning,
+            });
         }
 
         #endregion

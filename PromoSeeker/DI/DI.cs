@@ -34,6 +34,11 @@ namespace PromoSeeker
         /// </summary>
         public static SettingsViewModel SettingsViewModel => GetService<SettingsViewModel>();
 
+        /// <summary>
+        /// A shortcut to access a singleton instance of the <see cref="NotificationsViewModel"/>.
+        /// </summary>
+        public static NotificationsViewModel NotificationsViewModel => GetService<NotificationsViewModel>();
+
         #endregion
 
         /// <summary>

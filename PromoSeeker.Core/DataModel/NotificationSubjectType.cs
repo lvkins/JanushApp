@@ -24,5 +24,10 @@
         /// Name change notification type.
         /// </summary>
         NameChange,
+
+        /// <summary>
+        /// A warning notification type.
+        /// </summary>
+        Warning,
     }
 }

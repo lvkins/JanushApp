@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines a set of notification types in the application.
     /// </summary>
-    public enum NotificationType
+    public enum ToastNotificationType
     {
         /// <summary>
         /// A default type.

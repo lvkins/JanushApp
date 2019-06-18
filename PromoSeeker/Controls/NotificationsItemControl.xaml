@@ -48,7 +48,7 @@
                 Background="{StaticResource AppDarkRedBrush}"
                 Visibility="{Binding IsNew, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
 
-            <!--  Image  -->
+            <!--  Icon  -->
             <Border
                 Grid.Column="0"
                 Width="20"
@@ -72,15 +72,25 @@
                     Style="{StaticResource HelpBlock}"
                     Text="{Binding Date, StringFormat=F, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
 
-                <!--  Product name  -->
+                <!--  Product name hyper link  -->
                 <TextBlock
                     FontWeight="Bold"
                     TextWrapping="Wrap"
-                    ToolTip="Click to navigate">
+                    ToolTip="Click to navigate"
+                    Visibility="{Binding Product, Converter={local:NullToVisibilityConverter}}">
                     <Hyperlink Command="{Binding NavigateCommand}">
                         <Run Text="{Binding Product.Name, Mode=OneWay}" />
                     </Hyperlink>
                 </TextBlock>
+
+                <!--  Title  -->
+                <Border Visibility="{Binding Title, Converter={local:NullToVisibilityConverter}}">
+                    <TextBlock
+                        FontWeight="Bold"
+                        Text="{Binding Title}"
+                        TextWrapping="Wrap"
+                        Visibility="{Binding Product, Converter={local:NullToVisibilityConverter}, ConverterParameter=True}" />
+                </Border>
 
                 <!--  Message  -->
                 <TextBlock

@@ -8,16 +8,21 @@ namespace PromoSeeker
     /// </summary>
     public class UIManager : IUIManager
     {
-        #region Properties
+        #region Private Members
+
+        /// <summary>
+        /// The main application tray icon.
+        /// </summary>
+        private TrayIcon _tray;
 
         #endregion
 
         #region Public Properties
 
         /// <summary>
-        /// The main application tray icon.
+        /// Gets a value that indicates whether the window is active.
         /// </summary>
-        public TrayIcon Tray { get; private set; }
+        public bool MainWindowActive => Application.Current.Dispatcher.Invoke(() => Application.Current.MainWindow.IsActive);
 
         #endregion
 
@@ -29,7 +34,7 @@ namespace PromoSeeker
         public void Initialize()
         {
             // Initialize tray icon
-            Tray = new TrayIcon();
+            _tray = new TrayIcon();
         }
 
         /// <summary>
@@ -79,6 +84,23 @@ namespace PromoSeeker
             // Return the user input
             return viewModel.Input;
         }
+
+        /// <summary>
+        /// Toggles the marked tray icon.
+        /// </summary>
+        /// <param name="flag"><see langword="true"/> if marked icon should be used, otherwise <see langword="false"/>.</param>
+        public void TrayIndicate(bool flag) => Application.Current.Dispatcher.Invoke(() => _tray.Indicate(flag));
+
+        /// <summary>
+        /// Shows a notification near the tray icon.
+        /// </summary>
+        /// <param name="tipText"></param>
+        /// <param name="tipTitle"></param>
+        /// <param name="timeout"></param>
+        /// <param name="type"></param>
+        public void TrayNotification(string tipText, string tipTitle = "",
+            ToastNotificationType type = ToastNotificationType.None, int timeout = int.MaxValue)
+            => Application.Current.Dispatcher.Invoke(() => _tray.Notification(tipText, tipTitle, type, timeout));
 
         #endregion
     }

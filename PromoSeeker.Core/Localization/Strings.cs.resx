@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,76 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="ErrorProductLoadNoResponse" xml:space="preserve">
-    <value>No response received. Please ensure that the given URL is valid and the product website is currently reachable.</value>
-  </data>
-  <data name="ErrorProductLoadInvalidResponse" xml:space="preserve">
-    <value>Invalid response received. Please ensure that product website is currently reachable and not under maintenance work.</value>
-  </data>
-  <data name="ErrorProductLoadNotDetected" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid product under the given URL.</value>
-  </data>
-  <data name="ErrorProductLoadNotFound" xml:space="preserve">
-    <value>Sorry, we were unable to detect the product properties.</value>
-  </data>
-  <data name="ErrorProductLoadUnknownPrice" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid price for the product.</value>
-  </data>
-  <data name="ErrorProductLoadUnknownName" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid name for the product.</value>
-  </data>
-  <data name="ErrorProductLoadUnknownCulture" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid language for the product.</value>
-  </data>
-  <data name="ErrorProductUpdateName" xml:space="preserve">
-    <value>Unable to determine current product name.</value>
-  </data>
-  <data name="ErrorProductUpdatePriceElementNotFound" xml:space="preserve">
-    <value>Unable to determine current product price. Please ensure that price selector is still valid.</value>
-  </data>
-  <data name="ErrorProductUpdatePriceRead" xml:space="preserve">
-    <value>Unable to read the current product price. Please ensure that price selector is still valid.</value>
-  </data>
-  <data name="NotificationNameChanged" xml:space="preserve">
-    <value>Product name has changed!
-New product name: {0}</value>
-  </data>
-  <data name="NotificationPriceIncrease" xml:space="preserve">
-    <value>Aww... price has increased!
-New price: {0}</value>
-  </data>
-  <data name="NotificationPriceDecrease" xml:space="preserve">
-    <value>Ohh... price has decreased!
-New price: {0}</value>
-  </data>
-  <data name="ErrorProductLoadRedirected" xml:space="preserve">
-    <value>A redirect was encountered during product load. Please ensure that the product is still there and available.</value>
-  </data>
-  <data name="Price" xml:space="preserve">
-    <value>Price</value>
-  </data>
-  <data name="Date" xml:space="preserve">
-    <value>Date</value>
-  </data>
-  <data name="TrackingStatusIdle" xml:space="preserve">
-    <value>Tracking is about to start shortly...</value>
-  </data>
-  <data name="TrackingStatusActive" xml:space="preserve">
-    <value>Tracking is currently active. Your product is being watched periodically.</value>
-  </data>
-  <data name="TrackingStatusUpdating" xml:space="preserve">
-    <value>The fresh data for this product is currently being pulled.</value>
-  </data>
-  <data name="TrackingStatusError" xml:space="preserve">
-    <value>An error occurred during tracking for this product.</value>
-  </data>
-  <data name="TrackingStatusDisabled" xml:space="preserve">
-    <value>This product is disabled from tracking. To enable it, use product options.</value>
-  </data>
-  <data name="NotificationTrackingGenericError" xml:space="preserve">
-    <value>An unexpected error occured while tracking the product. </value>
-  </data>
 </root>

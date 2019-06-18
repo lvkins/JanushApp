@@ -43,7 +43,7 @@
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
                 Panel.ZIndex="1"
-                DataContext="{Binding Notifications, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                DataContext="{Binding Source={x:Static local:ViewModelLocator.NotificationsViewModel}}"
                 Visibility="{Binding NotificationsPopupVisible, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
 
             <Grid>
@@ -55,6 +55,9 @@
                     <!--  Drop shadow border  -->
                     <RowDefinition Height="Auto" />
 
+                    <!--  Panes & filter input  -->
+                    <RowDefinition Height="Auto" />
+
                     <!--  Window content  -->
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
@@ -62,7 +65,7 @@
                 <!--  Clickaway area overlay for popups  -->
                 <Border
                     Grid.Row="1"
-                    Grid.RowSpan="2"
+                    Grid.RowSpan="3"
                     Panel.ZIndex="1"
                     Background="Transparent"
                     Visibility="{Binding AnyPopupVisible, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
@@ -137,7 +140,7 @@
                         <Grid>
                             <ToggleButton
                                 Padding="5"
-                                Command="{Binding ToggleNotificationsPopupCommand}"
+                                Command="{Binding ToggleCommand, Source={x:Static local:ViewModelLocator.NotificationsViewModel}}"
                                 Content="{StaticResource Vector.Bell}"
                                 IsChecked="{Binding NotificationsPopupVisible, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Mode=OneWay}"
                                 Style="{StaticResource WindowControlToggle}"
@@ -151,7 +154,7 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Fill="{StaticResource AppRedBrush}"
-                                Visibility="{Binding Notifications.New, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+                                Visibility="{Binding New, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.NotificationsViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
                         </Grid>
 
                         <!--  Separator  -->
@@ -198,7 +201,7 @@
                 <!--  Title bar drop shadow border  -->
                 <Border
                     Grid.Row="1"
-                    BorderThickness="0,0.5,0,0"
+                    BorderThickness="0,0.6,0,0"
                     SnapsToDevicePixels="True">
 
                     <Border.BorderBrush>
@@ -211,8 +214,71 @@
 
                 </Border>
 
+                <StackPanel Grid.Row="2">
+                    <!--  Top seller pane  -->
+                    <Border
+                        Padding="5"
+                        Background="{StaticResource SubjectEvenBrush}"
+                        BorderBrush="{StaticResource SubjectOddBrush}"
+                        BorderThickness="0,0,0,0.6"
+                        DataContext="{Binding Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                        Visibility="{Binding TopSeller, Converter={local:NullToVisibilityConverter}}">
+
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource FontSizeSmall}"
+                            Foreground="{StaticResource SubjectOddBrush}"
+                            TextAlignment="Justify">
+
+                            <Run Text="Top seller:" />
+                            <Hyperlink
+                                Command="{Binding TopSeller.NavigateCommand}"
+                                Foreground="{StaticResource SubjectOddBrush}"
+                                ToolTip="Navigate to the seller website">
+                                <TextBlock FontWeight="SemiBold" Text="{Binding TopSeller.Url.Host, Mode=OneWay}" />
+                            </Hyperlink>
+                            <Run Text="(" /><Run FontWeight="SemiBold" Text="{Binding TopSeller.ProductCount, Mode=OneWay}" />
+                            <Run Text="products," />
+                            <Run FontWeight="SemiBold" Text="{Binding TopSeller.SaleCount, Mode=OneWay}" />
+                            <Run Text="sales in total" /><Run Text=")" />
+
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="2"
+                                    Direction="360"
+                                    Opacity="0.55"
+                                    ShadowDepth="0"
+                                    Color="White" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+
+                    </Border>
+
+                    <!--  Filter query input  -->
+                    <Grid>
+                        <!--  Icon  -->
+                        <Border
+                            Width="14"
+                            Height="14"
+                            Margin="7"
+                            HorizontalAlignment="Left"
+                            Panel.ZIndex="5">
+                            <Border.Background>
+                                <VisualBrush Opacity=".6" Visual="{StaticResource Vector.Search}" />
+                            </Border.Background>
+                        </Border>
+
+                        <!--  Input  -->
+                        <TextBox
+                            Margin="5"
+                            Padding="17,1,1,1"
+                            Tag="Filter by product name, domain or it's price..."
+                            Text="{Binding FilterQuery, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+
                 <!--  Window content  -->
-                <Border Grid.Row="2" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                <Border Grid.Row="3" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
 
                     <ListBox
                         x:Name="ProductList"
@@ -307,6 +373,7 @@
                 <!--  Product details page  -->
                 <local:ProductDetailsPageControl
                     Grid.Row="2"
+                    Grid.RowSpan="2"
                     DataContext="{Binding CurrentProductDetails, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
                     Visibility="{Binding ProductDetailsPageVisible, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
 

@@ -17,5 +17,10 @@ namespace PromoSeeker
             ? new ApplicationDesignModel()
             // Otherwise return dependency
             : DI.Application;
+
+        /// <summary>
+        /// A singleton instance of the <see cref="NotificationsViewModel"/>.
+        /// </summary>
+        public static NotificationsViewModel NotificationsViewModel => DI.NotificationsViewModel;
     }
 }

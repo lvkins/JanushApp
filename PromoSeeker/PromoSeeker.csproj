@@ -166,6 +166,7 @@
     <Compile Include="ViewModels\Notifications\NotificationsViewModel.cs" />
     <Compile Include="ViewModels\Notifications\NotificationItemViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
+    <Compile Include="ViewModels\TopShopViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Windows\AddProductWindow.xaml.cs">
       <DependentUpon>AddProductWindow.xaml</DependentUpon>

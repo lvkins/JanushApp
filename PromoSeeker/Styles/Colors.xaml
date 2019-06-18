@@ -29,6 +29,12 @@
     <Color x:Key="ForegroundVeryDark">#000000</Color>
     <SolidColorBrush x:Key="ForegroundVeryDarkBrush" Color="{StaticResource ForegroundVeryDark}" />
 
+    <Color x:Key="SubjectOdd">#754c29</Color>
+    <SolidColorBrush x:Key="SubjectOddBrush" Color="{StaticResource SubjectOdd}" />
+
+    <Color x:Key="SubjectEven">#c49a6c</Color>
+    <SolidColorBrush x:Key="SubjectEvenBrush" Color="{StaticResource SubjectEven}" />
+
     <!--  Specific colors  -->
 
     <Color x:Key="AppBlue">#007acd</Color>

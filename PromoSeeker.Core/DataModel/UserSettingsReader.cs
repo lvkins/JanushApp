@@ -30,6 +30,8 @@ namespace PromoSeeker.Core
             ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
             // Ignore serialization of null values
             NullValueHandling = NullValueHandling.Ignore,
+            // Use references handling for object
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects
         };
 
         /// <summary>

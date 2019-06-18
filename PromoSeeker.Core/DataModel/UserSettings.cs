@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace PromoSeeker.Core
@@ -29,6 +28,11 @@ namespace PromoSeeker.Core
         /// <summary>
         /// The tracking products.
         /// </summary>
-        public List<ProductSettings> Products { get; set; } = new List<ProductSettings>();
+        public List<ProductDataModel> Products { get; set; } = new List<ProductDataModel>();
+
+        /// <summary>
+        /// Recent application notifications.
+        /// </summary>
+        public List<NotificationDataModel> RecentNotifications { get; set; } = new List<NotificationDataModel>();
     }
 }

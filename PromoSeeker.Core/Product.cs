@@ -130,7 +130,7 @@ namespace PromoSeeker.Core
         /// object, containing all relevant informations about the product.
         /// </summary>
         /// <param name="settings">The product settings object.</param>
-        public Product(ProductSettings settings)
+        public Product(ProductDataModel settings)
         {
             // Set properties
             Name = settings.Name;
@@ -316,6 +316,13 @@ namespace PromoSeeker.Core
             {
                 // Inform developer
                 Debugger.Break();
+
+                // If we have the exception...
+                if (t.Exception != null)
+                {
+                    // Log the exception
+                    CoreDI.Logger.Exception(t.Exception.GetBaseException());
+                }
 
                 // Notify that the tracking task has failed and pass the exception details
                 TrackingFailed(t.Exception?.GetBaseException());
@@ -1266,7 +1273,6 @@ namespace PromoSeeker.Core
             }
 
             #endregion
-
 
             // Raise updated event
             Updated(updateResult);

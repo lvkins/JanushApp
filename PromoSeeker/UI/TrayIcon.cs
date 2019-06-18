@@ -61,7 +61,7 @@ namespace PromoSeeker
 
         #endregion
 
-        #region Public Properties
+        #region Public Methods
 
         /// <summary>
         /// Shows a notification near the tray icon.
@@ -71,7 +71,7 @@ namespace PromoSeeker
         /// <param name="timeout"></param>
         /// <param name="type"></param>
         public void Notification(string tipText, string tipTitle = "",
-            NotificationType type = NotificationType.None, int timeout = int.MaxValue)
+            ToastNotificationType type = ToastNotificationType.None, int timeout = int.MaxValue)
             => _trayIcon.ShowBalloonTip(timeout, tipTitle, tipText, (FormsApp.ToolTipIcon)type);
 
         /// <summary>

@@ -178,7 +178,8 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Product name has changed.\nNew product name:\n\n{0}.
+        ///   Looks up a localized string similar to Product name has changed!
+        ///New product name: {0}.
         /// </summary>
         public static string NotificationNameChanged {
             get {
@@ -187,7 +188,8 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ohh... price has decreased!\n\nNew price: {0}.
+        ///   Looks up a localized string similar to Ohh... price has decreased!
+        ///New price: {0}.
         /// </summary>
         public static string NotificationPriceDecrease {
             get {
@@ -196,11 +198,21 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aww... price has increased!\n\nNew price: {0}.
+        ///   Looks up a localized string similar to Aww... price has increased!
+        ///New price: {0}.
         /// </summary>
         public static string NotificationPriceIncrease {
             get {
                 return ResourceManager.GetString("NotificationPriceIncrease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occured while tracking the product. .
+        /// </summary>
+        public static string NotificationTrackingGenericError {
+            get {
+                return ResourceManager.GetString("NotificationTrackingGenericError", resourceCulture);
             }
         }
         

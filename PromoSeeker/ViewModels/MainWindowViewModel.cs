@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using PromoSeeker.Core;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace PromoSeeker
@@ -16,6 +18,16 @@ namespace PromoSeeker
         /// The window this view model handles.
         /// </summary>
         private readonly Window _window;
+
+        /// <summary>
+        /// A collection view for the filtered products collection.
+        /// </summary>
+        private readonly ICollectionView _productsView;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private string _filterQuery;
 
         #endregion
 
@@ -36,6 +48,22 @@ namespace PromoSeeker
         /// </summary>
         public GridLength CaptionHeight { get; } = new GridLength(27);
 
+        /// <summary>
+        /// The current products filter query input.
+        /// </summary>
+        public string FilterQuery
+        {
+            get => _filterQuery;
+            set
+            {
+                // Update value
+                _filterQuery = value;
+
+                // Refresh product collection view
+                _productsView.Refresh();
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -49,11 +77,6 @@ namespace PromoSeeker
         /// The command to open the <see cref="SettingsWindow"/>.
         /// </summary>
         public ICommand OpenSettingsWindowCommand { get; }
-
-        /// <summary>
-        /// Toggles a notification popup dialog visibility state.
-        /// </summary>
-        public ICommand ToggleNotificationsPopupCommand { get; }
 
         /// <summary>
         /// The command to shutdown the application.
@@ -114,10 +137,13 @@ namespace PromoSeeker
             OpenSettingsWindowCommand = new RelayCommand(DI.SettingsViewModel.Open);
             ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
             PopupClickawayCommand = new RelayCommand(PopupClickaway);
-            ToggleNotificationsPopupCommand = new RelayCommand(DI.Application.ToggleNotifications);
             StopTrackingAllCommand = new RelayCommand(async () => await StopTrackingAllAsync());
 
             #endregion
+
+            // Create collection filter for products
+            _productsView = CollectionViewSource.GetDefaultView(DI.Application.Products);
+            _productsView.Filter = ProductsFilter;
         }
 
         #endregion
@@ -143,6 +169,33 @@ namespace PromoSeeker
                 // Stop tracking
                 await product.StopTrackingAsync();
             }
+        }
+
+        /// <summary>
+        /// Filters the displayed products in the products collection.
+        /// </summary>
+        /// <param name="obj">The currently filtered object.</param>
+        /// <returns><see langword="true"/> if product passes the current <see cref="FilterQuery"/> input, otherwise <see langword="false"/>.</returns>
+        private bool ProductsFilter(object obj)
+        {
+            // If query is empty...
+            if (string.IsNullOrEmpty(FilterQuery))
+            {
+                // Object is valid
+                return true;
+            }
+
+            // If input is not a product...
+            if (!(obj is ProductViewModel product))
+            {
+                // Object is invalid
+                return false;
+            }
+
+            // Return whether name, price or host contains the query
+            return product.Name.ContainsEx(FilterQuery) ||
+                    product.DisplayPrice.Contains(FilterQuery) ||
+                    product.Url.Host.ContainsEx(FilterQuery);
         }
 
         #endregion

@@ -58,9 +58,5 @@ namespace PromoSeeker
                 }
             }
         }
-
-        private void ScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-        }
     }
 }

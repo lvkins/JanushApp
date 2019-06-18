@@ -31,6 +31,11 @@ namespace PromoSeeker.Core
         public const int LOGS_LIMIT = 100;
 
         /// <summary>
+        /// The maximum amount of the notifications to maintain.
+        /// </summary>
+        public const int NOTIFICATION_MAX_COUNT = 50;
+
+        /// <summary>
         /// The default time interval, product will updated within.
         /// </summary>
         public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(60);
