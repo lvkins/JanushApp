@@ -438,7 +438,7 @@ namespace PromoSeeker
                 // Toggle value
                 ShowOptionsPopupMenu = !ShowOptionsPopupMenu;
             });
-            StartTrackingCommand = new RelayCommand(StartTrackingAsync);
+            StartTrackingCommand = new RelayCommand(async () => await StartTrackingAsync());
             StopTrackingCommand = new RelayCommand(async () => await StopTrackingAsync());
             ShowDetailsPageCommand = new RelayCommand(ShowDetailsPage);
             HideDetailsPageCommand = new RelayCommand(HideDetailsPage);
@@ -532,7 +532,7 @@ namespace PromoSeeker
         /// <summary>
         /// Starts the tracking task for this product.
         /// </summary>
-        public async void StartTrackingAsync()
+        public Task StartTrackingAsync()
         {
             // Close options popup
             ShowOptionsPopupMenu = false;
@@ -540,9 +540,26 @@ namespace PromoSeeker
             // Flag as tracked
             Tracked = true;
 
-            // Start tracking tasks
-            await Product.TrackAsync(CoreDI.SettingsReader.Settings.UpdateInterval,
-                CoreDI.SettingsReader.Settings.RandomizeInterval);
+            // Create task completion
+            var tcs = new TaskCompletionSource<bool>();
+
+            try
+            {
+                // Run and forget product tracking
+                _ = Product.TrackAsync(CoreDI.SettingsReader.Settings.UpdateInterval,
+                    CoreDI.SettingsReader.Settings.RandomizeInterval);
+            }
+            finally
+            {
+                // Flag we finished
+                tcs.SetResult(true);
+            }
+
+            // Update status
+            OnPropertyChanged(nameof(TrackingStatus));
+
+            // Return task
+            return tcs.Task;
         }
 
         /// <summary>
@@ -635,7 +652,7 @@ namespace PromoSeeker
                 DI.NotificationsViewModel.Add(new NotificationItemViewModel
                 {
                     Type = NotificationSubjectType.NameChange,
-                    Message = string.Format(Strings.NotificationNameChanged, Product.Name),
+                    Message = string.Format(Strings.NotificationNameChanged, OriginalName, Product.Name),
                     Product = this,
                 }, popToast: Settings.NotifyNameChange);
 
@@ -672,9 +689,9 @@ namespace PromoSeeker
                     Type = Product.PriceInfo.Value > PriceCurrent ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
                     Message = Product.PriceInfo.Value > PriceCurrent
                         // If new price is higher than current price...
-                        ? string.Format(Strings.NotificationPriceIncrease, Product.PriceInfo.CurrencyAmount)
+                        ? string.Format(Strings.NotificationPriceIncrease, DisplayPrice, Product.PriceInfo.CurrencyAmount)
                         // If new price is lower than current price...
-                        : string.Format(Strings.NotificationPriceDecrease, Product.PriceInfo.CurrencyAmount),
+                        : string.Format(Strings.NotificationPriceDecrease, DisplayPrice, Product.PriceInfo.CurrencyAmount),
                     Product = this,
                 }, popToast: Settings.NotifyPriceChange);
 

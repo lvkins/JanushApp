@@ -169,6 +169,9 @@ namespace PromoSeeker
                 // Stop tracking
                 await product.StopTrackingAsync();
             }
+
+            // Save state
+            DI.Application.Save();
         }
 
         /// <summary>

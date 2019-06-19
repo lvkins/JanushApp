@@ -199,8 +199,8 @@ namespace PromoSeeker
             var lastNotification = CoreDI.SettingsReader.Settings.RecentNotifications.FirstOrDefault();
 
             // If notifications are not equal...
-            if (lastNotification != null &&
-                !lastNotification.Message.Equals(notificationItem.Message, StringComparison.OrdinalIgnoreCase) &&
+            if (lastNotification == null ||
+                !lastNotification.Message.Equals(notificationItem.Message, StringComparison.OrdinalIgnoreCase) ||
                 lastNotification.Type != notificationItem.Type)
             {
                 // Put into the collection using UI thread
@@ -210,7 +210,7 @@ namespace PromoSeeker
                 OnPropertyChanged(nameof(Items));
 
                 // Add to local store
-                CoreDI.SettingsReader.Settings.RecentNotifications.Add(new NotificationDataModel
+                CoreDI.SettingsReader.Settings.RecentNotifications.Insert(0, new NotificationDataModel
                 {
                     Title = notificationItem.Title,
                     Type = notificationItem.Type,

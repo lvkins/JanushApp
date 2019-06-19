@@ -178,8 +178,7 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Product name has changed!
-        ///New product name: {0}.
+        ///   Looks up a localized string similar to Product name has changed from „{0}” to „{1}”..
         /// </summary>
         public static string NotificationNameChanged {
             get {
@@ -188,8 +187,7 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ohh... price has decreased!
-        ///New price: {0}.
+        ///   Looks up a localized string similar to Neat! Price has decreased from {0} to {1}!.
         /// </summary>
         public static string NotificationPriceDecrease {
             get {
@@ -198,8 +196,7 @@ namespace PromoSeeker.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aww... price has increased!
-        ///New price: {0}.
+        ///   Looks up a localized string similar to Oh no! Price has increased from {0} to {1}..
         /// </summary>
         public static string NotificationPriceIncrease {
             get {

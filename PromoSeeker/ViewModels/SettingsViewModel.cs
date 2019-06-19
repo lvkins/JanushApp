@@ -258,7 +258,7 @@ namespace PromoSeeker
                         await product.StopTrackingAsync();
 
                         // Start tracking
-                        product.StartTrackingAsync();
+                        await product.StartTrackingAsync();
                     });
             }
         }
