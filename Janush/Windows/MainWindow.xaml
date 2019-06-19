@@ -1,0 +1,409 @@
+﻿<Window
+    x:Class="Janush.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="clr-namespace:Janush.Core;assembly=Janush.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Janush"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="MainWindowElement"
+    Title="{x:Static core:Consts.APP_TITLE}"
+    Width="{Binding WindowWidth, FallbackValue=500}"
+    Height="{Binding WindowHeight, FallbackValue=450}"
+    Icon="../Assets/Application.ico"
+    ShowInTaskbar="False"
+    WindowStyle="None"
+    mc:Ignorable="d">
+    <!--  d:DataContext="{x:Static local:WindowDesignModel.Instance}"  -->
+
+    <!--<WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="27" CornerRadius="0" />
+    </WindowChrome.WindowChrome>-->
+
+    <!--  Keyboard shortcuts  -->
+    <Window.InputBindings>
+        <!--  Open settings window shortcut  -->
+        <KeyBinding
+            Key="O"
+            Command="{Binding OpenSettingsWindowCommand}"
+            Modifiers="Ctrl" />
+    </Window.InputBindings>
+
+    <Border
+        x:Name="RootBorder"
+        BorderBrush="{StaticResource AppBlueBrush}"
+        BorderThickness="1">
+
+        <Grid>
+
+            <!--  Notifications overlay dialog  -->
+            <local:NotificationsControl
+                MaxHeight="300"
+                Margin="0,24,1.5,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Panel.ZIndex="1"
+                DataContext="{Binding Source={x:Static local:ViewModelLocator.NotificationsViewModel}}"
+                Visibility="{Binding NotificationsPopupVisible, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+
+            <Grid>
+
+                <Grid.RowDefinitions>
+                    <!--  Titlebar  -->
+                    <RowDefinition Height="{Binding CaptionHeight, FallbackValue=27}" />
+
+                    <!--  Drop shadow border  -->
+                    <RowDefinition Height="Auto" />
+
+                    <!--  Panes & filter input  -->
+                    <RowDefinition Height="Auto" />
+
+                    <!--  Window content  -->
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--  Clickaway area overlay for popups  -->
+                <Border
+                    Grid.Row="1"
+                    Grid.RowSpan="3"
+                    Panel.ZIndex="1"
+                    Background="Transparent"
+                    Visibility="{Binding AnyPopupVisible, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                    <Border.InputBindings>
+                        <MouseBinding Command="{Binding PopupClickawayCommand}" MouseAction="LeftClick" />
+                    </Border.InputBindings>
+                </Border>
+
+                <!--  Titlebar  -->
+                <Grid Grid.Row="0" Background="{StaticResource BackgroundLighterBrush}">
+
+                    <Grid.Resources>
+                        <!--  The horizontal titlebar separator between buttons  -->
+                        <Style x:Key="TitleBarSeparator" TargetType="{x:Type Border}">
+                            <Setter Property="Width" Value="1" />
+                            <Setter Property="Height" Value="Auto" />
+                            <Setter Property="BorderThickness" Value="0.5" />
+
+                            <Setter Property="BorderBrush">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Offset="0.0" Color="{StaticResource BackgroundLighter}" />
+                                        <GradientStop Offset="0.5" Color="{StaticResource BackgroundLight}" />
+                                        <GradientStop Offset="1.0" Color="{StaticResource BackgroundLighter}" />
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Grid.Resources>
+
+                    <Grid.ColumnDefinitions>
+                        <!--  Icon  -->
+                        <ColumnDefinition Width="Auto" />
+
+                        <!--  Title  -->
+                        <ColumnDefinition Width="*" />
+
+                        <!--  Buttons  -->
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Icon  -->
+                    <Button
+                        Grid.Column="0"
+                        Padding="4"
+                        Style="{StaticResource Styleless}">
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="{Binding Icon, ElementName=MainWindowElement}" />
+                    </Button>
+
+                    <!--  Title  -->
+                    <Viewbox
+                        Grid.Column="1"
+                        Margin="5"
+                        HorizontalAlignment="Left">
+                        <TextBlock Text="{x:Static core:Consts.APP_TITLE}" />
+                    </Viewbox>
+
+                    <!--  Buttons  -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+
+                        <!--  Add button  -->
+                        <Button
+                            Command="{Binding OpenAddProductWindowCommand}"
+                            Content="{StaticResource Vector.Plus}"
+                            Style="{StaticResource WindowControl}"
+                            ToolTip="Add" />
+
+                        <!--  Separator  -->
+                        <Border Style="{StaticResource TitleBarSeparator}" />
+
+                        <!--  Notifications button  -->
+                        <Grid>
+                            <ToggleButton
+                                Padding="5"
+                                Command="{Binding ToggleCommand, Source={x:Static local:ViewModelLocator.NotificationsViewModel}}"
+                                Content="{StaticResource Vector.Bell}"
+                                IsChecked="{Binding NotificationsPopupVisible, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Mode=OneWay}"
+                                Style="{StaticResource WindowControlToggle}"
+                                ToolTip="Recent notifications" />
+
+                            <!--  New notifications indicator  -->
+                            <Ellipse
+                                Width="6"
+                                Height="6"
+                                Margin="6"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Fill="{StaticResource AppRedBrush}"
+                                Visibility="{Binding New, FallbackValue=Collapsed, Source={x:Static local:ViewModelLocator.NotificationsViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}" />
+                        </Grid>
+
+                        <!--  Separator  -->
+                        <Border Style="{StaticResource TitleBarSeparator}" />
+
+                        <!--  Settings button  -->
+                        <ToggleButton
+                            x:Name="SettingsButton"
+                            Click="SettingsButton_Click"
+                            Content="{StaticResource Vector.Cog}"
+                            ContextMenuService.IsEnabled="False"
+                            ContextMenuService.Placement="Bottom"
+                            Style="{StaticResource WindowControlToggle}"
+                            ToolTip="Settings">
+                            <ToggleButton.ContextMenu>
+                                <ContextMenu
+                                    x:Name="SettingsContextMenu"
+                                    Background="{StaticResource BackgroundLighterBrush}"
+                                    Closed="SettingsContextMenu_Closed">
+
+                                    <!--  Stop tracking  -->
+                                    <MenuItem Command="{Binding StopTrackingAllCommand}" Header="Stop all products tracking" />
+
+                                    <!--  Settings  -->
+                                    <MenuItem
+                                        Command="{Binding OpenSettingsWindowCommand}"
+                                        Header="Options"
+                                        InputGestureText="Ctrl+O" />
+
+                                    <!--  Separator  -->
+                                    <Separator Background="{StaticResource BackgroundMainBrush}" />
+
+                                    <!--  Exit  -->
+                                    <MenuItem Command="{Binding ShutdownCommand}" Header="Exit" />
+
+                                </ContextMenu>
+                            </ToggleButton.ContextMenu>
+
+                        </ToggleButton>
+
+                    </StackPanel>
+                </Grid>
+
+                <!--  Title bar drop shadow border  -->
+                <Border
+                    Grid.Row="1"
+                    BorderThickness="0,0.6,0,0"
+                    SnapsToDevicePixels="True">
+
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Offset="0.0" Color="{StaticResource BackgroundLighter}" />
+                            <GradientStop Offset="0.5" Color="{StaticResource ForegroundDark}" />
+                            <GradientStop Offset="1.0" Color="{StaticResource BackgroundLighter}" />
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+
+                </Border>
+
+                <StackPanel Grid.Row="2">
+                    <!--  Top seller pane  -->
+                    <Border
+                        Padding="5"
+                        Background="{StaticResource SubjectEvenBrush}"
+                        BorderBrush="{StaticResource SubjectOddBrush}"
+                        BorderThickness="0,0,0,0.6"
+                        DataContext="{Binding Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                        Visibility="{Binding TopSeller, Converter={local:NullToVisibilityConverter}}">
+
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource FontSizeSmall}"
+                            Foreground="{StaticResource SubjectOddBrush}"
+                            TextAlignment="Justify">
+
+                            <Run Text="Top seller:" />
+                            <Hyperlink
+                                Command="{Binding TopSeller.NavigateCommand}"
+                                Foreground="{StaticResource SubjectOddBrush}"
+                                ToolTip="Navigate to the seller website">
+                                <TextBlock FontWeight="SemiBold" Text="{Binding TopSeller.Url.Host, Mode=OneWay}" />
+                            </Hyperlink>
+                            <Run Text="(" /><Run FontWeight="SemiBold" Text="{Binding TopSeller.ProductCount, Mode=OneWay}" />
+                            <Run Text="products," />
+                            <Run FontWeight="SemiBold" Text="{Binding TopSeller.SaleCount, Mode=OneWay}" />
+                            <Run Text="sales in total" /><Run Text=")" />
+
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="2"
+                                    Direction="360"
+                                    Opacity="0.55"
+                                    ShadowDepth="0"
+                                    Color="White" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+
+                    </Border>
+
+                    <!--  Filter query input  -->
+                    <Grid>
+                        <!--  Icon  -->
+                        <Border
+                            Width="14"
+                            Height="14"
+                            Margin="7"
+                            HorizontalAlignment="Left"
+                            Panel.ZIndex="5">
+                            <Border.Background>
+                                <VisualBrush Opacity=".6" Visual="{StaticResource Vector.Search}" />
+                            </Border.Background>
+                        </Border>
+
+                        <!--  Input  -->
+                        <TextBox
+                            Margin="5"
+                            Padding="17,1,1,1"
+                            Tag="Filter by product name, domain or it's price..."
+                            Text="{Binding FilterQuery, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+
+                <!--  Window content  -->
+                <Border Grid.Row="3" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+
+                    <ListBox
+                        x:Name="ProductList"
+                        Margin="0"
+                        Padding="-1"
+                        HorizontalContentAlignment="Stretch"
+                        local:DelayedDeselectAttachedProperty.Value="True"
+                        local:ScrollToSelectedAttachedProperty.Value="True"
+                        Background="{x:Null}"
+                        BorderBrush="{x:Null}"
+                        BorderThickness="0"
+                        DataContext="{Binding Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                        ItemsSource="{Binding Products, FallbackValue=12345678}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        SelectedItem="{Binding SelectedProduct}">
+
+                        <!--  Get rid of the container style  -->
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}">
+                                <!--  Bind IsSelected behavior to the bound item property  -->
+                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <Setter Property="Focusable" Value="False" />
+
+                                <!--  Override the template to get rid of useless stuff, like effects and so on  -->
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                            <!--  Simply display the content item template  -->
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+
+                        <!--  Declare list item template  -->
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <local:ProductListItemCondensed />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
+
+                </Border>
+
+                <!--  No products content  -->
+                <Border Grid.Row="2" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}}">
+
+                    <!--  Background  -->
+                    <Border.Background>
+                        <VisualBrush
+                            Opacity=".08"
+                            Stretch="UniformToFill"
+                            Viewbox="-0.3,0.04,0.8,1.0"
+                            Visual="{StaticResource Vector.Janusz}" />
+                    </Border.Background>
+
+                    <!--  Action block  -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                        <!--  No products text  -->
+                        <TextBlock
+                            Opacity=".4"
+                            Style="{StaticResource HeaderText}"
+                            TextAlignment="Center">
+                            <Run Text="No products added yet." />
+                            <LineBreak />
+                            <Run Text="Go add some!" />
+                        </TextBlock>
+
+                        <!--  Add product button  -->
+                        <Button Command="{Binding OpenAddProductWindowCommand}" Content="Add your first product">
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="{x:Type Button}">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BackgroundLighterBrush}" />
+                                            <Setter Property="Background" Value="{StaticResource AppNavyBlueBrush}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                    </StackPanel>
+
+                </Border>
+
+                <!--  Product details page  -->
+                <local:ProductDetailsPageControl
+                    Grid.Row="2"
+                    Grid.RowSpan="2"
+                    DataContext="{Binding CurrentProductDetails, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                    Visibility="{Binding ProductDetailsPageVisible, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
+
+                    <local:ProductDetailsPageControl.Style>
+                        <!--  Fade in animation  -->
+                        <Style TargetType="{x:Type local:ProductDetailsPageControl}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                            <Style.Triggers>
+                                <Trigger Property="Visibility" Value="Visible">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0.0"
+                                                    To="1.0"
+                                                    Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </local:ProductDetailsPageControl.Style>
+
+                </local:ProductDetailsPageControl>
+            </Grid>
+
+        </Grid>
+
+    </Border>
+
+</Window>

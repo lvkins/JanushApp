@@ -1,0 +1,263 @@
+﻿<UserControl
+    x:Class="Janush.ProductDetailsPageControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:gl="clr-namespace:System.Globalization;assembly=mscorlib"
+    xmlns:lc="clr-namespace:Janush.Core.Localization;assembly=Janush.Core"
+    xmlns:local="clr-namespace:Janush"
+    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{x:Static local:ProductDesignModel.Instance}"
+    d:DesignWidth="380"
+    mc:Ignorable="d">
+
+    <Grid>
+
+        <!--  Dimmable overlay  -->
+        <Border Background="{StaticResource ForegroundVeryDarkBrush}" Opacity=".5" />
+
+        <!--  Overlay content  -->
+        <Border Margin="15">
+
+            <Grid>
+
+                <!--  Head -> Content  -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--  Head  -->
+                <Grid Grid.Row="0" VerticalAlignment="Center">
+
+                    <!--  Opaque background  -->
+                    <Grid.Background>
+                        <SolidColorBrush Opacity=".9" Color="{StaticResource BackgroundLighter}" />
+                    </Grid.Background>
+
+                    <!--  Button -> Header  -->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Back button  -->
+                    <Button
+                        x:Name="BackButton"
+                        Grid.Column="0"
+                        Margin="5"
+                        Command="{Binding HideDetailsPageCommand}"
+                        ToolTip="Go back">
+
+                        <Viewbox Height="20">
+                            <!--  Left chevron  -->
+                            <Path Data="M845.000,0.000 C855.519,3.414 925.865,75.838 935.000,88.000 C935.000,88.667 935.000,89.333 935.000,90.000 C682.692,342.975 430.308,596.025 178.000,849.000 C243.660,914.660 309.340,980.340 375.000,1046.000 C561.648,1233.648 748.352,1421.352 935.000,1609.000 C935.000,1609.667 935.000,1610.333 935.000,1611.000 C905.670,1639.997 876.330,1669.003 847.000,1698.000 C846.333,1698.000 845.667,1698.000 845.000,1698.000 C628.355,1480.688 411.645,1263.312 195.000,1046.000 C130.007,980.673 64.994,915.327 0.000,850.000 C8.333,841.334 16.667,832.666 25.000,824.000 C298.306,549.361 571.694,274.639 845.000,0.000 Z" />
+                        </Viewbox>
+
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource Styleless}" TargetType="Button">
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundVeryDarkBrush}" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource AppDarkBlueBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!--  Product name  -->
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="5"
+                        FontSize="{StaticResource FontSizeMedium}"
+                        Style="{StaticResource HeaderText}"
+                        Text="{Binding Name}"
+                        TextTrimming="CharacterEllipsis" />
+                </Grid>
+
+                <!--  Scrollable Content  -->
+                <ScrollViewer
+                    Grid.Row="1"
+                    Background="{StaticResource BackgroundLighterBrush}"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+
+                    <!--  Product data  -->
+                    <StackPanel Margin="10">
+                        <StackPanel.Resources>
+                            <!--  Grid descendants style  -->
+                            <Style TargetType="{x:Type Grid}">
+                                <Setter Property="Margin" Value="0,5" />
+                                <Setter Property="Height" Value="30" />
+                            </Style>
+
+                            <!--  TextBlock descendants style  -->
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                            </Style>
+
+                            <!--  The label column size  -->
+                            <GridLength x:Key="TableColumnWidth">.5*</GridLength>
+                        </StackPanel.Resources>
+
+                        <!--  Price changes chart  -->
+                        <TextBlock
+                            Margin="0,5"
+                            FontSize="{StaticResource FontSizeLarge}"
+                            Style="{StaticResource HeaderTextBlockStyle}"
+                            Text="Price changes" />
+
+                        <Grid Height="250">
+                            <lvc:CartesianChart Series="{Binding SeriesViews}">
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis Title="{x:Static lc:Strings.Price}" LabelFormatter="{Binding MoneyFormatter, Mode=OneWay}" />
+                                </lvc:CartesianChart.AxisY>
+
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis Title="{x:Static lc:Strings.Date}" Labels="{Binding Labels}" />
+                                </lvc:CartesianChart.AxisX>
+                            </lvc:CartesianChart>
+                        </Grid>
+
+                        <!--  Details head  -->
+                        <TextBlock
+                            Margin="0,5"
+                            FontSize="{StaticResource FontSizeLarge}"
+                            Style="{StaticResource HeaderTextBlockStyle}"
+                            Text="Details" />
+
+                        <!--  Display name  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Display name:" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name, FallbackValue=Name}" />
+                        </Grid>
+
+                        <!--  Original name  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Original name:" />
+                            <TextBlock Grid.Column="1" Text="{Binding OriginalName, FallbackValue=Original Name}" />
+                        </Grid>
+
+                        <!--  Current price  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Current price:" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayPrice}" />
+                        </Grid>
+
+                        <!--  Currency  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Currency:" />
+                            <TextBlock Grid.Column="1">
+                                <Run Text="{Binding CultureRegion.CurrencyNativeName, Mode=OneWay}" />
+                                <Run Text="(" /><Run Text="{Binding CultureRegion.ISOCurrencySymbol, Mode=OneWay}" /><Run Text=")" />
+                            </TextBlock>
+                        </Grid>
+
+                        <!--  Site URL  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Site:" />
+                            <TextBlock Grid.Column="1" Text="{Binding Url.Host, FallbackValue=example.com}" />
+                        </Grid>
+
+                        <!--  Last check  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Last check:" />
+                            <TextBlock Grid.Column="1" Text="{Binding LastCheck, StringFormat=f, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
+                        </Grid>
+
+                        <!--  Date added  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Tracking since:" />
+                            <TextBlock Grid.Column="1" Text="{Binding DateAdded, StringFormat=f, ConverterCulture={x:Static gl:CultureInfo.CurrentUICulture}}" />
+                        </Grid>
+
+                        <!--  Highest price  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Highest price recorded:" />
+                            <TextBlock Grid.Column="1">
+                                <Run Text="{Binding HighestPrice.Key, Mode=OneWay}" />
+                                <Run Text="at" />
+                                <Run Text="{Binding HighestPrice.Value, Mode=OneWay}" />
+                            </TextBlock>
+                        </Grid>
+
+                        <!--  Lowest price  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Lowest price recorded:" />
+                            <TextBlock Grid.Column="1">
+                                <Run Text="{Binding LowestPrice.Key, Mode=OneWay}" />
+                                <Run Text="at" />
+                                <Run Text="{Binding LowestPrice.Value, Mode=OneWay}" />
+                            </TextBlock>
+                        </Grid>
+
+                        <!--  Total price changes  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Total price changes recorded:" />
+                            <TextBlock Grid.Column="1" Text="{Binding PriceHistory.Count, FallbackValue=0}" />
+                        </Grid>
+
+                    </StackPanel>
+
+                </ScrollViewer>
+
+            </Grid>
+
+        </Border>
+
+    </Grid>
+
+</UserControl>
