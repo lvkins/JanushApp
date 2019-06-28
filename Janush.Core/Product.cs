@@ -389,7 +389,7 @@ namespace Janush.Core
             }
 
             // Fix price format (separators) accordingly to the current culture
-            output = CurrencyHelpers.ReadPriceValue(input, Culture);
+            output = CurrencyHelpers.ReadPriceValue(result, Culture);
 
             // Return with the price valid info
             return output.Valid;

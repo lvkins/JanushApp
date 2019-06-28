@@ -11,15 +11,6 @@ namespace Janush.Core
     /// </summary>
     public sealed class WebLoader : IWebLoader
     {
-        #region Private Members
-
-        /// <summary>
-        /// A context instance for the requests.
-        /// </summary>
-        private readonly IBrowsingContext _context;
-
-        #endregion
-
         #region Public Properties
 
         /// <summary>
@@ -53,9 +44,6 @@ namespace Janush.Core
                 })
                 // Enable XPath queries in QuerySelector method (*[xpath>'//li[2]'])
                 .WithXPath();
-
-            // Create a browsing context
-            _context = BrowsingContext.New(Configuration);
         }
 
         #endregion
@@ -79,11 +67,14 @@ namespace Janush.Core
             // Hook into requested event to monitor a single request in the requester
             Requester.Requested += requesterCallback;
 
+            // Create a browsing context for the request
+            var context = BrowsingContext.New(Configuration);
+
             // Create the result
             var result = new WebLoaderResult
             {
                 Redirected = redirected,
-                Document = await _context.OpenAsync(url),
+                Document = await context.OpenAsync(url),
             };
 
             // Once loaded, release hook

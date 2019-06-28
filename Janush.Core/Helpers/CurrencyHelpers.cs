@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -206,6 +207,21 @@ namespace Janush.Core
 
                 // Price is valid if can be parsed as decimal in the specified culture
                 result.Valid = decimal.TryParse(input, NumberStyles.Any, culture, out var output);
+
+                // If input is not valid...
+                if (!result.Valid)
+                {
+                    // Probably input is not well formatted, lets test if the raw price that is without any symbols is correct
+                    result.Valid = decimal.TryParse(newPriceValue, NumberStyles.Any, culture, out output) &&
+                        FindCurrencySymbol(input, out var sym, out var _);
+
+                    // Leave a warning
+                    CoreDI.Logger.Warning($"Malformed price value detected, fixed? {result.Valid}");
+
+                    // Let developer validate the input, should have a well formatted input before reading price value
+                    Debugger.Break();
+                }
+
                 result.Decimal = output;
 
                 // If price considered valid and currency symbol is found in the input...
