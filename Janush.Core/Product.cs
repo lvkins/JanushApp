@@ -163,7 +163,7 @@ namespace Janush.Core
         public async Task<ProductLoadResult> OpenAsync()
         {
             // Loader result
-            WebLoaderResult result = default;
+            WebLoaderResult result = null;
 
             // Attempt to load HTML
             try
@@ -184,6 +184,19 @@ namespace Janush.Core
 
                 // Log details
                 CoreDI.Logger.Exception(e);
+
+                // Continue execution
+            }
+
+            // If failed to load...
+            if (result == null)
+            {
+                // Return failure
+                return new ProductLoadResult
+                {
+                    Success = false,
+                    Error = ProductLoadResultErrorType.NoResponse
+                };
             }
 
             // If document is not loaded properly...

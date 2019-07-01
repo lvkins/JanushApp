@@ -209,6 +209,11 @@ namespace Janush.Core
                 result.Valid = decimal.TryParse(input, NumberStyles.Any, culture, out var output);
 
                 // If input is not valid...
+                /*
+                 * Removed: we shouldn't attempt to 'fix' it anyhow.
+                 * This method is supposed to get price from previously well-formatted string
+                 * if it's not then we should just return it's not valid, otherwise we will fall 
+                 * here every time we add a product and scan hundreds of inputs for a price.
                 if (!result.Valid)
                 {
                     // Probably input is not well formatted, lets test if the raw price that is without any symbols is correct
@@ -221,6 +226,7 @@ namespace Janush.Core
                     // Let developer validate the input, should have a well formatted input before reading price value
                     Debugger.Break();
                 }
+                */
 
                 result.Decimal = output;
 
