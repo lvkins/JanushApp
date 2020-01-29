@@ -11,10 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.12.0" />
-    <PackageReference Include="AngleSharp.XPath" Version="1.1.2" />
+    <PackageReference Include="AngleSharp" Version="0.13.0" />
+    <PackageReference Include="AngleSharp.Js" Version="0.13.0" />
+    <PackageReference Include="AngleSharp.XPath" Version="1.1.6" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
