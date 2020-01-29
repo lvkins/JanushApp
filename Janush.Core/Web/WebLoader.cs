@@ -43,11 +43,11 @@ namespace Janush.Core
                     IsResourceLoadingEnabled = false
                 })
                 // Enable XPath queries in QuerySelector method (*[xpath>'//li[2]'])
-                .WithXPath()
-                // Enable scripting engine to access additional utility extension methods
-                // eg. document.WaitUntilAvailable()
-                // TODO: wait for JS generated content
-                //.WithJs();
+                .WithXPath();
+            // Enable scripting engine to access additional utility extension methods
+            // eg. document.WaitUntilAvailable()
+            // TODO: wait for JS generated content
+            //.WithJs();
         }
 
         #endregion
