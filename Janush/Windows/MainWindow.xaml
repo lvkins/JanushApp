@@ -234,7 +234,7 @@
                             <Hyperlink
                                 Command="{Binding TopSeller.NavigateCommand}"
                                 Foreground="{StaticResource SubjectOddBrush}"
-                                ToolTip="Navigate to the seller website">
+                                ToolTip="Navigate to shop website">
                                 <TextBlock FontWeight="SemiBold" Text="{Binding TopSeller.Url.Host, Mode=OneWay}" />
                             </Hyperlink>
                             <Run Text="(" /><Run FontWeight="SemiBold" Text="{Binding TopSeller.ProductCount, Mode=OneWay}" />
@@ -242,14 +242,14 @@
                             <Run FontWeight="SemiBold" Text="{Binding TopSeller.SaleCount, Mode=OneWay}" />
                             <Run Text="sales in total" /><Run Text=")" />
 
-                            <TextBlock.Effect>
+                            <!--<TextBlock.Effect>
                                 <DropShadowEffect
                                     BlurRadius="2"
                                     Direction="360"
                                     Opacity="0.55"
                                     ShadowDepth="0"
                                     Color="White" />
-                            </TextBlock.Effect>
+                            </TextBlock.Effect>-->
                         </TextBlock>
 
                     </Border>

@@ -29,10 +29,10 @@
     <Color x:Key="ForegroundVeryDark">#000000</Color>
     <SolidColorBrush x:Key="ForegroundVeryDarkBrush" Color="{StaticResource ForegroundVeryDark}" />
 
-    <Color x:Key="SubjectOdd">#754c29</Color>
+    <Color x:Key="SubjectOdd">#fff</Color>
     <SolidColorBrush x:Key="SubjectOddBrush" Color="{StaticResource SubjectOdd}" />
 
-    <Color x:Key="SubjectEven">#c49a6c</Color>
+    <Color x:Key="SubjectEven">#05A</Color>
     <SolidColorBrush x:Key="SubjectEvenBrush" Color="{StaticResource SubjectEven}" />
 
     <!--  Specific colors  -->
