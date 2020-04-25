@@ -124,7 +124,7 @@ namespace Janush.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sorry, we were unable to detect a valid language for the product..
+        ///   Looks up a localized string similar to Sorry, we were unable to detect a valid language with provided URL..
         /// </summary>
         public static string ErrorProductLoadUnknownCulture {
             get {
@@ -133,7 +133,7 @@ namespace Janush.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sorry, we were unable to detect a valid name for the product..
+        ///   Looks up a localized string similar to Sorry, we were unable to detect a valid product name in the given URL..
         /// </summary>
         public static string ErrorProductLoadUnknownName {
             get {
@@ -142,7 +142,7 @@ namespace Janush.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sorry, we were unable to detect a valid price for the product..
+        ///   Looks up a localized string similar to Sorry, we were unable to detect a valid product price in the given URL..
         /// </summary>
         public static string ErrorProductLoadUnknownPrice {
             get {

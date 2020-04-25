@@ -200,11 +200,12 @@ namespace Janush.Core
             }
 
             // If document is not loaded properly...
-            if (string.IsNullOrWhiteSpace(_htmlDocument?.DocumentElement?.TextContent) ||
+            var docText = _htmlDocument?.DocumentElement?.TextContent;
+            if (string.IsNullOrWhiteSpace(docText) ||
                 !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
             {
                 // Leave a log message
-                CoreDI.Logger.Error($"Load unsuccessful > {_htmlDocument?.StatusCode}");
+                CoreDI.Logger.Error($"Load unsuccessful > [{docText?.Length}, {_htmlDocument?.StatusCode}]");
 
                 // Return failure result
                 return new ProductLoadResult
@@ -497,38 +498,33 @@ namespace Janush.Core
 
             // Last chance - not accurate - because website language doesn't necessarily mean currency.
             // Attempt to locate website culture in order to find which culture to use for price conversions etc.
-            foreach (var source in Consts.LANG_SOURCES)
+
+            // Get the document element
+            var docElem = (HtmlElement)_htmlDocument.DocumentElement;
+
+            // If document has language property, we're good to go,
+            // otherwise look for language definition in DOM elements
+            var langValue = !string.IsNullOrWhiteSpace(docElem.Language)
+                ? docElem.Language
+                : docElem.FindContentFromSource(Consts.LANG_SOURCES);
+
+            // If an attribute was found...
+            if (!string.IsNullOrWhiteSpace(langValue))
             {
-                // Select node by XPath expression
-                var node = _htmlDocument.QuerySelector(source.Key);
+                //Debug.WriteLine($"> Found language attribute ({result.Name}) -> [{result.Value}]");
 
-                // If node exists...
-                if (node != null)
+                // Check if such culture name can be found
+                var exists = CultureInfo.GetCultures(CultureTypes.AllCultures)
+                    .Any(_ => string.Equals(_.Name, langValue, StringComparison.OrdinalIgnoreCase));
+
+                // If exists...
+                if (exists)
                 {
-                    // Find any attribute
-                    var result = source.Value
-                        .Select(_ => new { Name = _, Value = node.GetAttribute(_) })
-                        .FirstOrDefault(_ => !string.IsNullOrWhiteSpace(_.Value));
+                    // Set website culture
+                    Culture = new CultureInfo(langValue);
 
-                    // If an attribute was found...
-                    if (result != null)
-                    {
-                        //Debug.WriteLine($"> Found language attribute ({result.Name}) -> [{result.Value}]");
-
-                        // Check if such culture name can be found
-                        var exists = CultureInfo.GetCultures(CultureTypes.AllCultures)
-                            .Any(_ => string.Equals(_.Name, result.Value, StringComparison.OrdinalIgnoreCase));
-
-                        // If exists...
-                        if (exists)
-                        {
-                            // Set website culture
-                            Culture = new CultureInfo(result.Value);
-
-                            // Success
-                            return true;
-                        }
-                    }
+                    // Success
+                    return true;
                 }
             }
 

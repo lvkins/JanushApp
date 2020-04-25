@@ -1,5 +1,4 @@
 ﻿using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using System;
 using System.Collections.Generic;
@@ -19,7 +18,7 @@ namespace Janush.Core
         /// <param name="sources">A dictionary of XPath queries along with the attribute names for value.</param>
         /// <param name="def">The default value.</param>
         /// <returns>The node content or attribute value if found, otherwise <paramref name="def"/> will be returned.</returns>
-        public static string FindContentFromSource(this IElement node, IDictionary<string, string> sources, string def = null)
+        public static string FindContentFromSource<T>(this IElement node, IDictionary<string, T> sources, string def = null)
         {
             // Iterate over the selectors
             foreach (var source in sources)
@@ -33,11 +32,19 @@ namespace Janush.Core
                     // The value to be returned
                     var value = result.TextContent;
 
-                    // If has an attribute we want and it's value is not empty...
-                    if (source.Value != null)
+                    // If we have single attribute to check...
+                    if (source.Value is string srcVal)
                     {
                         // Set the attribute value
-                        value = result.GetAttribute(source.Value);
+                        value = result.GetAttribute(srcVal);
+                    }
+                    else if (source.Value is string[] srcArrVal)
+                    {
+                        // We have array of attributes.
+                        // Find any existing attribute
+                        value = srcArrVal
+                            .Select(_ => node.GetAttribute(_))
+                            .FirstOrDefault(_ => !string.IsNullOrWhiteSpace(_));
                     }
 
                     // If we have the value...
