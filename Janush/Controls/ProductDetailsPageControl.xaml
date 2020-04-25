@@ -111,15 +111,22 @@
                             Text="Price changes" />
 
                         <Grid Height="250">
-                            <lvc:CartesianChart Series="{Binding SeriesViews}">
-                                <lvc:CartesianChart.AxisY>
-                                    <lvc:Axis Title="{x:Static lc:Strings.Price}" LabelFormatter="{Binding MoneyFormatter, Mode=OneWay}" />
-                                </lvc:CartesianChart.AxisY>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                                <lvc:CartesianChart
+                                    Zoom="X"
+                                    DisableAnimations="False"
+                                    Series="{Binding SeriesViews}">
+                                    <lvc:CartesianChart.AxisY>
+                                        <lvc:Axis Title="{x:Static lc:Strings.Price}" LabelFormatter="{Binding MoneyFormatter, Mode=OneWay}" />
+                                    </lvc:CartesianChart.AxisY>
 
-                                <lvc:CartesianChart.AxisX>
-                                    <lvc:Axis Title="{x:Static lc:Strings.Date}" Labels="{Binding Labels}" />
-                                </lvc:CartesianChart.AxisX>
-                            </lvc:CartesianChart>
+                                    <lvc:CartesianChart.AxisX>
+                                        <lvc:Axis
+                                            Title="{x:Static lc:Strings.Date}"
+                                            Labels="{Binding Labels}" />
+                                    </lvc:CartesianChart.AxisX>
+                                </lvc:CartesianChart>
+                            </ScrollViewer>
                         </Grid>
 
                         <!--  Details head  -->
