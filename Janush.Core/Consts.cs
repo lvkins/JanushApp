@@ -13,7 +13,7 @@ namespace Janush.Core
         /// <summary>
         /// The fake user agent to use for the HTTP requests.
         /// </summary>
-        public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36 OPR/58.0.3135.65";
+        public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36";
 
         /// <summary>
         /// The currency format specifier to be used across application;
@@ -89,7 +89,7 @@ namespace Janush.Core
         public static readonly IDictionary<string, string[]> LANG_SOURCES = new Dictionary<string, string[]>
         {
             // 'lang' attributes on the HTML tag
-            {"html", new string[] { "lang", "xml:lang" } },
+            {"//html", new string[] { "lang", "xml:lang" } },
             {"//meta[@http-equiv='Content-Language']", new string[] {"content"} }
         };
 

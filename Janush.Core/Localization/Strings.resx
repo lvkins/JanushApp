@@ -133,13 +133,13 @@
     <value>Sorry, we were unable to detect the product properties.</value>
   </data>
   <data name="ErrorProductLoadUnknownPrice" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid price for the product.</value>
+    <value>Sorry, we were unable to detect a valid product price in the given URL.</value>
   </data>
   <data name="ErrorProductLoadUnknownName" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid name for the product.</value>
+    <value>Sorry, we were unable to detect a valid product name in the given URL.</value>
   </data>
   <data name="ErrorProductLoadUnknownCulture" xml:space="preserve">
-    <value>Sorry, we were unable to detect a valid language for the product.</value>
+    <value>Sorry, we were unable to detect a valid language with provided URL.</value>
   </data>
   <data name="ErrorProductUpdateName" xml:space="preserve">
     <value>Unable to determine current product name.</value>
