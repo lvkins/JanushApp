@@ -438,7 +438,7 @@ namespace Janush
             // Create setting object
             var productSetting = new ProductDataModel
             {
-                Url = new Uri(Product.Url.Replace("://www.", "://")),
+                Url = new Uri(Product.Url),// new Uri(Product.Url.Replace("://www.", "://")),
                 Name = Product.Name,
                 DisplayName = DisplayName,
                 Price = Product.PriceInfo,
