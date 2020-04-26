@@ -705,12 +705,28 @@ namespace Janush.Core
             // Create compiled regex instance to find a product name in the document
             var ProductNameRegex = new Regex($@"\b{Regex.Escape(Name)}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-            // Create compiled regex instance to find the Javascript objects values in the document, where key contains either a 'price' or 'cost' word.
+            // Create compiled regex instance to find the Javascript/JSON objects values in the document, where key contains either a 'price' or 'cost' word.
             // Sample matches:
             //  ['myPrice' : 123.00,] -> 123.00
             //  ['productCost' : 1234,] -> 1234
             //  ["cost" : 100,] -> 100
-            var PricesInJavaScriptRegex = new Regex(@"\b[\""\']?(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\'\s]?\:[\""\'\s]?([\d\.\,\ ]+)[\""\']?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            // old regex:
+            //var PricesInJavaScriptRegex = new Regex(@"\b[\""\']?(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\'\s]?\:[\""\'\s]?([\d\.\,\ ]+)[\""\']?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            /*
+             * KEY:
+             * [\""\']{1,} must starting with at least one single/double quote
+             * (?:[\w\-]+)? can start with a word or a dash
+             * (?:price|cost) must include either price/cost word
+             * (?:[\w\-]+)? can end with a word or a dash
+             * [\""\']{1,} at least one single/double quote
+             * \s?:\s? a colon with conditional whitespace characters
+             * VALUE:
+             * [\""\']? starting with conditional single/double quote
+             * (\d{0,6}([\.\,]\d{1,2})?) a 0-6 length digit followed by conditional decimal point
+             * [\""\']? ending with conditional single/double quote
+             * (?=,|$) positive lookahead for termination with comma and end of line
+             */
+            var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // The maximum allowed number of depth between price and the product name price node
             var MaxNameNodeDistance = 7;
@@ -1021,7 +1037,7 @@ namespace Janush.Core
             }
 
             // Leave a log message
-            Debug.WriteLine("> Prices detected");
+            Debug.WriteLine($"> Prices detected ({DetectedPrices.Count})");
 
             // We have some prices, return true
             return true;

@@ -39,7 +39,7 @@ namespace Janush.Core
             .ToDictionary(_ => _.Name, _ => new CurrencySymbol { ISO = _.ISOSymbol, Default = _.Symbol });
 
         /// <summary>
-        /// The group and decimal separators that are permitted in the price value.
+        /// Decimal separators that are permitted in the price value.
         /// </summary>
         public static char[] PriceSeparators { get; } = new char[] { ',', '.', ' ' };
 
@@ -145,6 +145,13 @@ namespace Janush.Core
             // Trim any leading or trailing price separators as they shouldn't be there.
             input = input.Trim(PriceSeparators);
 
+            // Get rid of symbol indicating decimal following zeros (IKEA case)
+            // see: https://forum.wordreference.com/threads/a-price-of-%E2%82%AC40-meaning-of-comma-and-dash.2912569/
+            if (input.EndsWith(",-"))
+            {
+                input = input.Substring(0, input.Length - 2);
+            }
+
             // Convert the price to char array
             var priceArray = input.ToCharArray();
 
@@ -201,7 +208,7 @@ namespace Janush.Core
                 // If the price value was changed...
                 if (priceValue != newPriceValue)
                 {
-                    // Remove old price and insert a new one
+                    // Replace price in the input string
                     input = input.Remove(firstDigitId, (lastDigitId + 1) - firstDigitId).Insert(firstDigitId, newPriceValue);
                 }
 
