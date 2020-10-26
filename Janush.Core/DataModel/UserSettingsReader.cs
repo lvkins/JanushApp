@@ -27,11 +27,10 @@ namespace Janush.Core
         /// </summary>
         //private static readonly string BackupSettingsPath = Path.Combine(BackupDir, @"Settings.back");
 
-
         /// <summary>
         /// The number of days to keep the logs.
         /// </summary>
-        private static readonly int LogRotateInterval = 7;
+        private static readonly TimeSpan LogRotateInterval = TimeSpan.FromDays(7);
 
         /// <summary>
         /// The JSON serializer settings to be used to proceed the settings serialization.
@@ -133,13 +132,13 @@ namespace Janush.Core
                     File.Copy(SettingsPath, Path.Combine(BackupDir, $"Settings.{now.ToFileTime()}"), true);
 
                     // Cleanup logs
-                    if (LogRotateInterval > 0)
+                    if (LogRotateInterval.Seconds > 0)
                     {
                         foreach (var filePath in Directory.GetFiles(BackupDir))
                         {
                             // Get timespan
                             var dif = now - File.GetCreationTime(filePath);
-                            if (dif.Days >= LogRotateInterval)
+                            if (dif >= LogRotateInterval)
                             {
                                 CoreDI.Logger.Trace($"Log rotate: ${filePath}");
 
