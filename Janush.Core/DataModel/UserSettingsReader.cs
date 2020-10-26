@@ -18,9 +18,20 @@ namespace Janush.Core
         private static readonly string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, @"Settings.json");
 
         /// <summary>
+        /// The backup directory absolute path.
+        /// </summary>
+        private static readonly string BackupDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, "Backup");
+
+        /// <summary>
         /// The settings backup file path.
         /// </summary>
-        private static readonly string BackupSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Consts.APP_TITLE, @"Settings.back");
+        //private static readonly string BackupSettingsPath = Path.Combine(BackupDir, @"Settings.back");
+
+
+        /// <summary>
+        /// The number of days to keep the logs.
+        /// </summary>
+        private static readonly int LogRotateInterval = 7;
 
         /// <summary>
         /// The JSON serializer settings to be used to proceed the settings serialization.
@@ -52,7 +63,7 @@ namespace Janush.Core
         /// <summary>
         /// If a backup of the current settings file should be made before saving a new file.
         /// </summary>
-        public bool BackupSettings { get; set; } = true;
+        public bool BackupSettings { get; } = true;
 
         #endregion
 
@@ -112,7 +123,31 @@ namespace Janush.Core
                 // If backup should be made...
                 if (BackupSettings && File.Exists(SettingsPath))
                 {
-                    File.Copy(SettingsPath, BackupSettingsPath, true);
+                    // Ensure backup directory
+                    Directory.CreateDirectory(BackupDir);
+
+                    // Get current date
+                    var now = DateTime.Now;
+
+                    // Copy settings
+                    File.Copy(SettingsPath, Path.Combine(BackupDir, $"Settings.{now.ToFileTime()}"), true);
+
+                    // Cleanup logs
+                    if (LogRotateInterval > 0)
+                    {
+                        foreach (var filePath in Directory.GetFiles(BackupDir))
+                        {
+                            // Get timespan
+                            var dif = now - File.GetCreationTime(filePath);
+                            if (dif.Days >= LogRotateInterval)
+                            {
+                                CoreDI.Logger.Trace($"Log rotate: ${filePath}");
+
+                                // Remove backup file
+                                File.Delete(filePath);
+                            }
+                        }
+                    }
                 }
 
                 // Serialize user settings
