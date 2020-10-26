@@ -241,7 +241,7 @@ namespace Janush.Core.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occurred during tracking for this product..
+        ///   Looks up a localized string similar to Error: {0}.
         /// </summary>
         public static string TrackingStatusError {
             get {

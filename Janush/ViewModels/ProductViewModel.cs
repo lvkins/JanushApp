@@ -55,6 +55,11 @@ namespace Janush
         /// </summary>
         private bool _isSelected;
 
+        /// <summary>
+        /// The product tracking error, if any
+        /// </summary>
+        private string _error;
+
         #endregion
 
         #region Public Properties
@@ -246,16 +251,22 @@ namespace Janush
         {
             get
             {
-                // If product is updating...
-                if (CurrentlyUpdating)
-                {
-                    return ProductTrackingStatusType.Updating;
-                }
-
                 // If we are not tracking this product...
                 if (!Tracked)
                 {
                     return ProductTrackingStatusType.Disabled;
+                }
+
+                // If error...
+                if (!string.IsNullOrWhiteSpace(Error))
+                {
+                    return ProductTrackingStatusType.Error;
+                }
+
+                // If product is updating...
+                if (CurrentlyUpdating)
+                {
+                    return ProductTrackingStatusType.Updating;
                 }
 
                 // TODO: handle error
@@ -290,6 +301,24 @@ namespace Janush
         /// Whether the product instance is set and loaded.
         /// </summary>
         public bool IsLoaded => Product?.IsLoaded == true;
+
+        /// <summary>
+        /// The error for the product, if any.
+        /// </summary>
+        public string Error
+        {
+            get => _error;
+            private set
+            {
+
+                // Update value
+                _error = value;
+
+                // Raise property changed events
+                OnPropertyChanged(nameof(Error));
+                OnPropertyChanged(nameof(TrackingStatus));
+            }
+        }
 
         #region Charts
 
@@ -620,15 +649,22 @@ namespace Janush
             if (!result.Success)
             {
                 // Store error notification
-                DI.NotificationsViewModel.Add(new NotificationItemViewModel
-                {
-                    Product = this,
-                    Type = NotificationSubjectType.Warning,
-                    Message = result.Error
-                });
+                // NOTE: Removed as this caused notification flood. Instead, we now mark troublesome products in the list.
+                //DI.NotificationsViewModel.Add(new NotificationItemViewModel
+                //{
+                //    Product = this,
+                //    Type = NotificationSubjectType.Warning,
+                //    Message = result.Error
+                //});
+
+                // Update error message
+                Error = result.Error;
 
                 return;
             }
+
+            // Reset any previous error
+            Error = null;
 
             #region Record & Notify
 

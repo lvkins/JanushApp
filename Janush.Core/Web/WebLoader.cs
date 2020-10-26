@@ -2,6 +2,7 @@
 using AngleSharp.Dom;
 using AngleSharp.Io;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Janush.Core
@@ -40,14 +41,19 @@ namespace Janush.Core
                 .With(Requester)
                 .WithDefaultLoader(new LoaderOptions
                 {
-                    IsResourceLoadingEnabled = false
+                    IsResourceLoadingEnabled = false,
+                    //Filter = (d) =>
+                    //{
+                    //    return d.Address.Href.EndsWith(".html")
+                    //        || d.Address.Href.EndsWith(".js");
+                    //}
                 })
                 // Enable XPath queries in QuerySelector method (*[xpath>'//li[2]'])
                 .WithXPath();
+            // TODO: wait for JS generated content
             // Enable scripting engine to access additional utility extension methods
             // eg. document.WaitUntilAvailable()
-            // TODO: wait for JS generated content
-            //.WithJs();
+            // .WithJs();
         }
 
         #endregion
@@ -66,10 +72,7 @@ namespace Janush.Core
 
             // Prepare the requester callback
             DomEventHandler requesterCallback = (object s, AngleSharp.Dom.Events.Event e)
-                =>
-            {
-                Requester_Requested(e as AngleSharp.Dom.Events.RequestEvent, ref redirected);
-            };
+                => Requester_Requested(e as AngleSharp.Dom.Events.RequestEvent, ref redirected);
 
             // Hook into requested event to monitor a single request in the requester
             Requester.Requested += requesterCallback;
@@ -103,7 +106,7 @@ namespace Janush.Core
 
             // Wait until the document is ready
             await result.Document.WaitForReadyAsync();
-            //await result.Document.WaitUntilAvailable(); (TODO: wait for JS generated content)
+            //            await result.Document.WaitUntilAvailable();// (TODO: wait for JS generated content)
 
             // Return the document
             return result;

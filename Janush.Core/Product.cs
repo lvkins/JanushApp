@@ -301,7 +301,7 @@ namespace Janush.Core
                 // Create random object instance
                 var random = new Random();
 
-                // Do this until not interrupted by cancellation token
+                // Loop until not interrupted by cancellation token
                 while (true)
                 {
                     // The delay time
@@ -322,7 +322,7 @@ namespace Janush.Core
                     _trackingCancellation.Token.ThrowIfCancellationRequested();
 
                     // Update
-                    await UpdateAsync();
+                    var result = await UpdateAsync();
                 }
             }, _trackingCancellation.Token)
             // Handle faulted task

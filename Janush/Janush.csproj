@@ -140,6 +140,7 @@
     <Compile Include="UI\IUIManager.cs" />
     <Compile Include="UI\TrayIcon.cs" />
     <Compile Include="UI\UIManager.cs" />
+    <Compile Include="ValueConverters\BaseMultiValueConverter.cs" />
     <Compile Include="ValueConverters\BaseValueConverter.cs" />
     <Compile Include="ValueConverters\HumanRelativeTimeConverter.cs" />
     <Compile Include="ValueConverters\TrackingStatusToDisplayStringConverter.cs" />

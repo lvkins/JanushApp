@@ -116,7 +116,7 @@ namespace Janush.Core
             var path = string.Empty;
 
             // If the current node is having an unique id property
-            var hasId = false;
+            bool hasId;
 
             do
             {

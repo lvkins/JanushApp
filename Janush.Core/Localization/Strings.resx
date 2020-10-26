@@ -178,7 +178,7 @@
     <value>The fresh data for this product is currently being pulled.</value>
   </data>
   <data name="TrackingStatusError" xml:space="preserve">
-    <value>An error occurred during tracking for this product.</value>
+    <value>Error: {0}</value>
   </data>
   <data name="TrackingStatusDisabled" xml:space="preserve">
     <value>This product is disabled from tracking. To enable it, use product options.</value>

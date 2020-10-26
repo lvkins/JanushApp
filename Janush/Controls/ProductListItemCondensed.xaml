@@ -173,13 +173,16 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 SnapsToDevicePixels="True"
-                ToolTip="{Binding TrackingStatus, Converter={local:TrackingStatusToDisplayStringConverter}}"
                 UseLayoutRounding="True">
-
+                <Border.ToolTip>
+                    <MultiBinding Converter="{local:TrackingStatusToDisplayStringConverter}">
+                        <Binding Path="Error" />
+                        <Binding Path="TrackingStatus" />
+                    </MultiBinding>
+                </Border.ToolTip>
                 <Border.Background>
                     <VisualBrush Stretch="Uniform" Visual="{Binding TrackingStatus, Converter={local:TrackingStatusToVectorConverter}}" />
                 </Border.Background>
-
             </Border>
 
             <!--  Name / Summary  -->

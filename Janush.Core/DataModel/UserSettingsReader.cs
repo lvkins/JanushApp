@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Janush.Core
@@ -80,6 +81,9 @@ namespace Janush.Core
                 if (!File.Exists(SettingsPath) || (Settings = JsonConvert.DeserializeObject<UserSettings>(
                     File.ReadAllText(SettingsPath), JsonSerializerSettings)) == null)
                 {
+                    // Temp
+                    Debugger.Break();
+
                     // Use default
                     Settings = new UserSettings();
                     return;

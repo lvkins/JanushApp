@@ -1,18 +1,30 @@
-﻿using Janush.Core;
-using System;
+﻿using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
+using Janush.Core;
 
 namespace Janush
 {
     /// <summary>
-    /// A converter that takes in a <see cref="ProductTrackingStatusType"/> and returns a localized display string of it.
+    /// A converter that takes in a <see cref="ProductTrackingStatusType"/> and the error value, if any and readable product status.
     /// </summary>
-    public class TrackingStatusToDisplayStringConverter : BaseValueConverter<TrackingStatusToDisplayStringConverter>
+    public class TrackingStatusToDisplayStringConverter : BaseMultiValueConverter<TrackingStatusToDisplayStringConverter>
     {
-        public override object Convert(object value, Type targetType, object parameter, CultureInfo culture) => ((ProductTrackingStatusType)value).ToDisplayString();
+        public override object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            var status = (ProductTrackingStatusType)values[1];
 
-        public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
+            if (values[0] is string error && !string.IsNullOrWhiteSpace(error))
+            {
+                return string.Format(status.ToDisplayString(), error);
+            }
+
+            return status.ToDisplayString();
+        }
+
+        public override object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
