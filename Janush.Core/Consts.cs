@@ -96,6 +96,6 @@ namespace Janush.Core
         /// <summary>
         /// Parts of attribute names in the document which values can contain a product price.
         /// </summary>
-        public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "cost" };
+        public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "prize", "cost" };
     }
 }

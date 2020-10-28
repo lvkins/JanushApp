@@ -726,7 +726,7 @@ namespace Janush.Core
              * [\""\']? ending with conditional single/double quote
              * (?=,|$) positive lookahead for termination with comma and end of line
              */
-            var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost|prize)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // The maximum allowed number of depth between price and the product name price node
             var MaxNameNodeDistance = 7;
@@ -1129,12 +1129,13 @@ namespace Janush.Core
             #region Set Price
 
             // Select node
-            var node = _htmlDocument.Body.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
+            var node = _htmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
 
             // If node wasn't located in the DOM...
             if (node == null)
             {
                 // Return failure
+                result.Error = ProductLoadResultErrorType.ProductUnknownPrice;
                 result.Success = false;
                 return result;
             }
@@ -1316,6 +1317,7 @@ namespace Janush.Core
         public void Dispose()
         {
             _htmlDocument?.Dispose();
+            _htmlDocument = null;
         }
 
         #endregion

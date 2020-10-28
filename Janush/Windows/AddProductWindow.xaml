@@ -14,7 +14,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <TabControl>
+        <TabControl SelectedIndex="{Binding SelectedTabIndex, FallbackValue=0}">
             <!--  Add automatically tab  -->
             <TabItem Header="Automatic detection">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -43,19 +43,7 @@
                             </Border>
 
                             <!--  Submit button  -->
-                            <Button Command="{Binding AddAutoCommand}">
-                                <Button.Style>
-                                    <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="{x:Type Button}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsValid}" Value="False">
-                                                <DataTrigger.Setters>
-                                                    <Setter Property="IsEnabled" Value="False" />
-                                                </DataTrigger.Setters>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-
+                            <Button Command="{Binding AddAutoCommand}" IsEnabled="{Binding IsValid}">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                                         <Border
@@ -92,7 +80,10 @@
                                 <StackPanel>
                                     <TextBlock>Enter product URL</TextBlock>
 
-                                    <TextBox Tag="https://example.com/product-12345" Text="{Binding Url}" />
+                                    <TextBox
+                                        x:Name="ManProductURL"
+                                        Tag="https://example.com/product-12345"
+                                        Text="{Binding ManualUrl, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
 
                                     <TextBlock Style="{StaticResource HelpBlock}">The full product URL like it's displayed in the browser.</TextBlock>
                                 </StackPanel>
@@ -103,7 +94,10 @@
                                 <StackPanel>
                                     <TextBlock>Enter product name</TextBlock>
 
-                                    <TextBox Tag="Notebook ABC+" Text="{Binding Name}" />
+                                    <TextBox
+                                        x:Name="ManProductName"
+                                        Tag="Notebook ABC+"
+                                        Text="{Binding Name, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
 
                                     <TextBlock Style="{StaticResource HelpBlock}">The product name you will see on the list and in the notifications.</TextBlock>
                                 </StackPanel>
@@ -114,9 +108,12 @@
                                 <StackPanel>
                                     <TextBlock>Enter XPath or CSS path for the product price</TextBlock>
 
-                                    <TextBox Tag="head &gt; meta:nth-child(10)" Text="{Binding PriceSelector}" />
+                                    <TextBox
+                                        x:Name="ManProductPriceSelector"
+                                        Tag="head &gt; meta:nth-child(10)"
+                                        Text="{Binding PriceSelector, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" />
 
-                                    <TextBlock Style="{StaticResource HelpBlock}">Help us identify the price for you. Enter a current price product or specify a selector to the element that holds the price. We will take care of the rest.</TextBlock>
+                                    <TextBlock Style="{StaticResource HelpBlock}">Help Janush identify the price for you. Enter a current price product or specify a selector to the element that holds the price. Janush will take care of the rest.</TextBlock>
                                 </StackPanel>
                             </Border>
 
@@ -146,6 +143,18 @@
 
                             <!--  Submit button  -->
                             <Button Command="{Binding AddManuallyCommand}" IsDefault="True">
+                                <Button.Style>
+                                    <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="{x:Type Button}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsValid}" Value="False">
+                                                <DataTrigger.Setters>
+                                                    <Setter Property="IsEnabled" Value="False" />
+                                                </DataTrigger.Setters>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" Visibility="{Binding IsBusy, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                                         <Border

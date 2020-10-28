@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +24,11 @@ namespace Janush
         private string _url;
 
         /// <summary>
+        /// Product full URL.
+        /// </summary>
+        private string _manUrl;
+
+        /// <summary>
         /// If we are currently adding a product.
         /// </summary>
         private bool _isBusy;
@@ -32,9 +38,34 @@ namespace Janush
         /// </summary>
         private bool _stepTwoVisible;
 
+        /// <summary>
+        /// The currently selected add type option index.
+        /// </summary>
+        private int _selectedTabIndex;
+
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// The currently selected add type option index.
+        /// </summary>
+        public int SelectedTabIndex
+        {
+            get => _selectedTabIndex;
+            set
+            {
+                // Update value
+                _selectedTabIndex = value;
+
+                // Raise property changed events to re-validate fields
+                // affected by changing the tab
+                OnPropertyChanged(nameof(Url));
+                OnPropertyChanged(nameof(ManualUrl));
+                OnPropertyChanged(nameof(Name));
+                OnPropertyChanged(nameof(PriceSelector));
+            }
+        }
 
         /// <summary>
         /// The product detected name.
@@ -59,6 +90,22 @@ namespace Janush
 
                 // Raise property changed event
                 OnPropertyChanged(nameof(Url));
+            }
+        }
+
+        /// <summary>
+        /// The product URL.
+        /// </summary>
+        public string ManualUrl
+        {
+            get => _manUrl;
+            set
+            {
+                // Update value
+                _manUrl = value;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(ManualUrl));
             }
         }
 
@@ -141,7 +188,7 @@ namespace Janush
         public PriceInfo SelectedPrice { get; set; }
 
         /// <summary>
-        /// If the product has several prices detected.
+        /// If the product has several price sources detected.
         /// </summary>
         public bool HasSeveralPrices => Product?.DetectedPrices.Count > 1;
 
@@ -181,26 +228,28 @@ namespace Janush
 
         #region Validation
 
-        private bool _isValid;
+        private string _error = string.Empty;
 
         /// <summary>
         /// An error message indicating what is wrong with this object. The default is an
         /// empty string ("").
         /// </summary>
-        public string Error => this[null];
+        public string Error
+        {
+            get => _error;
+            private set
+            {
+                _error = value;
+                OnPropertyChanged(nameof(IsValid));
+            }
+        }
+
+        public Dictionary<string, string> Errors { get; } = new Dictionary<string, string>();
 
         /// <summary>
         /// Verifies whether all properties in the object are passing the validation.
         /// </summary>
-        public bool IsValid
-        {
-            get => _isValid;
-            set
-            {
-                _isValid = value;
-                OnPropertyChanged(nameof(IsValid));
-            }
-        }
+        public bool IsValid => !Errors.Any();
 
         /// <summary>
         /// Gets the error message for the property with the given name.
@@ -211,39 +260,66 @@ namespace Janush
         {
             get
             {
-                // Url validation
-                if (columnName == null || columnName == nameof(Url))
+                Debug.WriteLine($"validation {columnName} --- {Error}, {Errors.Count}");
+
+                // URL validation
+                if (columnName == nameof(Url) || columnName == nameof(ManualUrl))
                 {
-                    // If empty...
-                    if (string.IsNullOrWhiteSpace(Url))
+                    if (SelectedTabIndex != 0 && columnName == nameof(Url))
                     {
-                        IsValid = false;
-                        return "Please specify the URL.";
+                        Errors.Remove(columnName);
+                        return string.Empty;
+                    }
+                    else if (SelectedTabIndex != 1 && columnName == nameof(ManualUrl))
+                    {
+                        Errors.Remove(columnName);
+                        return string.Empty;
+                    }
+
+                    var urlProp = SelectedTabIndex == 0 ? Url : ManualUrl;
+
+                    // If empty...
+                    if (string.IsNullOrWhiteSpace(urlProp))
+                    {
+                        return Error = Errors[columnName] = "Please specify the URL.";
                     }
 
                     // Validate the URL
-                    var result = Uri.TryCreate(Url, UriKind.Absolute, out var uriResult)
+                    var result = Uri.TryCreate(urlProp, UriKind.Absolute, out var uriResult)
                         && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 
                     // If unable to parse URL...
                     if (!result)
                     {
-                        IsValid = false;
-                        return "This is not a valid URL";
+                        return Error = Errors[columnName] = "This is not a valid URL";
                     }
 
                     // If the product was already added...
-                    if (DI.Application.Products.Any(_ => _.Url.Equals(Url)))
+                    if (DI.Application.Products.Any(_ => _.Url.Equals(urlProp)))
                     {
-                        IsValid = false;
-                        return "This product has been already added to the tracker.";
+                        return Error = Errors[columnName] = "This product has been already added to the tracker.";
+                    }
+                }
+
+                // If selected "Add Manually" tab...
+                if (SelectedTabIndex == 1)
+                {
+                    if ((columnName == nameof(Name)) && string.IsNullOrWhiteSpace(Name))
+                    {
+                        return Error = Errors[columnName] = "Please specify the product name.";
+                    }
+                    if ((columnName == nameof(PriceSelector)) && string.IsNullOrWhiteSpace(PriceSelector))
+                    {
+                        return Error = Errors[columnName] = "Please fill in the price selector.";
                     }
                 }
 
                 // TODO: validate confirmation controls (ProductReviewControl)
 
-                IsValid = true;
-                return string.Empty;
+                Errors.Remove(columnName);
+                Error = string.Empty;
+
+                return Error;
             }
         }
 
@@ -338,6 +414,9 @@ namespace Janush
             // Otherwise...
             else
             {
+                // Cleanup
+                product.Dispose();
+
                 // Show error message to the user
                 _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
@@ -372,7 +451,7 @@ namespace Janush
             var product = new Product(new ProductDataModel
             {
                 Name = Name,
-                Url = new Uri(Url),
+                Url = new Uri(ManualUrl),
                 AutoDetect = false,
                 Culture = formatProvider,
                 Price = new PriceInfo(default, formatProvider)
@@ -399,6 +478,9 @@ namespace Janush
             // Otherwise...
             else
             {
+                // Cleanup
+                product.Dispose();
+
                 // Show error message to the user
                 _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
@@ -469,6 +551,7 @@ namespace Janush
             Product = null;
             Name = default;
             Url = default;
+            ManualUrl = default;
             PriceSelector = default;
             SelectedPrice = default;
             Status = default;
