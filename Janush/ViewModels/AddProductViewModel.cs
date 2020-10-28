@@ -260,8 +260,6 @@ namespace Janush
         {
             get
             {
-                Debug.WriteLine($"validation {columnName} --- {Error}, {Errors.Count}");
-
                 // URL validation
                 if (columnName == nameof(Url) || columnName == nameof(ManualUrl))
                 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Janush.Core
 {
@@ -97,5 +98,22 @@ namespace Janush.Core
         /// Parts of attribute names in the document which values can contain a product price.
         /// </summary>
         public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "prize", "cost" };
+
+        /// <summary>
+        /// The regex used to detected prices in JS code. Will match following:
+        /// KEY:
+        ///   [\""\']{1,} must starting with at least one single/double quote
+        ///   (?:[\w\-]+)? can start with a word or a dash
+        ///   (?:price|cost) must include either price/cost word
+        ///   (?:[\w\-]+)? can end with a word or a dash
+        ///   [\""\']{1,} at least one single/double quote
+        ///   \s?:\s? a colon with conditional whitespace characters
+        /// VALUE:
+        ///   [\""\']? starting with conditional single/double quote
+        ///   (\d{0,6}([\.\,]\d{1,2})?) a 0-6 length digit followed by conditional decimal point
+        ///  [\""\']? ending with conditional single/double quote
+        ///   (?=,|$) positive lookahead for termination with comma and end of line
+        /// </summary>
+        public static Regex PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}((?:[\w\-]+)?(?:price|cost|prize)(?:[\w\-]+)?)[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     }
 }

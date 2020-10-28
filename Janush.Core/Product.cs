@@ -726,7 +726,7 @@ namespace Janush.Core
              * [\""\']? ending with conditional single/double quote
              * (?=,|$) positive lookahead for termination with comma and end of line
              */
-            var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost|prize)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            //var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost|prize)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // The maximum allowed number of depth between price and the product name price node
             var MaxNameNodeDistance = 7;
@@ -759,19 +759,23 @@ namespace Janush.Core
             //
 
             // Extract price values in the Javascript objects declared in the document
-            var pricesInJavaScript = PricesInJavaScriptRegex
+            var pricesInJavaScript = Consts.PricesInJavaScriptRegex
                 .Matches(_htmlDocument.DocumentElement.TextContent)
                 .Cast<Match>()
-                .Select(m => new { IsPrice = ReadPrice(m.Groups[1].Value, out var price), Price = price })
+                .Select(m => new { Key = m.Groups[1].Value, IsPrice = ReadPrice(m.Groups[2].Value, out var price), Price = price })
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
-                .Select(_ => new
+                .Select(_ =>
                 {
-                    Node = default(IElement),
-                    PriceReadResult = _.Price,
-                    PriceInfo = new PriceInfo(_.Price.Decimal, Culture)
+                    return new
                     {
-                        Source = PriceSourceType.PriceSourceJavascript,
-                    }
+                        Node = default(IElement),
+                        PriceReadResult = _.Price,
+                        PriceInfo = new PriceInfo(_.Price.Decimal, Culture)
+                        {
+                            AttributeName = _.Key,
+                            Source = PriceSourceType.PriceSourceJavascript,
+                        }
+                    };
                 });
 
             // Get all document descendants
@@ -1005,7 +1009,7 @@ namespace Janush.Core
                 // currently not supported. Exclude groups having no node prices at all.
                 // (Comparing first element is enough, because of the previously
                 // sorted node-first elements)
-                .Where(_ => _.Source.First()?.Node != null)
+                //.Where(_ => _.Source.First()?.Node != null)
                 // Reduct to the first price in each group and create a selector for each price
                 .Select(_ =>
                 {
@@ -1246,56 +1250,105 @@ namespace Janush.Core
 
             #region Update Price
 
-            // Get latest product price
-            var priceNode = _htmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
-
-            // If node was selected successfully...
-            if (priceNode != null)
+            // Special case for JS price
+            if (PriceInfo.Source == PriceSourceType.PriceSourceJavascript)
             {
-                // Read price
-                var input = priceNode.TextContent;
-
-                // If price is located within an attribute
+                // Ensure we have the key to look for
                 if (!string.IsNullOrEmpty(PriceInfo.AttributeName))
                 {
-                    input = priceNode.Attributes[PriceInfo.AttributeName]?.Value;
-                }
+                    // Look for the JS entry
+                    var result = Consts.PricesInJavaScriptRegex
+                        .Matches(_htmlDocument.DocumentElement.TextContent)
+                        .Cast<Match>()
+                        .Select(m => new { Key = m.Groups[1].Value, IsPrice = ReadPrice(m.Groups[2].Value, out var price), Price = price })
+                        .Where(_ => _.IsPrice && _.Price.Decimal > 0 && _.Key.Equals(PriceInfo.AttributeName, StringComparison.Ordinal))
+                        .FirstOrDefault()?.Price;
 
-                // Read price in the input
-                var result = ReadPrice(input, out var parseResult);
-
-                // If the input was parsed and price differs from the current price...
-                if (result && parseResult.Decimal != PriceInfo.Value)
-                {
-                    // Update price details
-                    PriceInfo = new PriceInfo(parseResult.Decimal, Culture)
+                    // If price differs...
+                    if (result != null && result.Decimal != PriceInfo.Value)
                     {
-                        AttributeName = PriceInfo.AttributeName,
-                        PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector,
-                        Source = PriceInfo.Source
-                    };
+                        // Update price details
+                        PriceInfo = new PriceInfo(result.Decimal, Culture)
+                        {
+                            AttributeName = PriceInfo.AttributeName,
+                            PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector,
+                            Source = PriceInfo.Source
+                        };
 
-                    updateResult.HasNewPrice = true;
+                        updateResult.HasNewPrice = true;
+                    }
+                    else if (result == null)
+                    {
+                        // Let developer know
+                        Debugger.Break();
+
+                        // Set failed result
+                        updateResult.Success = false;
+                        updateResult.Error = Strings.ErrorProductUpdatePriceRead;
+                    }
                 }
-                else if (!result)
+                else
                 {
-                    // Let developer know
-                    Debugger.Break();
-
                     // Set failed result
                     updateResult.Success = false;
-                    updateResult.Error = Strings.ErrorProductUpdatePriceRead;
+                    updateResult.Error = "Key not found";
                 }
             }
             else
             {
-                // Price element wasn't located in the DOM
+                // Handle node price source.
 
-                // TODO: If IsAutoDetect, then attempt to detect new price selector
+                // Get latest product price
+                var priceNode = _htmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
 
-                // Set failed result
-                updateResult.Success = false;
-                updateResult.Error = Strings.ErrorProductUpdatePriceElementNotFound;
+                // If node was selected successfully...
+                if (priceNode != null)
+                {
+                    // Read price
+                    var input = priceNode.TextContent;
+
+                    // If price is located within an attribute
+                    if (!string.IsNullOrEmpty(PriceInfo.AttributeName))
+                    {
+                        input = priceNode.Attributes[PriceInfo.AttributeName]?.Value;
+                    }
+
+                    // Read price in the input
+                    var result = ReadPrice(input, out var parseResult);
+
+                    // If the input was parsed and price differs from the current price...
+                    if (result && parseResult.Decimal != PriceInfo.Value)
+                    {
+                        // Update price details
+                        PriceInfo = new PriceInfo(parseResult.Decimal, Culture)
+                        {
+                            AttributeName = PriceInfo.AttributeName,
+                            PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector,
+                            Source = PriceInfo.Source
+                        };
+
+                        updateResult.HasNewPrice = true;
+                    }
+                    else if (!result)
+                    {
+                        // Let developer know
+                        Debugger.Break();
+
+                        // Set failed result
+                        updateResult.Success = false;
+                        updateResult.Error = Strings.ErrorProductUpdatePriceRead;
+                    }
+                }
+                else
+                {
+                    // Price element wasn't located in the DOM
+
+                    // TODO: If IsAutoDetect, then attempt to detect new price selector
+
+                    // Set failed result
+                    updateResult.Success = false;
+                    updateResult.Error = Strings.ErrorProductUpdatePriceElementNotFound;
+                }
             }
 
             #endregion
