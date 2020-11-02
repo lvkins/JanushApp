@@ -282,6 +282,9 @@
                                 FontWeight="SemiBold"
                                 Header="Details" />
 
+                            <!--  Edit  -->
+                            <MenuItem Command="{Binding ShowEditPageCommand}" Header="Edit" />
+
                             <!--  Open in browser  -->
                             <MenuItem Command="{Binding NavigateCommand}" Header="Open in browser" />
 
@@ -294,6 +297,12 @@
                                 Command="{Binding StartTrackingCommand}"
                                 Header="Start tracking"
                                 Visibility="{Binding Tracked, Converter={local:BooleanToVisibilityConverter}}" />
+
+                            <!--  Separator  -->
+                            <Separator Background="{StaticResource BackgroundMainBrush}" />
+
+                            <!--  Export to CSV  -->
+                            <MenuItem Command="{Binding ExportCsvCommand}" Header="Export to CSV file" />
 
                             <!--  Separator  -->
                             <Separator Background="{StaticResource BackgroundMainBrush}" />

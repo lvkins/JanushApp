@@ -400,6 +400,37 @@
                     </local:ProductDetailsPageControl.Style>
 
                 </local:ProductDetailsPageControl>
+
+                <!--  Product edit page  -->
+                <local:ProductEditPageControl
+                    Grid.Row="2"
+                    Grid.RowSpan="2"
+                    DataContext="{Binding CurrentProductEdit, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                    Visibility="{Binding ProductEditPageVisible, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True, Source={x:Static local:ViewModelLocator.ApplicationViewModel}}">
+
+                    <local:ProductEditPageControl.Style>
+                        <!--  Fade in animation  -->
+                        <Style TargetType="{x:Type local:ProductEditPageControl}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                            <Style.Triggers>
+                                <Trigger Property="Visibility" Value="Visible">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0.0"
+                                                    To="1.0"
+                                                    Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </local:ProductEditPageControl.Style>
+
+                </local:ProductEditPageControl>
             </Grid>
 
         </Grid>

@@ -116,6 +116,9 @@
     </ApplicationDefinition>
     <Compile Include="AttachedProperties\BaseAttachedProperty.cs" />
     <Compile Include="AttachedProperties\DelayedDeselectAttachedProperty.cs" />
+    <Compile Include="Controls\ProductEditPageControl.xaml.cs">
+      <DependentUpon>ProductEditPageControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\DependencyObjectExtensions.cs" />
     <Compile Include="AttachedProperties\ScrollToSelectedAttachedProperty.cs" />
     <Compile Include="AttachedProperties\ScrollBarOffsetAttachedProperty.cs" />
@@ -148,6 +151,7 @@
     <Compile Include="ValueConverters\NotificationTypeToVectorConverter.cs" />
     <Compile Include="ValueConverters\Visibility\NullToVisibilityConverter.cs" />
     <Compile Include="ValueConverters\Visibility\BooleanToVisibilityConverter.cs" />
+    <Compile Include="ViewModels\EditProductViewModel.cs" />
     <Compile Include="ViewModels\AddProductViewModel.cs" />
     <Compile Include="ViewModels\ApplicationViewModel.cs" />
     <Compile Include="ViewModels\Core\IWindowViewModel.cs" />
@@ -189,6 +193,10 @@
     <Page Include="Controls\NotificationsItemControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\ProductEditPageControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\ProductListItemCondensed.xaml">
       <SubType>Designer</SubType>

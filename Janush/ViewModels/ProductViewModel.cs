@@ -10,6 +10,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
+using CsvHelper;
+using System.IO;
+using Microsoft.Win32;
 
 namespace Janush
 {
@@ -19,6 +22,16 @@ namespace Janush
     public class ProductViewModel : BaseViewModel
     {
         #region Private Members
+
+        /// <summary>
+        /// The product URL.
+        /// </summary>
+        private Uri _url;
+
+        /// <summary>
+        /// The display, custom name of the product.
+        /// </summary>
+        private string _displayName;
 
         /// <summary>
         /// The culture to use for the currency formatting.
@@ -77,7 +90,19 @@ namespace Janush
         /// <summary>
         /// The display, custom name of the product.
         /// </summary>
-        public string DisplayName { get; set; }
+        public string DisplayName
+        {
+            get => _displayName;
+            set
+            {
+                // Update value
+                _displayName = value;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(DisplayName));
+                OnPropertyChanged(nameof(Name));
+            }
+        }
 
         /// <summary>
         /// The current price.
@@ -150,6 +175,9 @@ namespace Janush
 
                 // Update region for the culture
                 CultureRegion = new RegionInfo(_culture.Name);
+
+                // Update props affected by culture change
+                OnPropertyChanged(nameof(DisplayPrice));
             }
         }
 
@@ -180,9 +208,20 @@ namespace Janush
         }
 
         /// <summary>
-        /// The display URL.
+        /// The product URL.
         /// </summary>
-        public Uri Url { get; set; }
+        public Uri Url
+        {
+            get => _url;
+            set
+            {
+                // Update value
+                _url = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(Url));
+            }
+        }
 
         /// <summary>
         /// The product instance.
@@ -385,6 +424,21 @@ namespace Janush
         public ICommand HideDetailsPageCommand { get; set; }
 
         /// <summary>
+        /// The command for showing a product edit page.
+        /// </summary>
+        public ICommand ShowEditPageCommand { get; set; }
+
+        /// <summary>
+        /// The command for closing a product edit page.
+        /// </summary>
+        public ICommand HideEditPageCommand { get; set; }
+
+        /// <summary>
+        /// The command for exporting the product details to CSV file.
+        /// </summary>
+        public ICommand ExportCsvCommand { get; set; }
+
+        /// <summary>
         /// The command for deleting the product from the application.
         /// </summary>
         public ICommand DeleteCommand { get; set; }
@@ -471,6 +525,9 @@ namespace Janush
             StopTrackingCommand = new RelayCommand(async () => await StopTrackingAsync());
             ShowDetailsPageCommand = new RelayCommand(ShowDetailsPage);
             HideDetailsPageCommand = new RelayCommand(HideDetailsPage);
+            ShowEditPageCommand = new RelayCommand(ShowEditPage);
+            HideEditPageCommand = new RelayCommand(HideEditPage);
+            ExportCsvCommand = new RelayCommand(OnCsvExport);
             DeleteCommand = new RelayCommand(async () => await DeleteAsync());
 
             #endregion
@@ -548,7 +605,7 @@ namespace Janush
             // Close popup menu
             ShowOptionsPopupMenu = false;
 
-            // Assign details page view model
+            // Assign page view model
             DI.Application.CurrentProductDetails = this;
         }
 
@@ -557,6 +614,27 @@ namespace Janush
         /// </summary>
         public void HideDetailsPage() =>
             DI.Application.CurrentProductDetails = null;
+
+        /// <summary>
+        /// Shows the details page for this product.
+        /// </summary>
+        public void ShowEditPage()
+        {
+            // Close popup menu
+            ShowOptionsPopupMenu = false;
+
+            // Assign view model
+            DI.Application.CurrentProductEdit = new EditProductViewModel
+            {
+                TargetViewModel = this
+            };
+        }
+
+        /// <summary>
+        /// Hides the details page.
+        /// </summary>
+        public void HideEditPage() =>
+            DI.Application.CurrentProductEdit = null;
 
         /// <summary>
         /// Starts the tracking task for this product.
@@ -621,6 +699,111 @@ namespace Janush
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// Callback for exporting product details to CSV file.
+        /// </summary>
+        private void OnCsvExport()
+        {
+            // Close popup menu
+            ShowOptionsPopupMenu = false;
+
+            // Create filename from the product name
+            var fileName = Name.ToLower().Replace(" ", "_") + "_history";
+            foreach (var c in Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(c, '_');
+            }
+
+            // Create save file dialog
+            var dlg = new SaveFileDialog
+            {
+                FileName = fileName,
+                DefaultExt = ".csv",
+                Filter = "CSV files (.csv)|*.csv"
+            };
+
+            // Show save file dialog box
+            var result = dlg.ShowDialog();
+
+            if (result != true)
+            {
+                return;
+            }
+
+            // Process save file dialog box results
+            fileName = dlg.FileName;
+
+            // Create history
+            var history = new List<CsvProductEntry>();
+
+            // If has price history...
+            if (PriceHistory?.Any() == true)
+            {
+                history.AddRange(PriceHistory.Select(
+                    _ => new CsvProductEntry { Date = _.Value, Name = null, Price = _.Key.ToString(Consts.CURRENCY_FORMAT, Culture) }
+                ));
+            }
+
+            // If has name history...
+            if (NameHistory?.Any() == true)
+            {
+                history.AddRange(NameHistory.Select(
+                    _ => new CsvProductEntry { Date = _.Value, Name = _.Key, Price = null }
+                ));
+            }
+
+            // If product has no history...
+            if (!history.Any())
+            {
+                // Use current product state
+                history.Add(new CsvProductEntry { Date = DateAdded, Name = Name, Price = DisplayPrice });
+            }
+
+            // Group history by timestamp
+            var groups = history.GroupBy(_ => (long)TimeSpan.FromTicks(_.Date.Ticks).TotalSeconds, (key, g) => new { Date = key, Values = g.ToList() })
+                .OrderBy(_ => _.Date)
+                // We shouldn't have more than two items (that is price or/and name history)
+                .Where(_ => _.Values.Any() && _.Values.Count <= 2)
+                .Select(_ => _.Values);
+
+            // Create records
+            var records = new List<CsvProductEntry>();
+
+            foreach (var item in groups)
+            {
+                // Take conditional price and name history
+                var first = item.FirstOrDefault();
+                var last = item.LastOrDefault();
+                // Get previous record
+                var prev = records.LastOrDefault();
+
+                // Merge values to into single object
+                if (string.IsNullOrEmpty(first.Name))
+                {
+                    // Use product base name or the history value
+                    first.Name = string.IsNullOrEmpty(last.Name)
+                        ? (prev != null ? prev.Name : Name)
+                        : last.Name;
+                }
+                if (string.IsNullOrEmpty(first.Price))
+                {
+                    // Use product base price or the history value
+                    first.Price = string.IsNullOrEmpty(last.Price)
+                        ? (prev != null ? prev.Price : DisplayPrice)
+                        : last.Price;
+                }
+
+                records.Add(first);
+            }
+
+            // Write records
+            using (var writer = new StreamWriter(fileName))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteRecords(records);
+            }
+        }
 
         /// <summary>
         /// A callback that occurs whenever the product update has started.

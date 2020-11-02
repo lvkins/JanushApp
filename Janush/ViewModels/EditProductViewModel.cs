@@ -13,21 +13,16 @@ using System.Windows.Input;
 namespace Janush
 {
     /// <summary>
-    /// The view model for <see cref="AddProductWindow"/>.
+    /// The view model for <see cref="ProductEditPageControl"/>.
     /// </summary>
-    public class AddProductViewModel : BaseViewModel, IWindowViewModel, IDataErrorInfo
+    public class EditProductViewModel : BaseViewModel, IWindowViewModel, IDataErrorInfo
     {
         #region Private Members
 
         /// <summary>
-        /// Product full URL.
+        /// Product URL.
         /// </summary>
         private string _url;
-
-        /// <summary>
-        /// Product full URL.
-        /// </summary>
-        private string _manUrl;
 
         /// <summary>
         /// If we are currently adding a product.
@@ -44,39 +39,19 @@ namespace Janush
         /// </summary>
         private int _selectedTabIndex;
 
+        /// <summary>
+        /// The view model to edit.
+        /// </summary>
+        private ProductViewModel _targetViewModel;
+
         #endregion
 
         #region Public Properties
 
         /// <summary>
-        /// The currently selected add type option index.
-        /// </summary>
-        public int SelectedTabIndex
-        {
-            get => _selectedTabIndex;
-            set
-            {
-                // Update value
-                _selectedTabIndex = value;
-
-                // Raise property changed events to re-validate fields
-                // affected by changing the tab
-                OnPropertyChanged(nameof(Url));
-                OnPropertyChanged(nameof(ManualUrl));
-                OnPropertyChanged(nameof(Name));
-                OnPropertyChanged(nameof(PriceSelector));
-            }
-        }
-
-        /// <summary>
         /// The product detected name.
         /// </summary>
         public string Name { get; set; }
-
-        /// <summary>
-        /// The product display name.
-        /// </summary>
-        public string DisplayName { get; set; }
 
         /// <summary>
         /// Product full URL.
@@ -95,30 +70,9 @@ namespace Janush
         }
 
         /// <summary>
-        /// The product URL.
-        /// </summary>
-        public string ManualUrl
-        {
-            get => _manUrl;
-            set
-            {
-                // Update value
-                _manUrl = value;
-
-                // Raise property changed event
-                OnPropertyChanged(nameof(ManualUrl));
-            }
-        }
-
-        /// <summary>
         /// The price selector 
         /// </summary>
         public string PriceSelector { get; set; }
-
-        /// <summary>
-        /// Any status message about adding a product that is displayed to the user.
-        /// </summary>
-        public string Status { get; set; }
 
         /// <summary>
         /// The regions to select the currency from.
@@ -179,9 +133,25 @@ namespace Janush
         }
 
         /// <summary>
-        /// The product to be added;
+        /// The product to be updated;
         /// </summary>
-        public Product Product { get; private set; }
+        public ProductViewModel TargetViewModel
+        {
+            get => _targetViewModel;
+            set
+            {
+                // Update value
+                _targetViewModel = value;
+
+                // Bind values
+                if (value != null)
+                {
+                    Name = value.Name;
+                    Url = value.Url.ToString();
+                    UserRegion = value.CultureRegion;
+                }
+            }
+        }
 
         /// <summary>
         /// The product price selected by the user, if product had more than one price detected.
@@ -191,7 +161,7 @@ namespace Janush
         /// <summary>
         /// If the product has several price sources detected.
         /// </summary>
-        public bool HasSeveralPrices => Product?.DetectedPrices.Count > 1;
+        public bool HasSeveralPrices => TargetViewModel.Product.DetectedPrices.Count > 1;
 
         #endregion
 
@@ -208,24 +178,9 @@ namespace Janush
         public ICommand CloseCommand { get; set; }
 
         /// <summary>
-        /// The command to add the promotion automatically.
+        /// The command to submit the changes.
         /// </summary>
-        public ICommand AddAutoCommand { get; set; }
-
-        /// <summary>
-        /// The command to add the promotion manually.
-        /// </summary>
-        public ICommand AddManuallyCommand { get; set; }
-
-        /// <summary>
-        /// The command to confirm loaded product and store it in the tracker.
-        /// </summary>
-        public ICommand ConfirmProductCommand { get; set; }
-
-        /// <summary>
-        /// The command to discard the last loaded product.
-        /// </summary>
-        public ICommand DiscardProductCommand { get; set; }
+        public ICommand SubmitCommand { get; set; }
 
         #region Validation
 
@@ -261,30 +216,33 @@ namespace Janush
         {
             get
             {
-                // URL validation
-                if (columnName == nameof(Url) || columnName == nameof(ManualUrl))
+                // Name validation
+                if (columnName == nameof(Name))
                 {
-                    if (SelectedTabIndex != 0 && columnName == nameof(Url))
-                    {
-                        Errors.Remove(columnName);
-                        return string.Empty;
-                    }
-                    else if (SelectedTabIndex != 1 && columnName == nameof(ManualUrl))
-                    {
-                        Errors.Remove(columnName);
-                        return string.Empty;
-                    }
-
-                    var urlProp = SelectedTabIndex == 0 ? Url : ManualUrl;
-
                     // If empty...
-                    if (string.IsNullOrWhiteSpace(urlProp))
+                    if (string.IsNullOrWhiteSpace(Name))
+                    {
+                        return Error = Errors[columnName] = string.Format(ValidationStrings.ErrorFieldEmpty, "name");
+                    }
+
+                    // If name is taken...
+                    if (DI.Application.Products.Where(_ => _ != TargetViewModel).Any(_ => _.Name.Equals(Name)))
+                    {
+                        return Error = Errors[columnName] = ValidationStrings.ErrorNameTaken;
+                    }
+                }
+
+                // URL validation
+                if (columnName == nameof(Url))
+                {
+                    // If empty...
+                    if (string.IsNullOrWhiteSpace(Url))
                     {
                         return Error = Errors[columnName] = string.Format(ValidationStrings.ErrorFieldEmpty, "URL");
                     }
 
                     // Validate the URL
-                    var result = Uri.TryCreate(urlProp, UriKind.Absolute, out var uriResult)
+                    var result = Uri.TryCreate(Url, UriKind.Absolute, out var uriResult)
                         && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 
                     // If unable to parse URL...
@@ -294,30 +252,15 @@ namespace Janush
                     }
 
                     // If the product was already added...
-                    if (DI.Application.Products.Any(_ => _.Url.Equals(urlProp)))
+                    if (DI.Application.Products.Where(_ => _ != TargetViewModel).Any(_ => _.Url.Equals(Url)))
                     {
                         return Error = Errors[columnName] = ValidationStrings.ErrorProductExists;
                     }
                 }
 
-                // If selected "Add Manually" tab...
-                if (SelectedTabIndex == 1)
-                {
-                    if ((columnName == nameof(Name)) && string.IsNullOrWhiteSpace(Name))
-                    {
-                        return Error = Errors[columnName] = string.Format(ValidationStrings.ErrorFieldEmpty, "name");
-                    }
-                    if ((columnName == nameof(PriceSelector)) && string.IsNullOrWhiteSpace(PriceSelector))
-                    {
-                        return Error = Errors[columnName] = string.Format(ValidationStrings.ErrorFieldEmpty, "price selector");
-                    }
-                }
-
-                // TODO: validate confirmation controls (ProductReviewControl)
-
+                // No error
                 Errors.Remove(columnName);
                 Error = string.Empty;
-
                 return Error;
             }
         }
@@ -332,15 +275,12 @@ namespace Janush
         /// <summary>
         /// Default constructor
         /// </summary>
-        public AddProductViewModel()
+        public EditProductViewModel()
         {
             // Create commands
             OpenCommand = new RelayCommand(Open);
             CloseCommand = new RelayCommand(Close);
-            AddAutoCommand = new RelayCommand(async () => await AddAutoProductAsync());
-            AddManuallyCommand = new RelayCommand(async () => await AddProductManuallyAsync());
-            ConfirmProductCommand = new RelayCommand(ConfirmProduct);
-            DiscardProductCommand = new RelayCommand(Cleanup);
+            SubmitCommand = new RelayCommand(OnSubmit);
         }
 
         #endregion
@@ -350,12 +290,12 @@ namespace Janush
         /// <summary>
         /// Opens a window.
         /// </summary>
-        public void Open() => DI.Application.ShowWindow<AddProductWindow>(this);
+        public void Open() => DI.Application.CurrentProductEdit = this;
 
         /// <summary>
         /// Closes a window.
         /// </summary>
-        public void Close() => DI.Application.CloseAllWindow<AddProductWindow>();
+        public void Close() => DI.Application.CurrentProductEdit = null;
 
         #endregion
 
@@ -397,14 +337,12 @@ namespace Janush
                     });
                 }
 
-                // Store product for confirmation
-                Product = product;
 
                 // Create product region info
-                UserRegion = new RegionInfo(Product.Culture.Name);
+                UserRegion = new RegionInfo(TargetViewModel.Culture.Name);
 
                 // Raise property changed event
-                OnPropertyChanged(nameof(Product));
+                OnPropertyChanged(nameof(TargetViewModel));
                 OnPropertyChanged(nameof(HasSeveralPrices));
                 OnPropertyChanged(nameof(UserRegion));
 
@@ -430,82 +368,56 @@ namespace Janush
         }
 
         /// <summary>
-        /// Loads a new product by manually user specified properties and shows a confirmation page.
+        /// Adds a recently loaded product to the tracker.
         /// </summary>
-        /// <returns></returns>
-        private async Task AddProductManuallyAsync()
+        private void OnSubmit()
         {
-            // Double validate to ensure there are no errors
+            // If we have no product...
+            if (TargetViewModel == null)
+            {
+                return;
+            }
+
+            // If fails validation...
             if (!IsValid)
             {
                 return;
             }
 
-            // Set busy flag
-            IsBusy = true;
-
-            // Create user selected culture
-            var formatProvider = new CultureInfo(UserRegion.Name);
-
-            // Create product
-            var product = new Product(new ProductDataModel
+            try
             {
-                Name = Name,
-                Url = new Uri(ManualUrl),
-                AutoDetect = false,
-                Culture = formatProvider,
-                Price = new PriceInfo(default, formatProvider)
+                // Create new culture
+                var newCulture = CultureInfo.CreateSpecificCulture(UserRegion.Name);
+
+                // Update props
+                TargetViewModel.DisplayName = Name;
+
+                // If URL has changed...
+                if (!TargetViewModel.Url.Equals(Url))
                 {
-                    PriceXPathOrSelector = PriceSelector
+                    // TODO: reverify product
+                    Debugger.Break();
                 }
-            });
 
-            // Load product and get the result
-            var result = await Task.Run(product.LoadAsync);
+                TargetViewModel.Url = new Uri(Url);
+                TargetViewModel.Culture = newCulture;
 
-            // If product was successfully loaded...
-            if (result.Success)
-            {
-                // Store product for confirmation
-                Product = product;
-
-                // Raise property changed event
-                OnPropertyChanged(nameof(Product));
-
-                // Show confirmation page
-                StepTwo = true;
+                // Update local data store
+                DI.Application.Save();
             }
-            // Otherwise...
-            else
+            finally
             {
-                // Cleanup
-                product.Dispose();
+                // Close window
+                Close();
 
-                // Show error message to the user
-                _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
-                {
-                    Type = DialogBoxType.Error,
-                    Message = result.Error.ToDisplayString()
-                });
+                // Show main window
+                Application.Current.MainWindow?.Show();
             }
 
-            // Unset busy flag
-            IsBusy = false;
-        }
-
-        /// <summary>
-        /// Adds a recently loaded product to the tracker.
-        /// </summary>
-        private void ConfirmProduct()
-        {
-            // If we have no product stored...
-            if (Product == null)
-            {
-                return;
-            }
+            return;
 
             // If user had to select a valid price...
-            if (Product.DetectedPrices?.Count > 1)
+            if (TargetViewModel.Product.DetectedPrices?.Count > 1)
             {
                 // If no price was selected...
                 if (SelectedPrice == null)
@@ -514,47 +426,18 @@ namespace Janush
                 }
 
                 // Set selected price to be tracked
-                Product.SetTrackingPrice(SelectedPrice);
+                TargetViewModel.Product.SetTrackingPrice(SelectedPrice);
             }
 
-            // Create setting object
-            var productSetting = new ProductDataModel
-            {
-                Url = new Uri(Product.Url),// new Uri(Product.Url.Replace("://www.", "://")),
-                Name = Product.Name,
-                DisplayName = DisplayName,
-                Price = Product.PriceInfo,
-                Culture = Product.Culture,
-                LastChecked = DateTime.Now,
-                AutoDetect = Product.IsAutoDetect,
-            };
-
-            // Add product
-            DI.Application.AddProduct(productSetting);
-
-            // Close product review overlay and cleanup user input
-            Cleanup();
+            // Update product
+            TargetViewModel.DisplayName = Name;
+            TargetViewModel.Url = new Uri(Url);
 
             // Close window
             Close();
 
             // Show main window
             Application.Current.MainWindow?.Show();
-        }
-
-        /// <summary>
-        /// Clean up a recently loaded product.
-        /// </summary>
-        private void Cleanup()
-        {
-            StepTwo = false;
-            Product = null;
-            Name = default;
-            Url = default;
-            ManualUrl = default;
-            PriceSelector = default;
-            SelectedPrice = default;
-            Status = default;
         }
 
         #endregion

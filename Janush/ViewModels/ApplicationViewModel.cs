@@ -26,9 +26,14 @@ namespace Janush
         private bool _notificationsPopupVisible;
 
         /// <summary>
-        /// The view model for the currently shown product details.
+        /// A view model for the currently shown product details.
         /// </summary>
         private ProductViewModel _currentProductDetails;
+
+        /// <summary>
+        /// A view model for the currently editing product.
+        /// </summary>
+        private EditProductViewModel _currentProductEdit;
 
         #endregion
 
@@ -62,7 +67,7 @@ namespace Janush
         }
 
         /// <summary>
-        /// The view model for the currently shown product details.
+        /// A view model for the currently shown product details.
         /// </summary>
         public ProductViewModel CurrentProductDetails
         {
@@ -75,6 +80,23 @@ namespace Janush
                 // Raise property changed
                 OnPropertyChanged(nameof(CurrentProductDetails));
                 OnPropertyChanged(nameof(ProductDetailsPageVisible));
+            }
+        }
+
+        /// <summary>
+        /// A view model for the editing product.
+        /// </summary>
+        public EditProductViewModel CurrentProductEdit
+        {
+            get => _currentProductEdit;
+            set
+            {
+                // Update value
+                _currentProductEdit = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(CurrentProductEdit));
+                OnPropertyChanged(nameof(ProductEditPageVisible));
             }
         }
 
@@ -105,9 +127,14 @@ namespace Janush
         public bool AnyPopupVisible => NotificationsPopupVisible;
 
         /// <summary>
-        /// <see langword="true"/> if the product details is shown.
+        /// <see langword="true"/> if the product details page is shown.
         /// </summary>
         public bool ProductDetailsPageVisible => CurrentProductDetails != null;
+
+        /// <summary>
+        /// <see langword="true"/> if the product edit page is shown.
+        /// </summary>
+        public bool ProductEditPageVisible => CurrentProductEdit != null;
 
         #endregion
 
@@ -141,6 +168,24 @@ namespace Janush
             {
                 CoreDI.SettingsReader.Settings.Products.Remove(result);
                 CoreDI.SettingsReader.Save();
+            }
+
+            // Close details page
+            if (CurrentProductDetails == productViewModel)
+            {
+                CurrentProductDetails = null;
+            }
+
+            // Close edit page
+            if (CurrentProductEdit?.TargetViewModel == productViewModel)
+            {
+                CurrentProductEdit = null;
+            }
+
+            // Deselect product
+            if (SelectedProduct == productViewModel)
+            {
+                SelectedProduct = null;
             }
 
             // Cleanup

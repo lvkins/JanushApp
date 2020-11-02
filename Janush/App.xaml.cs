@@ -38,10 +38,10 @@ namespace Janush
         /// <param name="e"></param>
         protected override void OnExit(ExitEventArgs e)
         {
-            base.OnExit(e);
-
             // Save current state on exit
             DI.Application.Save();
+
+            base.OnExit(e);
         }
     }
 }
