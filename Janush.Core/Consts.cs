@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Janush.Core
@@ -20,7 +21,7 @@ namespace Janush.Core
         /// <summary>
         /// The application version.
         /// </summary>
-        public const string APP_VERSION = "1.0.0";
+        public static readonly string APP_VERSION = Assembly.GetEntryAssembly().GetName().Version.ToString();
 
         /// <summary>
         /// The fake user agent to use for the HTTP requests.

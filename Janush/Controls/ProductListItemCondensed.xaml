@@ -74,11 +74,12 @@
 
                     <!--  Background for product having disabled tracking  -->
                     <DataTrigger Binding="{Binding Tracked}" Value="False">
-                        <Setter Property="Background">
+                        <Setter Property="Opacity" Value=".4" />
+                        <!--<Setter Property="Background">
                             <Setter.Value>
-                                <SolidColorBrush Opacity=".2" Color="{StaticResource AppRed}" />
+                                <SolidColorBrush Opacity=".5" Color="{StaticResource AppRed}" />
                             </Setter.Value>
-                        </Setter>
+                        </Setter>-->
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -136,7 +137,7 @@
                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                 <Setter Property="Background" Value="Transparent" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Tracked}" Value="False">
+                            <!--<DataTrigger Binding="{Binding Tracked}" Value="False">
                                 <Setter Property="Background">
                                     <Setter.Value>
                                         <LinearGradientBrush Opacity=".2" StartPoint="0,0" EndPoint="1,0">
@@ -145,7 +146,7 @@
                                         </LinearGradientBrush>
                                     </Setter.Value>
                                 </Setter>
-                            </DataTrigger>
+                            </DataTrigger>-->
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
