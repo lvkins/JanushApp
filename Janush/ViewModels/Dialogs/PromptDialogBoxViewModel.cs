@@ -1,4 +1,6 @@
-﻿namespace Janush
+﻿using Janush.Core.Localization;
+
+namespace Janush
 {
     /// <summary>
     /// A class containing details for the message dialog.
@@ -10,12 +12,12 @@
         /// <summary>
         /// The text of the submit button.
         /// </summary>
-        public string SubmitText { get; set; } = "Ok"; // TODO: localize
+        public string SubmitText { get; set; } = Strings.Ok;
 
         /// <summary>
         /// The text of the cancel button.
         /// </summary>
-        public string CancelText { get; set; } = "Cancel"; // TODO: localize
+        public string CancelText { get; set; } = Strings.Cancel;
 
         /// <summary>
         /// Whether the prompt message dialog can be canceled.

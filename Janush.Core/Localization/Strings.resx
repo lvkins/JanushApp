@@ -186,4 +186,22 @@
   <data name="NotificationTrackingGenericError" xml:space="preserve">
     <value>An unexpected error occured while tracking the product. </value>
   </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="NewVersionDialogContent" xml:space="preserve">
+    <value>New {0} version is available. Click download to navigate to the download site.</value>
+  </data>
+  <data name="NewVersionDialogTitle" xml:space="preserve">
+    <value>New version available</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
 </root>

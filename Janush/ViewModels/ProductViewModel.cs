@@ -579,7 +579,11 @@ namespace Janush
         public void Navigate()
         {
             // Start navigating
-            Process.Start(Url.ToString());
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Url.ToString(),
+                UseShellExecute = true
+            });
 
             // Close popup menu
             ShowOptionsPopupMenu = false;

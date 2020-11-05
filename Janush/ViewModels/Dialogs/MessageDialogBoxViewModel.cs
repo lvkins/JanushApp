@@ -1,4 +1,6 @@
-﻿namespace Janush
+﻿using Janush.Core.Localization;
+
+namespace Janush
 {
     /// <summary>
     /// A class containing details for the message dialog.
@@ -10,7 +12,7 @@
         /// <summary>
         /// The text of the submit button.
         /// </summary>
-        public string SubmitText { get; set; } = "Ok";
+        public string SubmitText { get; set; } = Strings.Ok;
 
         #endregion
     }

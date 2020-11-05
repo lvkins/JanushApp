@@ -1,6 +1,9 @@
 ﻿using Janush.Core;
+using Janush.Core.Localization;
 using System;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace Janush
@@ -60,7 +63,11 @@ namespace Janush
 
             // Monitor connection
             StartConnectionMonitor();
+
+            // Check for new version
+            CheckVersionAsync();
         }
+
 
         /// <summary>
         /// Handles the application exit, including the state handling. 
@@ -77,12 +84,45 @@ namespace Janush
             base.OnExit(e);
         }
 
+        /// <summary>
+        /// Starts connection monitor task.
+        /// </summary>
         private void StartConnectionMonitor()
         {
-            ConnectionMonitor = new ConnectionMonitor(TimeSpan.FromSeconds(30), state =>
+            ConnectionMonitor = new ConnectionMonitor(Consts.ConnectionMonitorInterval, state =>
             {
                 DI.Application.IsOnline = state;
             });
+        }
+
+        /// <summary>
+        /// Checks for new application version.
+        /// </summary>
+        private async void CheckVersionAsync()
+        {
+            // Let application show
+            await Task.Delay(TimeSpan.FromSeconds(4));
+
+            // If new version is available...
+            if (await VersionMonitor.IsNewAsync())
+            {
+                // Prompt user
+                await DI.UIManager.ShowConfirmDialogBoxAsync(new ConfirmDialogBoxViewModel
+                {
+                    Title = Strings.NewVersionDialogTitle,
+                    Message = string.Format(Strings.NewVersionDialogContent, Consts.APP_TITLE),
+                    OnAccept = () =>
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = Consts.APP_DOWNLOAD_URL,
+                            UseShellExecute = true
+                        });
+                    },
+                    OkText = Strings.Download,
+                    CancelText = Strings.Close
+                });
+            }
         }
     }
 }

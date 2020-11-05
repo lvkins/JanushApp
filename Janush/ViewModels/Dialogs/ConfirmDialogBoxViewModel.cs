@@ -1,4 +1,6 @@
-﻿using System.Windows.Input;
+﻿using Janush.Core.Localization;
+using System;
+using System.Windows.Input;
 
 namespace Janush
 {
@@ -17,12 +19,17 @@ namespace Janush
         /// <summary>
         /// The text to use for the OK button.
         /// </summary>
-        public string OkText { get; set; } = "Ok"; // TODO: localize
+        public string OkText { get; set; } = Strings.Ok;
 
         /// <summary>
         /// The text to use for the Cancel button.
         /// </summary>
-        public string CancelText { get; set; } = "Cancel";  // TODO: localize
+        public string CancelText { get; set; } = Strings.Cancel;
+
+        /// <summary>
+        /// The action to execute once confirm dialog response was positive.
+        /// </summary>
+        public Action OnAccept { get; set; }
 
         #endregion
 
@@ -52,6 +59,9 @@ namespace Janush
                 {
                     command.Execute(null);
                 }
+
+                // Invoke accept callback
+                OnAccept?.Invoke();
             });
         }
 

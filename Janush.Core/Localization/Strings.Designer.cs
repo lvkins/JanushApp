@@ -61,11 +61,38 @@ namespace Janush.Core.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string Close {
+            get {
+                return ResourceManager.GetString("Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Date.
         /// </summary>
         public static string Date {
             get {
                 return ResourceManager.GetString("Date", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        public static string Download {
+            get {
+                return ResourceManager.GetString("Download", resourceCulture);
             }
         }
         
@@ -178,6 +205,24 @@ namespace Janush.Core.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New {0} version is available. Click download to navigate to the download site..
+        /// </summary>
+        public static string NewVersionDialogContent {
+            get {
+                return ResourceManager.GetString("NewVersionDialogContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New version available.
+        /// </summary>
+        public static string NewVersionDialogTitle {
+            get {
+                return ResourceManager.GetString("NewVersionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Product name has changed from „{0}” to „{1}”..
         /// </summary>
         public static string NotificationNameChanged {
@@ -210,6 +255,15 @@ namespace Janush.Core.Localization {
         public static string NotificationTrackingGenericError {
             get {
                 return ResourceManager.GetString("NotificationTrackingGenericError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ok.
+        /// </summary>
+        public static string Ok {
+            get {
+                return ResourceManager.GetString("Ok", resourceCulture);
             }
         }
         

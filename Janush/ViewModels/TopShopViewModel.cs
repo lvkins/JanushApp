@@ -55,7 +55,11 @@ namespace Janush.Core
         /// <summary>
         /// Navigates to the shop URL.
         /// </summary>
-        public void Navigate() => Process.Start(Url.ToString());
+        public void Navigate() => Process.Start(new ProcessStartInfo
+        {
+            FileName = Url.ToString(),
+            UseShellExecute = true
+        });
 
         #endregion
     }

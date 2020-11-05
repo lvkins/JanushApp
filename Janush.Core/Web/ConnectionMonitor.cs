@@ -98,7 +98,7 @@ namespace Janush.Core
             }
 
             // Create a web request
-            var request = (HttpWebRequest)WebRequest.Create("https://www.google.com/");
+            var request = (HttpWebRequest)WebRequest.Create(Consts.APP_URL);
 
             // Do not follow redirects
             request.AllowAutoRedirect = false;
@@ -108,6 +108,10 @@ namespace Janush.Core
 
             // Timeout after 10 seconds
             request.Timeout = 10000;
+
+            // Add headers
+            request.Headers.Clear();
+            request.Headers.Add(HttpRequestHeader.UserAgent, Consts.USER_AGENT);
 
             try
             {

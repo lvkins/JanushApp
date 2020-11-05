@@ -110,9 +110,10 @@ namespace Janush
                         : null);
 
                 // Set proper startup location
-                _dialogWindow.WindowStartupLocation = _dialogWindow.Owner != null
-                    ? WindowStartupLocation.CenterOwner
-                    : WindowStartupLocation.CenterScreen;
+                _dialogWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                //_dialogWindow.WindowStartupLocation = _dialogWindow.Owner != null
+                //    ? WindowStartupLocation.CenterOwner
+                //    : WindowStartupLocation.CenterScreen;
 
                 // Set window content to this dialog control
                 _dialogWindow.Content = this;
