@@ -81,6 +81,11 @@ namespace Janush.Core
         /// Whether if details like the member name, line number should be added to the log line.
         /// </summary>
         public bool AppendCallerDetails { get; set; } = true;
+
+        /// <summary>
+        /// Whether if log file should be emptied on start.
+        /// </summary>
+        public bool FlushOnStart { get; set; } = true;
     }
 
     /// <summary>
@@ -124,6 +129,11 @@ namespace Janush.Core
             _filePath = filePath;
             _fileDir = Path.GetDirectoryName(filePath);
             _configuration = configuration ?? new LoggerConfiguration();
+
+            if (configuration.FlushOnStart)
+            {
+                File.WriteAllText(filePath, string.Empty);
+            }
         }
 
         #endregion
@@ -176,13 +186,14 @@ namespace Janush.Core
             output.Append(message);
 
             // If the caller details should be appended...
+#if DEBUG
             if (_configuration.AppendCallerDetails)
             {
                 output.Append(" > " + Path.GetFileName(filePath));
                 output.Append("::" + origin + "()");
                 output.Append(":" + lineNumber);
             }
-
+#endif
             // Append line terminator
             output.AppendLine();
 
