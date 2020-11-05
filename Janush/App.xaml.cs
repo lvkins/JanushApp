@@ -16,6 +16,11 @@ namespace Janush
         private static Mutex Mutex = null;
 
         /// <summary>
+        /// The connection monitor for the app.
+        /// </summary>
+        private static ConnectionMonitor ConnectionMonitor;
+
+        /// <summary>
         /// The application unique identifier.
         /// </summary>
         private static readonly string AppGuid = "73f73810-b345-4b3e-a713-e7671cf1f50b";
@@ -52,6 +57,9 @@ namespace Janush
 
             // Load application
             DI.Application.Load();
+
+            // Monitor connection
+            StartConnectionMonitor();
         }
 
         /// <summary>
@@ -67,6 +75,14 @@ namespace Janush
             Mutex?.Dispose();
 
             base.OnExit(e);
+        }
+
+        private void StartConnectionMonitor()
+        {
+            ConnectionMonitor = new ConnectionMonitor(TimeSpan.FromSeconds(30), state =>
+            {
+                DI.Application.IsOnline = state;
+            });
         }
     }
 }

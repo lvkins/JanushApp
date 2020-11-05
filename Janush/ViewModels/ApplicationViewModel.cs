@@ -16,6 +16,11 @@ namespace Janush
         #region Private Members
 
         /// <summary>
+        /// Whether the internet connection is available.
+        /// </summary>
+        private bool _isOnline = true;
+
+        /// <summary>
         /// The currently selected product in the list.
         /// </summary>
         private ProductViewModel _selectedProduct;
@@ -38,6 +43,22 @@ namespace Janush
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// Whether the internet connection is available.
+        /// </summary>
+        public bool IsOnline
+        {
+            get => _isOnline;
+            set
+            {
+                // Update value
+                _isOnline = value;
+
+                // Raise property changed
+                OnPropertyChanged(nameof(IsOnline));
+            }
+        }
 
         /// <summary>
         /// The added products collection.

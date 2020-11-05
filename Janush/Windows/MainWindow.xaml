@@ -218,6 +218,22 @@
                 </Border>
 
                 <StackPanel Grid.Row="2">
+                    <!--  No internet connection pane  -->
+                    <Border
+                        Padding="5"
+                        Background="{StaticResource AppDarkRedBrush}"
+                        BorderBrush="{StaticResource SubjectOddBrush}"
+                        BorderThickness="0,0,0,0.6"
+                        DataContext="{Binding Source={x:Static local:ViewModelLocator.ApplicationViewModel}}"
+                        Visibility="{Binding IsOnline, Converter={local:BooleanToVisibilityConverter}}">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource FontSizeSmall}"
+                            Foreground="{StaticResource SubjectOddBrush}"
+                            Text="&#x26A0; No internet connection"
+                            TextAlignment="Justify" />
+                    </Border>
+
                     <!--  Top seller pane  -->
                     <Border
                         Padding="5"
