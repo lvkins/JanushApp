@@ -47,6 +47,12 @@ namespace Janush
                     // Move caret at the end
                     textBox.CaretIndex = textBox.Text.Length;
                 }
+                // If target is a password box...
+                else if (label.Target is PasswordBox passwordBox)
+                {
+                    // Select entire text
+                    passwordBox.SelectAll();
+                }
 
                 // Focus target element
                 label.Target.Focus();

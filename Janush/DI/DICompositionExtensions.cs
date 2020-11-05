@@ -68,6 +68,9 @@ namespace Janush
             {
                 LogLevel = DI.Configuration.GetValue("Logging:LogLevel", LogLevel.Info),
             }));
+
+            // Add a singleton email dispatcher
+            services.AddSingleton<IEmailDispatcher, EmailDispatcher>();
         }
     }
 }

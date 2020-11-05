@@ -176,13 +176,16 @@
                                     Closed="SettingsContextMenu_Closed">
 
                                     <!--  Stop tracking  -->
-                                    <MenuItem Command="{Binding StopTrackingAllCommand}" Header="Stop all products tracking" />
+                                    <MenuItem Command="{Binding StopTrackingAllCommand}" Header="Stop tracking of ALL products" />
 
                                     <!--  Settings  -->
                                     <MenuItem
                                         Command="{Binding OpenSettingsWindowCommand}"
                                         Header="Options"
                                         InputGestureText="Ctrl+O" />
+
+                                    <!--  About  -->
+                                    <MenuItem Command="{Binding OpenAboutWindowCommand}" Header="About" />
 
                                     <!--  Separator  -->
                                     <Separator Background="{StaticResource BackgroundMainBrush}" />

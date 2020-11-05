@@ -1,0 +1,75 @@
+﻿<Window
+    x:Class="Janush.AboutWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="clr-namespace:Janush.Core;assembly=Janush.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Janush"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="About"
+    Width="400"
+    Height="240"
+    d:DataContext="{x:Static local:SettingsDesignModel.Instance}"
+    Background="{StaticResource ForegroundMainBrush}"
+    ResizeMode="NoResize"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <!--  Settings control separator  -->
+        <Style TargetType="{x:Type Separator}">
+            <Setter Property="Background" Value="{x:Null}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ForegroundLightBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,0.2" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <!--  Style label  -->
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="Margin" Value="10,0,0,0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeLarge}" />
+        </Style>
+
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundLightBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Resources>
+
+    <Border>
+        <StackPanel>
+            <!--  Name  -->
+            <Border
+                Height="80"
+                Padding="5"
+                Background="White">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        HorizontalAlignment="Left"
+                        RenderOptions.BitmapScalingMode="Fant"
+                        Source="pack://application:,,,/Janush;component/Assets/Application.ico" />
+                    <Label VerticalAlignment="Center" Content="Janush" />
+                </StackPanel>
+            </Border>
+
+            <!--  About  -->
+            <Border Padding="10">
+                <StackPanel>
+                    <!--  Version  -->
+                    <TextBlock>
+                        <Run Text="Version" />
+                        <Run Text=" " />
+                        <Run Text="{x:Static core:Consts.APP_VERSION}" />
+                    </TextBlock>
+
+                    <Separator />
+
+                    <!--  Description  -->
+                    <TextBlock Text="{x:Static core:Consts.APP_DESCRIPTION}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+
+</Window>

@@ -79,6 +79,11 @@ namespace Janush
         public ICommand OpenSettingsWindowCommand { get; }
 
         /// <summary>
+        /// The command to open the <see cref="AboutWindow"/>.
+        /// </summary>
+        public ICommand OpenAboutWindowCommand { get; }
+
+        /// <summary>
         /// The command to shutdown the application.
         /// </summary>
         public ICommand ShutdownCommand { get; }
@@ -135,6 +140,10 @@ namespace Janush
 
             OpenAddProductWindowCommand = new RelayCommand(DI.AddPromotionViewModel.Open);
             OpenSettingsWindowCommand = new RelayCommand(DI.SettingsViewModel.Open);
+            OpenAboutWindowCommand = new RelayCommand(() =>
+            {
+                DI.Application.ShowWindow<AboutWindow>(this);
+            });
             ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
             PopupClickawayCommand = new RelayCommand(PopupClickaway);
             StopTrackingAllCommand = new RelayCommand(async () => await StopTrackingAllAsync());

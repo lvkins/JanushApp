@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace Janush
 {
@@ -10,6 +11,20 @@ namespace Janush
         public SettingsWindow()
         {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void EmailPassword_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            // Update view model
+            if (DataContext is SettingsViewModel viewModel)
+            {
+                viewModel.EmailPassword = EmailPassword.SecurePassword;
+            }
         }
     }
 }

@@ -31,6 +31,11 @@ namespace Janush.Core
         /// </summary>
         public static IWebLoader WebLoader => GetService<IWebLoader>();
 
+        /// <summary>
+        /// A shortcut to access a instance of the <see cref="IEmailDispatcher"/>.
+        /// </summary>
+        public static IEmailDispatcher EmailDispatcher => GetService<IEmailDispatcher>();
+
         #endregion
 
         #region Public Methods

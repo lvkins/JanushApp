@@ -28,59 +28,199 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="FontSize" Value="{StaticResource FontSizeMedium}" />
         </Style>
+
+        <!--  The label column size  -->
+        <GridLength x:Key="LabelWidth">.4*</GridLength>
+
+        <Style x:Key="TextboxLabel" TargetType="{x:Type Label}">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis" />
+        </Style>
     </Window.Resources>
 
     <Border Padding="10">
-        <StackPanel>
+        <ScrollViewer>
+            <StackPanel>
 
-            <!--  Sound notification setting  -->
-            <CheckBox
+                <!--  Sound notification setting // removed  -->
+                <!--<CheckBox
                 x:Name="SoundNotification"
                 Content="Use sound notifications"
                 IsChecked="{Binding EnableSoundNotification}" />
-            <TextBlock Style="{StaticResource HelpBlock}" Text="Check, if you want a fancy sound to be played when a notification occurs." />
+            <TextBlock Style="{StaticResource HelpBlock}" Text="Check, if you want a fancy sound to be played when a notification occurs." />-->
 
-            <Separator />
+                <!--  Notifications  -->
+                <Label Content="Notifications" />
+                <CheckBox
+                    Margin="0,0,0,15"
+                    Content="Notify, when product name changes"
+                    IsChecked="{Binding NotifyNameChange}" />
+                <CheckBox
+                    Margin="0,0,0,15"
+                    Content="Notify, when product price decreases"
+                    IsChecked="{Binding NotifyPriceDecrease}" />
+                <CheckBox Content="Notify, when product price increases" IsChecked="{Binding NotifyPriceIncrease}" />
 
-            <!--  Update interval  -->
-            <Label local:FocusControlAttachedProperty.Value="{Binding ElementName=CheckInterval}" Content="Check interval" />
-            <Grid>
-                <TextBox
-                    x:Name="CheckInterval"
-                    local:TimeTextAttachedProperty.MinValue="30"
-                    local:TimeTextAttachedProperty.Value="{Binding CheckInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBlock
-                    Margin="2,0,0,0"
-                    Padding="10"
-                    VerticalAlignment="Center"
-                    IsHitTestVisible="False"
-                    Text="{Binding DisplayCheckInterval}"
-                    Visibility="{Binding IsFocused, ElementName=CheckInterval, Converter={local:BooleanToVisibilityConverter}}" />
-            </Grid>
+                <Separator />
 
-            <TextBlock Style="{StaticResource ConditionBlock}">
-                <Run Text="&#8226;" />
-                <Run Text="Minimum value: 30 seconds" />
-                <LineBreak />
-                <Run Text="&#8226;" />
-                <Run Text="Allowed format: hh:mm:ss (hours:minutes:seconds)" />
-            </TextBlock>
-            <TextBlock Style="{StaticResource HelpBlock}" Text="Specify how often should the fresh product data be pulled." />
+                <!--  E-mail notifications  -->
+                <Label Content="E-mail notifications" />
 
-            <Separator />
+                <CheckBox Content="Enable e-mail notifications" IsChecked="{Binding EnableEmailNotifications}" />
+                <TextBlock Style="{StaticResource HelpBlock}" Text="Check, if you want to configure e-mail notifications." />
 
-            <!--  Randomize check interval  -->
-            <StackPanel Orientation="Horizontal">
-                <CheckBox Content="Randomize check interval" IsChecked="{Binding RandomizeCheckInterval}" />
-                <TextBlock
-                    Margin="10,0"
-                    Style="{StaticResource ConditionBlock}"
-                    Text="(recommended)" />
+                <!--  E-mail configuration  -->
+                <Border Padding="10,0,0,0" Visibility="{Binding EnableEmailNotifications, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
+                    <StackPanel>
+                        <!--  Host  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource LabelWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label
+                                Grid.Column="0"
+                                local:FocusControlAttachedProperty.Value="{Binding ElementName=EmailHost}"
+                                Content="Host"
+                                Style="{StaticResource TextboxLabel}" />
+                            <TextBox
+                                x:Name="EmailHost"
+                                Grid.Column="1"
+                                Tag="e.g. smtp.gmail.com"
+                                Text="{Binding EmailHost, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+
+                        <!--  Username  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource LabelWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label
+                                Grid.Column="0"
+                                local:FocusControlAttachedProperty.Value="{Binding ElementName=EmailUser}"
+                                Content="E-mail"
+                                Style="{StaticResource TextboxLabel}" />
+                            <TextBox
+                                x:Name="EmailUser"
+                                Grid.Column="1"
+                                Tag="e.g. john@example.com"
+                                Text="{Binding EmailUsername, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+
+                        <!--  Password  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource LabelWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label
+                                Grid.Column="0"
+                                local:FocusControlAttachedProperty.Value="{Binding ElementName=EmailPassword}"
+                                Content="Password"
+                                Style="{StaticResource TextboxLabel}" />
+                            <PasswordBox
+                                x:Name="EmailPassword"
+                                Grid.Column="1"
+                                PasswordChanged="EmailPassword_PasswordChanged"
+                                Tag="{Binding EmailPasswordHint}" />
+                        </Grid>
+
+                        <!--  Port  -->
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource LabelWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label
+                                Grid.Column="0"
+                                local:FocusControlAttachedProperty.Value="{Binding ElementName=EmailPort}"
+                                Content="Port"
+                                Style="{StaticResource TextboxLabel}" />
+                            <TextBox
+                                x:Name="EmailPort"
+                                Grid.Column="1"
+                                Tag="e.g. 587"
+                                Text="{Binding EmailPort, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+
+                        <!--  TLS  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource LabelWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox
+                                Grid.Column="1"
+                                Content="Auto TLS"
+                                IsChecked="{Binding EmailUseTLS}" />
+                        </Grid>
+
+                        <!--  Authentication  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource LabelWidth}" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox
+                                Grid.Column="1"
+                                Content="Authentication"
+                                IsChecked="{Binding EmailUseAuth}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Separator />
+
+                <!--  Update interval  -->
+                <Label local:FocusControlAttachedProperty.Value="{Binding ElementName=CheckInterval}" Content="Check interval" />
+                <Grid>
+                    <TextBox
+                        x:Name="CheckInterval"
+                        local:TimeTextAttachedProperty.MinValue="30"
+                        local:TimeTextAttachedProperty.Value="{Binding CheckInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock
+                        Margin="2,0,0,0"
+                        Padding="10"
+                        VerticalAlignment="Center"
+                        IsHitTestVisible="False"
+                        Text="{Binding DisplayCheckInterval}"
+                        Visibility="{Binding IsFocused, ElementName=CheckInterval, Converter={local:BooleanToVisibilityConverter}}" />
+                </Grid>
+
+                <TextBlock Style="{StaticResource ConditionBlock}">
+                    <Run Text="&#8226;" />
+                    <Run Text="Minimum value: 30 seconds" />
+                    <LineBreak />
+                    <Run Text="&#8226;" />
+                    <Run Text="Allowed format: hh:mm:ss (hours:minutes:seconds)" />
+                </TextBlock>
+                <TextBlock Style="{StaticResource HelpBlock}" Text="Specify how often should the fresh product data be pulled." />
+
+                <Separator />
+
+                <!--  Randomize check interval  -->
+                <StackPanel Orientation="Horizontal">
+                    <CheckBox Content="Randomize check interval" IsChecked="{Binding RandomizeCheckInterval}" />
+                    <TextBlock
+                        Margin="10,0"
+                        Style="{StaticResource ConditionBlock}"
+                        Text="(recommended)" />
+                </StackPanel>
+
+                <TextBlock Style="{StaticResource HelpBlock}" Text="If checked, Janush will be less suspicious - check interval will be extended by a random value of approximately 10 seconds in order to prevent pulling the product data all together at the same time which, depending on the website configuration, could result in various errors or access being denied." />
+
             </StackPanel>
-
-            <TextBlock Style="{StaticResource HelpBlock}" Text="If checked, Janush will be less suspicious - check interval will be extended by a random value of approximately 10 seconds in order to prevent pulling the product data all together at the same time which, depending on the website configuration, could result in various errors or access being denied." />
-
-        </StackPanel>
+        </ScrollViewer>
     </Border>
 
 </Window>

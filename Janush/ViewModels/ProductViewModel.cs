@@ -864,6 +864,8 @@ namespace Janush
                     };
                 }
 
+                var isHardNotification = CoreDI.SettingsReader.Settings.NotifyNameChange; // Settings.NotifyNameChange // TODO: apply product setting
+
                 // Append new name to history
                 NameHistory.Add(new KeyValuePair<string, DateTime>(Product.Name, DateTime.Now));
 
@@ -873,7 +875,14 @@ namespace Janush
                     Type = NotificationSubjectType.NameChange,
                     Message = string.Format(Strings.NotificationNameChanged, OriginalName, Product.Name),
                     Product = this,
-                }, popToast: Settings.NotifyNameChange);
+                }, popToast: isHardNotification);
+
+                // Handle email notification
+                if (isHardNotification)
+                {
+                    CoreDI.EmailDispatcher.SendMessage(string.Format(Strings.NotificationNameChanged, OriginalName, Product.Name),
+                        string.Format(EmailStrings.NotificationNameChanged, OriginalName, Product.Name, Product.Url));
+                }
 
                 // Update name
                 OriginalName = Product.Name;
@@ -902,20 +911,45 @@ namespace Janush
                 SeriesViews.First().Values.Add(Product.PriceInfo.Value);
                 Labels.Add(DateTime.Now.ToShortDateString());
 
+                var isIncrease = Product.PriceInfo.Value > PriceCurrent;
+                var isHardNotification = false; // Settings.NotifyPriceChange; TODO: apply each product setting
+
+                if (isIncrease && CoreDI.SettingsReader.Settings.NotifyPriceIncrease)
+                {
+                    isHardNotification = true;
+                }
+                else if (!isIncrease && CoreDI.SettingsReader.Settings.NotifyPriceDecrease)
+                {
+                    isHardNotification = true;
+                }
+
+                // Get notification title
+                var message = isIncrease
+                    // If new price is higher than current price...
+                    ? string.Format(Strings.NotificationPriceIncrease, DisplayPrice, Product.PriceInfo.CurrencyAmount)
+                    // If new price is lower than current price...
+                    : string.Format(Strings.NotificationPriceDecrease, DisplayPrice, Product.PriceInfo.CurrencyAmount);
+
                 // Store notification
                 DI.NotificationsViewModel.Add(new NotificationItemViewModel
                 {
-                    Type = Product.PriceInfo.Value > PriceCurrent ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
-                    Message = Product.PriceInfo.Value > PriceCurrent
-                        // If new price is higher than current price...
-                        ? string.Format(Strings.NotificationPriceIncrease, DisplayPrice, Product.PriceInfo.CurrencyAmount)
-                        // If new price is lower than current price...
-                        : string.Format(Strings.NotificationPriceDecrease, DisplayPrice, Product.PriceInfo.CurrencyAmount),
-                    Product = this,
-                }, popToast: Settings.NotifyPriceChange);
+                    Type = isIncrease ? NotificationSubjectType.PriceUp : NotificationSubjectType.PriceDown,
+                    Message = message,
+                    Product = this
+                }, popToast: isHardNotification);
+
+                // Handle email notification
+                if (isHardNotification)
+                {
+                    CoreDI.EmailDispatcher.SendMessage(message,
+                        string.Format(isIncrease
+                        ? EmailStrings.NotificationPriceIncrease
+                        : EmailStrings.NotificationPriceDecrease,
+                        Product.Name, DisplayPrice, Product.PriceInfo.CurrencyAmount, Product.Url));
+                }
 
                 // If price decreased (sale)...
-                if (Product.PriceInfo.Value < PriceCurrent)
+                if (!isIncrease)
                 {
                     // Update top shop to include this change
                     DI.Application.UpdateTopShop();

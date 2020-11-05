@@ -1,4 +1,6 @@
 ﻿using Janush.Core;
+using System;
+using System.Threading;
 using System.Windows;
 
 namespace Janush
@@ -9,11 +11,31 @@ namespace Janush
     public partial class App : Application
     {
         /// <summary>
+        /// The application mutex.
+        /// </summary>
+        private static Mutex Mutex = null;
+
+        /// <summary>
+        /// The application unique identifier.
+        /// </summary>
+        private static readonly string AppGuid = "73f73810-b345-4b3e-a713-e7671cf1f50b";
+
+        /// <summary>
         /// Loads the application ready to use.
         /// </summary>
         /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Create mutex
+            Mutex = new Mutex(false, "Global\\" + AppGuid, out var isNewMutex);
+
+            if (!isNewMutex)
+            {
+                // Terminate process
+                Environment.Exit(0);
+                return;
+            }
+
             base.OnStartup(e);
 
             // Setup dependency injection
@@ -40,6 +62,9 @@ namespace Janush
         {
             // Save current state on exit
             DI.Application.Save();
+
+            // Dispose mutex
+            Mutex?.Dispose();
 
             base.OnExit(e);
         }

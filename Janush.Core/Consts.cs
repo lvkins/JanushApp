@@ -12,6 +12,17 @@ namespace Janush.Core
         public const string APP_TITLE = "Janush";
 
         /// <summary>
+        /// The application description.
+        /// </summary>
+        public const string APP_DESCRIPTION = "Janush helps you track product prices on plenty of e-commerce websites around the world. " +
+            "You get notified on every price change to make sure you buy your product at the lowest price possible with no fake sales.";
+
+        /// <summary>
+        /// The application version.
+        /// </summary>
+        public const string APP_VERSION = "1.0.0";
+
+        /// <summary>
         /// The fake user agent to use for the HTTP requests.
         /// </summary>
         public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36";

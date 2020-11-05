@@ -1,7 +1,12 @@
 ﻿using Janush.Core;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Input;
 
@@ -25,6 +30,11 @@ namespace Janush
         private bool _enableSoundNotification;
 
         /// <summary>
+        /// If e-mail notifications are enabled.
+        /// </summary>
+        private bool _enableEmailNotifications;
+
+        /// <summary>
         /// Whether if the check interval time value should be randomized in order to prevent pulling the products data all together.
         /// </summary>
         private bool _randomizeCheckInterval;
@@ -37,6 +47,21 @@ namespace Janush
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// Whether to notify about product name changes.
+        /// </summary>
+        public bool NotifyNameChange { get; set; } = true;
+
+        /// <summary>
+        /// Whether to notify about product price decrease changes.
+        /// </summary>
+        public bool NotifyPriceDecrease { get; set; } = true;
+
+        /// <summary>
+        /// Whether to notify about product price increase changes.
+        /// </summary>
+        public bool NotifyPriceIncrease { get; set; } = true;
 
         /// <summary>
         /// If sound notification are enabled.
@@ -53,6 +78,57 @@ namespace Janush
                 OnPropertyChanged(nameof(EnableSoundNotification));
             }
         }
+
+        /// <summary>
+        /// If e-mail notification are enabled.
+        /// </summary>
+        public bool EnableEmailNotifications
+        {
+            get => _enableEmailNotifications;
+            set
+            {
+                // Update value
+                _enableEmailNotifications = value;
+
+                // Raise property changed event
+                OnPropertyChanged(nameof(EnableEmailNotifications));
+            }
+        }
+
+        /// <summary>
+        /// The email host setting.
+        /// </summary>
+        public string EmailHost { get; set; }
+
+        /// <summary>
+        /// The email username setting.
+        /// </summary>
+        public string EmailUsername { get; set; }
+
+        /// <summary>
+        /// The email password setting.
+        /// </summary>
+        public SecureString EmailPassword { get; set; }
+
+        /// <summary>
+        /// The hint for the email password.
+        /// </summary>
+        public string EmailPasswordHint { get; set; }
+
+        /// <summary>
+        /// The email port setting.
+        /// </summary>
+        public string EmailPort { get; set; }
+
+        /// <summary>
+        /// Whether if using SSL/TLS for sending emails.
+        /// </summary>
+        public bool EmailUseTLS { get; set; } = true;
+
+        /// <summary>
+        /// Whether if credentials should be used.
+        /// </summary>
+        public bool EmailUseAuth { get; set; } = true;
 
         /// <summary>
         /// Whether if the check interval time value should be randomized in order to prevent pulling the products data all together.
@@ -194,18 +270,34 @@ namespace Janush
         private void Load()
         {
             // Unhook so that property changed won't be called while populating view model properties
-            PropertyChanged -= Settings_PropertyChanged;
+            //PropertyChanged -= Settings_PropertyChanged;
 
             // Get the user settings object
-            var userSettings = CoreDI.SettingsReader.Settings;
+            var settings = CoreDI.SettingsReader.Settings;
 
             // Set current values
-            EnableSoundNotification = userSettings.SoundNotification;
-            RandomizeCheckInterval = userSettings.RandomizeInterval;
-            CheckInterval = userSettings.UpdateInterval;
+            NotifyNameChange = settings.NotifyNameChange;
+            NotifyPriceIncrease = settings.NotifyPriceIncrease;
+            NotifyPriceDecrease = settings.NotifyPriceDecrease;
+
+            EnableSoundNotification = settings.SoundNotification;
+
+            EnableEmailNotifications = settings.EmailNotifications;
+            EmailHost = settings.EmailHost;
+            EmailPort = settings.EmailPort;
+            EmailUsername = settings.EmailUsername;
+            EmailPassword = settings.EmailPassword != null && settings.EmailPasswordHash != null
+                ? new SecureString().RNGCryptoDecrypt(settings.EmailPassword, settings.EmailPasswordHash)
+                : null;
+            EmailPasswordHint = new string('●', EmailPassword?.Length ?? 0);
+            EmailUseTLS = settings.EmailUseTLS;
+            EmailUseAuth = settings.EmailUseAuth;
+
+            RandomizeCheckInterval = settings.RandomizeInterval;
+            CheckInterval = settings.UpdateInterval;
 
             // Hook into the property changed event to listen for input changes
-            PropertyChanged += Settings_PropertyChanged;
+            //PropertyChanged += Settings_PropertyChanged;
         }
 
         /// <summary>
@@ -223,8 +315,44 @@ namespace Janush
             _needTrackRestart = _needTrackRestart || settings.RandomizeInterval != RandomizeCheckInterval ||
                 settings.UpdateInterval != CheckInterval;
 
+
             // Update settings values
+            settings.NotifyNameChange = NotifyNameChange;
+            settings.NotifyPriceIncrease = NotifyPriceIncrease;
+            settings.NotifyPriceDecrease = NotifyPriceDecrease;
+
             settings.SoundNotification = EnableSoundNotification;
+
+            settings.EmailNotifications = EnableEmailNotifications;
+            settings.EmailHost = EmailHost;
+            settings.EmailPort = EmailPort;
+            settings.EmailUsername = EmailUsername;
+
+            // Get currently saved password
+            var savedPassword = settings.EmailPassword != null && settings.EmailPasswordHash != null
+                ? new SecureString().RNGCryptoDecrypt(settings.EmailPassword, settings.EmailPasswordHash)
+                : null;
+
+            // When password is empty...
+            if (EmailPassword == null || EmailPassword.Length == 0)
+            {
+                // Reset cipher and entropy
+                settings.EmailPassword = null;
+                settings.EmailPasswordHash = null;
+            }
+            // When password has changed...
+            else if (savedPassword == null || !EmailPassword.IsEqualTo(savedPassword))
+            {
+                // Generate new cipher and entropy for new password
+                var (entropy, cipher) = EmailPassword.RNGCryptoEncrypt();
+
+                settings.EmailPassword = cipher;
+                settings.EmailPasswordHash = entropy;
+            }
+
+            settings.EmailUseTLS = EmailUseTLS;
+            settings.EmailUseAuth = EmailUseAuth;
+
             settings.RandomizeInterval = RandomizeCheckInterval;
             settings.UpdateInterval = CheckInterval;
 
@@ -237,14 +365,17 @@ namespace Janush
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-            => Save();
+        //private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        //    => Save();
 
         /// <summary>
         /// Called when window is closing.
         /// </summary>
         private void OnClose()
         {
+            // Save props
+            Save();
+
             // If a tracking related-setting was changed...
             if (_needTrackRestart)
             {
