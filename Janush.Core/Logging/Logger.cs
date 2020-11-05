@@ -130,7 +130,7 @@ namespace Janush.Core
             _fileDir = Path.GetDirectoryName(filePath);
             _configuration = configuration ?? new LoggerConfiguration();
 
-            if (configuration.FlushOnStart)
+            if (configuration.FlushOnStart && File.Exists(filePath))
             {
                 File.WriteAllText(filePath, string.Empty);
             }

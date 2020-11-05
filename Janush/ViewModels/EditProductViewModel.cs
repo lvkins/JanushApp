@@ -35,11 +35,6 @@ namespace Janush
         private bool _stepTwoVisible;
 
         /// <summary>
-        /// The currently selected add type option index.
-        /// </summary>
-        private int _selectedTabIndex;
-
-        /// <summary>
         /// The view model to edit.
         /// </summary>
         private ProductViewModel _targetViewModel;
@@ -414,30 +409,7 @@ namespace Janush
                 Application.Current.MainWindow?.Show();
             }
 
-            return;
-
-            // If user had to select a valid price...
-            if (TargetViewModel.Product.DetectedPrices?.Count > 1)
-            {
-                // If no price was selected...
-                if (SelectedPrice == null)
-                {
-                    return;
-                }
-
-                // Set selected price to be tracked
-                TargetViewModel.Product.SetTrackingPrice(SelectedPrice);
-            }
-
-            // Update product
-            TargetViewModel.DisplayName = Name;
-            TargetViewModel.Url = new Uri(Url);
-
-            // Close window
-            Close();
-
-            // Show main window
-            Application.Current.MainWindow?.Show();
+            // TODO: ensure price selector
         }
 
         #endregion

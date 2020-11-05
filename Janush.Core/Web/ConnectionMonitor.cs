@@ -71,7 +71,7 @@ namespace Janush.Core
                 // Get result
                 var result = await HttpEndpointReachableAsync();
 
-                Debug.WriteLine($"[Internet Connection] ${result}");
+                Debug.WriteLine($"[Internet Connection] {result}");
 
                 // If state has changed...
                 if (result != _state)
