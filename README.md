@@ -1,1 +1,1 @@
-# janush.github.io
+# Janush
