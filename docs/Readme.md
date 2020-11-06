@@ -9,7 +9,7 @@ Simple product list with search bar.
 
 ### Adding a product: auto detection
 * * *
-Janush will do it's best to detect the product automatically.
+Janush will do its best to detect the product automatically.
 ![Add Auto](/assets/images/ui/add1.png)
 
 ### Adding a product: manually
@@ -63,7 +63,7 @@ All of the data is stored ONLY on your system.
 
 ### Liablity
 * * *
-Neither Janush author or it's contributors are not responsible for using the product contrary to its intended purpose.
+Neither Janush author or its contributors are not responsible for using the product contrary to its intended purpose.
 
 ### License
 * * *
