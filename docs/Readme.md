@@ -33,6 +33,7 @@ With product options you can:
 - Exclude the product from tracking
 - Export product history to CSV file
 - Delete the product
+
 ![Options](/assets/images/ui/options.png)
 
 ### Product details
@@ -45,6 +46,7 @@ You will be notified about every product change (configurable) - price and its n
 - Balloon notification within the app,
 - Windows toast notification
 - Optionally, you can configure e-mail notifications
+
 ![Notification](/assets/images/ui/notification.png)
 ![Toast](/assets/images/ui/toast.png)
 
@@ -55,6 +57,7 @@ The settings options include:
 - Ability to disable certain product notifications,
 - Configure e-mail notifications
 - Configure check interval (how often the product data will be pulled from the server)
+
 ![Settings](/assets/images/ui/settings.png)
 
 ### Privacy
