@@ -60,6 +60,10 @@ The settings options include:
 
 ![Settings](/assets/images/ui/settings.png)
 
+### Known issues
+* * *
+1. In most cases, Janush will have trouble trying to track products on SPA (Single-Page Application) websites due to the content of such websites being generated dynamically. This will be resolved in the future releases.
+
 ### Privacy
 * * *
 All of the data is stored ONLY on your system.
