@@ -1,5 +1,7 @@
 ﻿using Janush.Core;
+using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -98,6 +100,11 @@ namespace Janush
         /// </summary>
         public ICommand StopTrackingAllCommand { get; }
 
+        /// <summary>
+        /// The command for donation.
+        /// </summary>
+        public ICommand DonateCommand { get; }
+
         #endregion
 
         #region Constructor
@@ -147,6 +154,7 @@ namespace Janush
             ShutdownCommand = new RelayCommand(Application.Current.Shutdown);
             PopupClickawayCommand = new RelayCommand(PopupClickaway);
             StopTrackingAllCommand = new RelayCommand(async () => await StopTrackingAllAsync());
+            DonateCommand = new RelayCommand(OnDonate);
 
             #endregion
 
@@ -208,6 +216,18 @@ namespace Janush
             return product.Name.ContainsEx(FilterQuery) ||
                     product.DisplayPrice.Contains(FilterQuery) ||
                     product.Url.Host.ContainsEx(FilterQuery);
+        }
+
+        /// <summary>
+        /// Navigates to the donation URL.
+        /// </summary>
+        private void OnDonate()
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Consts.DONATION_URL,
+                UseShellExecute = true
+            });
         }
 
         #endregion

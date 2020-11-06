@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="About"
     Width="400"
-    Height="240"
+    Height="280"
     d:DataContext="{x:Static local:SettingsDesignModel.Instance}"
     Background="{StaticResource ForegroundMainBrush}"
     ResizeMode="NoResize"
@@ -67,6 +67,28 @@
 
                     <!--  Description  -->
                     <TextBlock Text="{x:Static core:Consts.APP_DESCRIPTION}" />
+
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Text="Do you enjoy using Janush?" />
+                    <Button
+                        HorizontalAlignment="Center"
+                        Command="{Binding DonateCommand}"
+                        Content="Donate the author ❤"
+                        FontSize="14">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource Styleless}" TargetType="{x:Type Button}">
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundLightBrush}" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Cursor" Value="Hand" />
+                                        <Setter Property="Foreground" Value="{StaticResource AppBlueBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </StackPanel>
             </Border>
         </StackPanel>
