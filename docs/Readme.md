@@ -1,5 +1,4 @@
-# Janush
-
+Initial window
 
 ![Initial](/assets/images/ui/initial.png)
 
