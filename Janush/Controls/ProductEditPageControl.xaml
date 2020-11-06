@@ -167,20 +167,6 @@
                             </Grid>
                         </Button>
 
-                        <!--  Currency  -->
-                        <!--<Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="{StaticResource TableColumnWidth}" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0" Text="Currency:" />
-                            <TextBlock Grid.Column="1">
-                                <Run Text="{Binding CultureRegion.CurrencyNativeName, Mode=OneWay}" />
-                                <Run Text="(" /><Run Text="{Binding CultureRegion.ISOCurrencySymbol, Mode=OneWay}" /><Run Text=")" />
-                            </TextBlock>
-                        </Grid>-->
-
                     </StackPanel>
 
                 </ScrollViewer>

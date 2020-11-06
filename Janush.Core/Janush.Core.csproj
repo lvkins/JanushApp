@@ -6,12 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="AngleSharpTest.cs" />
-    <Compile Remove="DataModel\SettingsReader.cs" />
-    <Compile Remove="HtmlRequest.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.14.0" />
     <PackageReference Include="AngleSharp.Js" Version="0.14.0" />
     <PackageReference Include="AngleSharp.XPath" Version="1.1.7" />

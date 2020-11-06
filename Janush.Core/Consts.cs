@@ -71,7 +71,7 @@ namespace Janush.Core
         /// <summary>
         /// The default time interval, product will updated within.
         /// </summary>
-        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromSeconds(60);
+        public static readonly TimeSpan PRODUCT_UPDATE_INTERVAL = TimeSpan.FromMinutes(15);
 
         /// <summary>
         /// Whether if the <see cref="PRODUCT_UPDATE_INTERVAL"/> should be randomized by adding a small random values.

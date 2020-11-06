@@ -176,7 +176,7 @@
                                     Closed="SettingsContextMenu_Closed">
 
                                     <!--  Stop tracking  -->
-                                    <MenuItem Command="{Binding StopTrackingAllCommand}" Header="Stop tracking of ALL products" />
+                                    <MenuItem Command="{Binding StopTrackingAllCommand}" Header="Stop tracking everything" />
 
                                     <!--  Settings  -->
                                     <MenuItem
@@ -274,7 +274,7 @@
                     </Border>
 
                     <!--  Filter query input  -->
-                    <Grid>
+                    <Grid Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}, ConverterParameter=True}">
                         <!--  Icon  -->
                         <Border
                             Width="14"
@@ -346,7 +346,7 @@
                 </Border>
 
                 <!--  No products content  -->
-                <Border Grid.Row="2" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}}">
+                <Border Grid.Row="3" Visibility="{Binding Products.Count, Source={x:Static local:ViewModelLocator.ApplicationViewModel}, Converter={local:BooleanToVisibilityConverter}}">
 
                     <!--  Background  -->
                     <Border.Background>

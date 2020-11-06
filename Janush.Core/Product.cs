@@ -572,7 +572,7 @@ namespace Janush.Core
                     // The Product Name, SiteName.com
                     // Since the product name is 'The Product Name' (without trailing comma)
                     // We need to get rid of it, before comparing.
-                    text = text.TrimEnd(',', '.');
+                    text = text.TrimEnd(',', '.', ':', '-');
 
                     // Create anonymous type
                     return new { Node = _, Text = text };
@@ -590,6 +590,18 @@ namespace Janush.Core
             // If we have title pieces...
             if (pieces.Any())
             {
+                // Find longest text in content that appears in the page title
+                var presentText = contents.Where(val => pageTitle.IndexOf(val.Text) != -1)
+                    .OrderByDescending(_ => _.Text.Length)
+                    .FirstOrDefault()?.Text;
+
+                if (!string.IsNullOrWhiteSpace(presentText))
+                {
+                    pageTitle = presentText;
+                }
+
+                /*
+                 * Removed in favor of the above.
                 // Title occurrences counter
                 var prevCount = 0;
 
@@ -610,6 +622,7 @@ namespace Janush.Core
                         prevCount = count;
                     }
                 }
+                */
             }
 
             // Set product name

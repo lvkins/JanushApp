@@ -93,7 +93,7 @@ namespace Janush
         /// <summary>
         /// The currently selected region informations, defaults to the current user region.
         /// </summary>
-        public RegionInfo UserRegion { get; set; } = new RegionInfo(CultureInfo.CurrentUICulture.Name); // SelectedItem Binding is not working when using RegionInfo.CurrentRegion;
+        public RegionInfo UserRegion { get; set; } = RegionInfo.CurrentRegion;
 
         /// <summary>
         /// If we are currently adding a product.
@@ -381,11 +381,20 @@ namespace Janush
 
             try
             {
-                // Create new culture
-                var newCulture = CultureInfo.CreateSpecificCulture(UserRegion.Name);
-
                 // Update props
                 TargetViewModel.DisplayName = Name;
+
+                // If a new region was selected...
+                if (UserRegion != TargetViewModel.CultureRegion)
+                {
+                    // Find new culture
+                    var newCulture = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
+                              .FirstOrDefault(c => c.Name.EndsWith(UserRegion.Name));
+                    if (newCulture != null)
+                    {
+                        TargetViewModel.Culture = newCulture;
+                    }
+                }
 
                 // If URL has changed...
                 if (!TargetViewModel.Url.Equals(Url))
@@ -395,7 +404,6 @@ namespace Janush
                 }
 
                 TargetViewModel.Url = new Uri(Url);
-                TargetViewModel.Culture = newCulture;
 
                 // Update local data store
                 DI.Application.Save();
