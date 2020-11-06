@@ -2,6 +2,7 @@ Initial window
 
 ![Initial](/assets/images/ui/initial.png)
 
+### Products board
 ![Products Board](/assets/images/ui/board.png)
 
 ![Add Auto](/assets/images/ui/add1.png)
