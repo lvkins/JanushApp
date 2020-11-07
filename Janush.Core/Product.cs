@@ -601,7 +601,7 @@ namespace Janush.Core
                 }
 
                 /*
-                 * Removed in favor of the above.
+                 * 
                 // Title occurrences counter
                 var prevCount = 0;
 

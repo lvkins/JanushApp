@@ -260,5 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 
-PromoSeeker.Core/AngleSharpTest.cs
 Resources/*
+
+Scripts/

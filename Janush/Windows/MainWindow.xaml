@@ -181,7 +181,7 @@
                                     <!--  Settings  -->
                                     <MenuItem
                                         Command="{Binding OpenSettingsWindowCommand}"
-                                        Header="Options"
+                                        Header="Settings"
                                         InputGestureText="Ctrl+O" />
 
                                     <!--  About  -->

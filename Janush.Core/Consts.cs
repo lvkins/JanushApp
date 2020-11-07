@@ -31,7 +31,7 @@ namespace Janush.Core
         /// <summary>
         /// The application download URL.
         /// </summary>
-        public const string APP_DOWNLOAD_URL = "https://github.com/lvkins/JanushApp/releases";
+        public const string APP_DOWNLOAD_URL = "https://github.com/lvkins/JanushApp/releases/latest/download/JanushInstaller.exe";
 
         /// <summary>
         /// The donation URL.
@@ -39,7 +39,7 @@ namespace Janush.Core
         public const string DONATION_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=lsgames.st%40gmail.com&currency_code=EUR";
 
         /// <summary>
-        /// The fake user agent to use for the HTTP requests.
+        /// A fake user agent to use for the HTTP requests.
         /// </summary>
         public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36";
 
