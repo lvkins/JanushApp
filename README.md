@@ -2,7 +2,7 @@
 
  ▶ [Download now](https://lvkins.github.io/JanushApp/)
  
- ▶ [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=lsgames.st%40gmail.com&currency_code=EUR) 🙏🏻
+ ▶ [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=lsgames.st%40gmail.com&currency_code=EUR)  ❤
 
 ---
 
