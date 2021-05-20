@@ -1,6 +1,4 @@
-﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
-// Licensed under the MIT license.
-
+﻿
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -28,7 +26,7 @@ using System.Resources;
 [assembly: Guid("c81d497e-83be-41a3-a917-de75589df6ae")] 
 
 // Version information
-[assembly: AssemblyVersion("1.0.41.126")]
-[assembly: AssemblyFileVersion("1.0.41.126")]
+[assembly: AssemblyVersion("1.0.42.127")]
+[assembly: AssemblyFileVersion("1.0.42.127")]
 [assembly: NeutralResourcesLanguageAttribute( "en-US" )]
 
