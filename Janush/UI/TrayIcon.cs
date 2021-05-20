@@ -1,4 +1,7 @@
-﻿using Janush.Core;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using Janush.Core;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
@@ -38,12 +41,6 @@ namespace Janush
         /// </summary>
         public TrayIcon()
         {
-            // Retrieve resource icon. TODO: Make use of the Application.Current.MainWindow.Icon?
-            //using (var stream = Application.GetResourceStream(new Uri("pack://application:,,,/Janush;component/Assets/Application2.ico")).Stream)
-            //{
-            //    _trayIcon.Icon = new Icon(stream);
-            //}
-
             // Use application icon
             _trayIcon.Icon = _originIcon;
 

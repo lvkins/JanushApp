@@ -1,4 +1,7 @@
-﻿using Janush.Core.Localization;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using Janush.Core.Localization;
 
 namespace Janush
 {

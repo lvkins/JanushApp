@@ -1,4 +1,7 @@
-﻿using LiveCharts;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using LiveCharts;
 using LiveCharts.Wpf;
 using Janush.Core;
 using Janush.Core.Localization;
@@ -868,7 +871,7 @@ namespace Janush
                     };
                 }
 
-                var isHardNotification = CoreDI.SettingsReader.Settings.NotifyNameChange; // Settings.NotifyNameChange // TODO: apply product setting
+                var isHardNotification = CoreDI.SettingsReader.Settings.NotifyNameChange;
 
                 // Append new name to history
                 NameHistory.Add(new KeyValuePair<string, DateTime>(Product.Name, DateTime.Now));
@@ -916,7 +919,7 @@ namespace Janush
                 Labels.Add(DateTime.Now.ToShortDateString());
 
                 var isIncrease = Product.PriceInfo.Value > PriceCurrent;
-                var isHardNotification = false; // Settings.NotifyPriceChange; TODO: apply each product setting
+                var isHardNotification = false;
 
                 if (isIncrease && CoreDI.SettingsReader.Settings.NotifyPriceIncrease)
                 {

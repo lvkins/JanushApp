@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;

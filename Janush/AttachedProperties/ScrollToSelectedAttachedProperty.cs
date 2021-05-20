@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;

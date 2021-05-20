@@ -1,4 +1,7 @@
-﻿using Janush.Core;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using Janush.Core;
 using Janush.Core.Localization;
 using System;
 using System.Diagnostics;

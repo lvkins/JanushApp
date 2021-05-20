@@ -74,7 +74,6 @@ namespace Janush.Core
             }
             catch (SmtpException ex)
             {
-                // TODO: log entry
                 if (Debugger.IsAttached)
                 {
                     throw new ApplicationException

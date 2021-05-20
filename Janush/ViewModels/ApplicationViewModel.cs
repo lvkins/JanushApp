@@ -1,9 +1,11 @@
-﻿using Janush.Core;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using Janush.Core;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Timers;
 using System.Windows;
 
 namespace Janush

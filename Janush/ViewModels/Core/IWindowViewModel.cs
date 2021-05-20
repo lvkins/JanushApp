@@ -1,4 +1,7 @@
-﻿using System.Windows.Input;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System.Windows.Input;
 
 namespace Janush
 {

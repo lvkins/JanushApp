@@ -1,4 +1,7 @@
-﻿using System.Windows.Controls;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System.Windows.Controls;
 
 namespace Janush
 {

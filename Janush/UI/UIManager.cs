@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace Janush

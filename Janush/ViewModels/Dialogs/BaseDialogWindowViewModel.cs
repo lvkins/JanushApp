@@ -1,4 +1,7 @@
-﻿namespace Janush
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+namespace Janush
 {
     /// <summary>
     /// A base class for the dialog boxes.

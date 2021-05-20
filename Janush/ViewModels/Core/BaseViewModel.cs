@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System.ComponentModel;
 
 namespace Janush
 {

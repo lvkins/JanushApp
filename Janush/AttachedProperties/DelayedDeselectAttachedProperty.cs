@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;

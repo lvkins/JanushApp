@@ -1,4 +1,7 @@
-﻿using Janush.Core;
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+using Janush.Core;
 using Janush.Core.Localization;
 using System;
 using System.Collections.Generic;
@@ -122,12 +125,6 @@ namespace Janush
 
         /// <summary>
         /// The regions to select the currency from.
-        /// 
-        /// TODO: Should we group the currencies by, for example
-        /// the ISOCurrencySymbol to prevent duplicate currencies in the combo box
-        /// and give user the ability to select a currency, rather 
-        /// than the country?
-        /// 
         /// </summary>
         public IEnumerable<RegionInfo> Regions { get; } = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
             // Select the region info of the culture

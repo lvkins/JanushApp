@@ -3,11 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28705.295
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Janush", "Janush\Janush.csproj", "{A2895E55-670C-4341-A856-45E9A315FE2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Janush", "Janush\Janush.csproj", "{A2895E55-670C-4341-A856-45E9A315FE2A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Janush.Core", "Janush.Core\Janush.Core.csproj", "{457B18F9-670E-45A7-8ADE-98FCF8CEAE35}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{DAAEE055-E360-4553-989A-9E92EC8563EF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{009BA582-C383-4D3D-8998-EB2BE9A808A7}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,7 +33,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {4FE08C35-A590-4670-9333-B1B31F350A5A}
 		RESX_PrefixTranslations = False
+		SolutionGuid = {4FE08C35-A590-4670-9333-B1B31F350A5A}
 	EndGlobalSection
 EndGlobal

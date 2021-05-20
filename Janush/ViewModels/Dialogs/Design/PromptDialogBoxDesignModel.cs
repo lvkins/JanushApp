@@ -1,4 +1,7 @@
-﻿namespace Janush
+﻿// Copyright(c) Łukasz Szwedt. All rights reserved.
+// Licensed under the MIT license.
+
+namespace Janush
 {
     /// <summary>
     /// The design-time data model for a <see cref="PromptDialogBoxViewModel"/>.
