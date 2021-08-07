@@ -41,7 +41,7 @@ namespace Janush.Core
         /// <summary>
         /// A fake user agent to use for the HTTP requests.
         /// </summary>
-        public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36";
+        public const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0";
 
         /// <summary>
         /// The internet connection check interval.
@@ -67,6 +67,18 @@ namespace Janush.Core
         /// The maximum amount of the notifications to maintain.
         /// </summary>
         public const int NOTIFICATION_MAX_COUNT = 50;
+
+        /// <summary>
+        /// A minimum required price length. <see cref="3"/> is a reasonable value
+        /// because we assume price appears in the following format: <see cref="1,00"/>
+        /// </summary>
+        public const int PRICE_MIN_LENGTH = 3;
+
+        /// <summary>
+        /// A maximum required price length.
+        /// </summary>
+        public const int PRICE_MAX_LENGTH = 7;
+
 
         /// <summary>
         /// The default time interval, product will updated within.
@@ -130,6 +142,11 @@ namespace Janush.Core
         /// Parts of attribute names in the document which values can contain a product price.
         /// </summary>
         public static readonly string[] PRICE_ATTRIBUTE_NAMES = new string[] { "price", "prize", "cost" };
+
+        /// <summary>
+        /// Banned price attribute keywords
+        /// </summary>
+        public static readonly string[] PRICE_BANNED_ATTRIBUTE_KEYWORDS = new string[] { "old", "previous" };
 
         /// <summary>
         /// The regex used to detected prices in JS code. Will match following:

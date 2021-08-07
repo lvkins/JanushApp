@@ -1,7 +1,4 @@
-﻿using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
-using Janush.Core.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -10,6 +7,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using Janush.Core.Localization;
 
 namespace Janush.Core
 {
@@ -199,28 +199,11 @@ namespace Janush.Core
                 };
             }
 
-            // If document is not loaded properly...
-            var docText = _htmlDocument?.DocumentElement?.TextContent;
-            if (string.IsNullOrWhiteSpace(docText) ||
-                !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
-            {
-                // Leave a log message
-                CoreDI.Logger.Error($"Load unsuccessful > [{docText?.Length}, {_htmlDocument?.StatusCode}]");
-
-                // Return failure result
-                return new ProductLoadResult
-                {
-                    Success = false,
-                    Error = _htmlDocument == null
-                        ? ProductLoadResultErrorType.NoResponse
-                        : ProductLoadResultErrorType.InvalidResponse,
-                };
-            }
-
             // If requested was redirected...
             if (result.Redirected)
             {
                 // Handle redirected request
+                Debug.WriteLine("Redirected!", Url, _htmlDocument.Url);
 
                 // Get last segments of each URI and compare them to
                 // make sure if wasn't a typical redirect like example.com to www.example.com
@@ -241,6 +224,24 @@ namespace Janush.Core
                         Error = ProductLoadResultErrorType.Redirected
                     };
                 }
+            }
+
+            // If document is not loaded properly...
+            var docText = _htmlDocument?.DocumentElement?.TextContent;
+            if (string.IsNullOrWhiteSpace(docText) ||
+                !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
+            {
+                // Leave a log message
+                CoreDI.Logger.Error($"Load unsuccessful > [{docText?.Length}, {_htmlDocument?.StatusCode}]");
+
+                // Return failure result
+                return new ProductLoadResult
+                {
+                    Success = false,
+                    Error = _htmlDocument == null
+                        ? ProductLoadResultErrorType.NoResponse
+                        : ProductLoadResultErrorType.InvalidResponse,
+                };
             }
 
             // Set properties
@@ -387,7 +388,7 @@ namespace Janush.Core
             if (string.IsNullOrEmpty(input))
             {
                 // Not a price
-                output = default(PriceReadResult);
+                output = default;
                 return false;
             }
 
@@ -398,7 +399,16 @@ namespace Janush.Core
             if (string.IsNullOrEmpty(result))
             {
                 // Not a price
-                output = default(PriceReadResult);
+                output = default;
+                return false;
+            }
+
+            // Ensure length constraint
+            if (result.Length < Consts.PRICE_MIN_LENGTH ||
+                result.Length > Consts.PRICE_MAX_LENGTH)
+            {
+                // Not a price
+                output = default;
                 return false;
             }
 
@@ -462,8 +472,7 @@ namespace Janush.Core
                     // Get culture from the price currency symbol
                     CurrencyHelpers.FindCurrencySymbol(_.Text, out var _, out var result);
 
-                    return new
-                    {
+                    return new {
                         SourceText = _.Text,
                         Culture = result,
                     };
@@ -779,8 +788,7 @@ namespace Janush.Core
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
                 .Select(_ =>
                 {
-                    return new
-                    {
+                    return new {
                         Node = default(IElement),
                         PriceReadResult = _.Price,
                         PriceInfo = new PriceInfo(_.Price.Decimal, Culture)
@@ -801,11 +809,11 @@ namespace Janush.Core
                 // Having at least one attribute
                 .Where(_ => _.Attributes.Any())
                 .SelectMany(_ => _.Attributes
-                    .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES))
+                    .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES)
+                        && !a.Name.ContainsAny(Consts.PRICE_BANNED_ATTRIBUTE_KEYWORDS))
                     .Select(a => new { IsPrice = ReadPrice(a.Value, out var price), Price = price, Attribute = a })
                     .Where(a => a.IsPrice && a.Price.Decimal > 0)
-                    .Select(a => new
-                    {
+                    .Select(a => new {
                         Node = _,
                         PriceReadResult = a.Price,
                         PriceInfo = new PriceInfo(a.Price.Decimal, Culture)
@@ -816,15 +824,14 @@ namespace Janush.Core
                     })
                 );
 
-            // Extract price values from most nested nodes
+            // Extract price values from most nested nodes (displayed values)
             var pricesInNodes = docDescendants
                 // Get text nodes only
                 .OfType<IText>()
-                // Where text length of least two characters and doesn't have link ancestor
-                .Where(_ => _.Length > 1 && !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
+                // Where text length of at least minimum price length and doesn't have link ancestor
+                .Where(_ => _.Length > Consts.PRICE_MIN_LENGTH && !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
                 // Select price
-                .Select(_ => new
-                {
+                .Select(_ => new {
                     IsPrice = ReadPrice(_.TextContent, out var price),
                     Node = _.ParentElement,
                     PriceReadResult = price
@@ -832,8 +839,7 @@ namespace Janush.Core
                 // Get only successfully parsed prices
                 .Where(_ => _.IsPrice && _.PriceReadResult.Decimal > 0)
                 // Continue with same types as in other prices for the concatenation data type compatibility
-                .Select(_ => new
-                {
+                .Select(_ => new {
                     _.Node,
                     _.PriceReadResult,
                     PriceInfo = new PriceInfo(_.PriceReadResult.Decimal, Culture)
@@ -876,8 +882,7 @@ namespace Janush.Core
                     }
 
                     // Pass the anonymous type
-                    return new
-                    {
+                    return new {
                         _.Node,
                         _.PriceReadResult,
                         _.PriceInfo,
@@ -1004,11 +1009,13 @@ namespace Janush.Core
 
                     #endregion
 
-                    Debug.WriteLine($">> Price detected :: {_.Key} ({groupScore}) ({totalCount})");
+                    Debug.WriteLine($">> Price detected :: {_.Key} [" +
+                        $"groupScore={groupScore}, totalCount={totalCount}, " +
+                        $"inAttrCount={inAttrCount}, inJSCount={inJSCount}, " +
+                        $"inNodeCount={inNodeCount}, hasSymbol={hasSymbol}]");
 
                     // Return the anonymous type containing useful data
-                    return new
-                    {
+                    return new {
                         Score = groupScore,
                         Source = _.Prices.Select(s => new { s.Node, s.PriceInfo }),
                     };
