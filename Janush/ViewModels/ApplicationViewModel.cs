@@ -221,8 +221,23 @@ namespace Janush
         /// <summary>
         /// Loads the application content state.
         /// </summary>
-        public void Load()
+        public async void LoadAsync()
         {
+            try
+            {
+                // Initialize browser
+                await CoreDI.Browser.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                // Let developer know
+                Debugger.Break();
+
+                // Unable to load application 
+                CoreDI.Logger.Fatal("Browser initialization failed");
+                CoreDI.Logger.Exception(ex);
+            }
+
             try
             {
                 // Load user settings here to catch all the exceptions and handle corrupted
@@ -247,11 +262,11 @@ namespace Janush
                 Debugger.Break();
 
                 // Unable to load application 
-                CoreDI.Logger.Fatal("Load failed");
+                CoreDI.Logger.Fatal("Settings load failed");
                 CoreDI.Logger.Exception(ex);
 
                 // Show error to the user
-                DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
+                _ = DI.UIManager.ShowMessageDialogBoxAsync(new MessageDialogBoxViewModel
                 {
                     Type = DialogBoxType.Error,
                     Message = "Application state wasn't loaded properly, please ensure your settings file is not corrupted.", // TODO: localize me

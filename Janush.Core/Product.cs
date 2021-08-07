@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using Janush.Core.Localization;
+using PuppeteerSharp;
 
 namespace Janush.Core
 {
@@ -34,6 +36,11 @@ namespace Janush.Core
         /// A task that is handling tracking of this product.
         /// </summary>
         private Task _trackingTask;
+
+        /// <summary>
+        /// The browser product page.
+        /// </summary>
+        private Page _productPage;
 
         #endregion
 
@@ -162,6 +169,32 @@ namespace Janush.Core
         /// <returns></returns>
         public async Task<ProductLoadResult> OpenAsync()
         {
+            if (_productPage != null)
+            {
+                var response = await _productPage.ReloadAsync(waitUntil: new[] { WaitUntilNavigation.Networkidle2 });
+                if (response.Ok)
+                {
+                    // Return successful result
+                    return new ProductLoadResult
+                    {
+                        Success = true
+                    };
+                }
+                else
+                {
+                    // Try to kill browser tab and continue
+                    await _productPage.DisposeAsync();
+                    _productPage = null;
+                }
+            }
+
+            _productPage = await CoreDI.Browser.Instance.NewPageAsync();
+            await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
+
+            var html = await _productPage.GetContentAsync();
+
+            ;
+
             // Loader result
             WebLoaderResult result = null;
 

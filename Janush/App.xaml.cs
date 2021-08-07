@@ -62,7 +62,7 @@ namespace Janush
             CoreDI.Logger.Info("Application started");
 
             // Load application
-            DI.Application.Load();
+            DI.Application.LoadAsync();
 
             // Monitor connection
             StartConnectionMonitor();

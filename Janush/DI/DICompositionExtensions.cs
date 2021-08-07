@@ -66,6 +66,9 @@ namespace Janush
             // Add a singleton web loader object
             services.AddSingleton<IWebLoader, WebLoader>();
 
+            // Add a singleton web loader object
+            services.AddSingleton<Browser, Browser>();
+
             // Add a singleton logger
             services.AddSingleton<ILogger, Logger>(_ => new Logger("logs/application.log", new LoggerConfiguration
             {
