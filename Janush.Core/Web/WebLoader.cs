@@ -2,7 +2,6 @@
 using AngleSharp.Dom;
 using AngleSharp.Io;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Janush.Core

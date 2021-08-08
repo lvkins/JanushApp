@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using Janush.Core.Localization;
 using PuppeteerSharp;
 
@@ -25,7 +25,7 @@ namespace Janush.Core
         /// <summary>
         /// The document of the product web page.
         /// </summary>
-        private IDocument _htmlDocument;
+        private IHtmlDocument _htmlDocument;
 
         /// <summary>
         /// A tracking task cancellation token.
@@ -77,9 +77,9 @@ namespace Janush.Core
         public string Title { get; private set; }
 
         /// <summary>
-        /// Whether the product <see cref="_htmlDocument"/> has been loaded.
+        /// Whether the product has been loaded.
         /// </summary>
-        public bool IsLoaded => _htmlDocument != null && !string.IsNullOrEmpty(Title);
+        public bool IsLoaded => _productPage != null && !string.IsNullOrEmpty(Title);
 
         /// <summary>
         /// Whether the product properties are set properly and the product is ready to be tracked.
@@ -169,49 +169,37 @@ namespace Janush.Core
         /// <returns></returns>
         public async Task<ProductLoadResult> OpenAsync()
         {
-            if (_productPage != null)
-            {
-                var response = await _productPage.ReloadAsync(waitUntil: new[] { WaitUntilNavigation.Networkidle2 });
-                if (response.Ok)
-                {
-                    // Return successful result
-                    return new ProductLoadResult
-                    {
-                        Success = true
-                    };
-                }
-                else
-                {
-                    // Try to kill browser tab and continue
-                    await _productPage.DisposeAsync();
-                    _productPage = null;
-                }
-            }
+            Response response = null;
 
-            _productPage = await CoreDI.Browser.Instance.NewPageAsync();
-            await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
-
-            var html = await _productPage.GetContentAsync();
-
-            ;
-
-            // Loader result
-            WebLoaderResult result = null;
-
-            // Attempt to load HTML
             try
             {
-                // Load the product website
-                result = await CoreDI.WebLoader.LoadReadyAsync(Url);
+                // If product page is already created, simply refresh page
+                if (_productPage != null)
+                {
+                    response = await _productPage.ReloadAsync(waitUntil: new[] { WaitUntilNavigation.Networkidle2 });
 
-                // Dispose of any current document
-                _htmlDocument?.Dispose();
+                    // If response status is not within 200-299 range...
+                    if (!response.Ok)
+                    {
+                        // Try to kill browser tab and continue
+                        await _productPage.DisposeAsync();
+                        _productPage = null;
+                    }
+                }
 
-                // Set document
-                _htmlDocument = result?.Document;
+                // If product page not created...
+                if (_productPage == null)
+                {
+                    // Create product page
+                    _productPage = await CoreDI.Browser.Instance.NewPageAsync();
+
+                    // Navigate to the product URL
+                    response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
+                }
             }
             catch (Exception e)
             {
+                //NavigationException
                 // Let developer know
                 Debugger.Break();
 
@@ -222,7 +210,7 @@ namespace Janush.Core
             }
 
             // If failed to load...
-            if (result == null)
+            if (response == null)
             {
                 // Return failure
                 return new ProductLoadResult
@@ -232,16 +220,29 @@ namespace Janush.Core
                 };
             }
 
-            // If requested was redirected...
-            if (result.Redirected)
+            // Handle invalid response
+            if (!response.Ok)
             {
+                // Return successful result
+                return new ProductLoadResult
+                {
+                    Success = false,
+                    Error = ProductLoadResultErrorType.InvalidResponse
+                };
+            }
+
+            // If requested was redirected...
+            if (Url != response.Url)
+            {
+                Debugger.Break();
+
                 // Handle redirected request
-                Debug.WriteLine("Redirected!", Url, _htmlDocument.Url);
+                Debug.WriteLine("Redirected!", Url, response.Url);
 
                 // Get last segments of each URI and compare them to
                 // make sure if wasn't a typical redirect like example.com to www.example.com
                 var lastSegment = new Uri(Url).Segments.LastOrDefault();
-                var newLastSegment = new Uri(_htmlDocument.Url).Segments.LastOrDefault();
+                var newLastSegment = new Uri(response.Url).Segments.LastOrDefault();
 
                 // If last segments don't match...
                 if (!lastSegment.Equals(newLastSegment, StringComparison.OrdinalIgnoreCase))
@@ -260,25 +261,48 @@ namespace Janush.Core
             }
 
             // If document is not loaded properly...
-            var docText = _htmlDocument?.DocumentElement?.TextContent;
-            if (string.IsNullOrWhiteSpace(docText) ||
-                !((int)_htmlDocument.StatusCode >= 200 && (int)_htmlDocument.StatusCode <= 299))
+            var respText = await response.TextAsync();
+            if (string.IsNullOrWhiteSpace(respText))
             {
                 // Leave a log message
-                CoreDI.Logger.Error($"Load unsuccessful > [{docText?.Length}, {_htmlDocument?.StatusCode}]");
+                CoreDI.Logger.Error($"Load failed - blank page > [{respText?.Length}, {response.Status}]");
 
                 // Return failure result
                 return new ProductLoadResult
                 {
                     Success = false,
-                    Error = _htmlDocument == null
-                        ? ProductLoadResultErrorType.NoResponse
-                        : ProductLoadResultErrorType.InvalidResponse,
+                    Error = ProductLoadResultErrorType.InvalidResponse,
                 };
             }
 
             // Set properties
-            Title = _htmlDocument.Title;
+            Title = await _productPage.GetTitleAsync();
+            var content = await _productPage.GetContentAsync();
+            var docHandle = await _productPage.GetDocumentHandleAsync();
+
+            var parser = new HtmlParser();
+            var parseRes = await parser.ParseDocumentAsync(content);
+            _htmlDocument = parseRes;
+
+            // If we have no page title, attempt to find title in the document
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                ParseNodeText(await _productPage.FindContentFromSourceAsync(Consts.TITLE_SOURCES), out var title);
+                Title = title;
+            }
+
+            var erg = await _productPage.QuerySelectorOrXPathAsync("#product-upselling > div.product-detail-prices > ul");
+            //var eew0 = await erg?.EvaluateFunctionAsync<string>(@"innerText");
+            //var eew1 = await erg?.EvaluateFunctionAsync<string>(@"e => e.innerText");
+            var eew2 = await erg?.EvaluateFunctionAsync<ElementHandle>(@"e => e.handle", erg);
+            var eew3 = await erg?.EvaluateFunctionHandleAsync(@"e => e.innerText", erg);
+            var t = await _productPage.GetDocumentLanguageAsync();
+            var eruwhigweiur = await _productPage.EvaluateExpressionAsync<object>("document.documentElement");
+            //var arr = await erg.GetAttribute("data-context");
+            //var are = await erg.GetAttributes();
+            //var meh = await erg?.Descendants();
+
+            ;
 
             // Return successful result
             return new ProductLoadResult
@@ -436,17 +460,17 @@ namespace Janush.Core
                 return false;
             }
 
+            // Fix price format (separators) accordingly to the current culture
+            output = CurrencyHelpers.ReadPriceValue(result, Culture);
+
             // Ensure length constraint
-            if (result.Length < Consts.PRICE_MIN_LENGTH ||
-                result.Length > Consts.PRICE_MAX_LENGTH)
+            if (output.Raw.Length < Consts.PRICE_MIN_LENGTH ||
+                output.Raw.Length > Consts.PRICE_MAX_LENGTH)
             {
                 // Not a price
                 output = default;
                 return false;
             }
-
-            // Fix price format (separators) accordingly to the current culture
-            output = CurrencyHelpers.ReadPriceValue(result, Culture);
 
             // Return with the price valid info
             return output.Valid;
@@ -457,7 +481,7 @@ namespace Janush.Core
         /// the default culture of <see cref="CultureInfo.CurrentCulture"/> will be set.
         /// </summary>
         /// <returns><see langword="true"/> if the culture was located in the <see cref="_htmlDocument"/> and set, otherwise <see langword="false"/>.</returns>
-        private bool DetectCulture()
+        private async Task<bool> DetectCultureAsync()
         {
             #region Detect Culture By Currency Meta Tag
 
@@ -465,7 +489,7 @@ namespace Janush.Core
             Debug.WriteLine("> Attempt to detect culture by currency meta tag...");
 
             // Find the currency value in the pre-defined node sources
-            var currencyValue = _htmlDocument.DocumentElement.FindContentFromSource(Consts.CURRENCY_SOURCES);
+            var currencyValue = await _productPage.FindContentFromSourceAsync(Consts.CURRENCY_SOURCES);
 
             // If not empty and culture exists...
             if (!string.IsNullOrWhiteSpace(currencyValue) && CurrencyHelpers.FindCultureByCurrencySymbol(currencyValue, out var culture))
@@ -481,55 +505,55 @@ namespace Janush.Core
 
             #region Detect Culture By Prices Currency
 
-            // Leave a log message
-            Debug.WriteLine("> Attempt to detect culture by prices currency...");
+            //// Leave a log message
+            //Debug.WriteLine("> Attempt to detect culture by prices currency...");
 
-            // Take all prices in the document, lookup the currency symbol they use and try to find appropriate culture by the symbol.
-            var topPricesCulture = _htmlDocument.Descendents()
-                // Get most nested text nodes
-                .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent))
-                // Get fixed text
-                .Select(_ =>
-                {
-                    // Prepare text
-                    ParseNodeText(_.TextContent, out var result);
-                    return new { Text = result, Node = _ };
-                })
-                // Where the value is price-like.
-                // Content is not empty and has at least one digit and character, but not more than 5 non-digit characters (longest currency symbol length) + 5 in reserve for separators.
-                // NOTE: We cannot use char.IsLetter check here because we are searching for either a symbol ($) or ISO symbol (USD), also some symbol characters are not recognized by .IsLetter.
-                .Where(_ => !string.IsNullOrEmpty(_.Text) && _.Text.Any(char.IsDigit) && _.Text.Count(c => !char.IsWhiteSpace(c) && !char.IsDigit(c)).InRange(1, 10))
-                // Get the culture
-                .Select(_ =>
-                {
-                    // Get culture from the price currency symbol
-                    CurrencyHelpers.FindCurrencySymbol(_.Text, out var _, out var result);
+            //// Take all prices in the document, lookup the currency symbol they use and try to find appropriate culture by the symbol.
+            //var topPricesCulture = _htmlDocument.Descendents()
+            //    // Get most nested text nodes
+            //    .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent))
+            //    // Get fixed text
+            //    .Select(_ =>
+            //    {
+            //        // Prepare text
+            //        ParseNodeText(_.TextContent, out var result);
+            //        return new { Text = result, Node = _ };
+            //    })
+            //    // Where the value is price-like.
+            //    // Content is not empty and has at least one digit and character, but not more than 5 non-digit characters (longest currency symbol length) + 5 in reserve for separators.
+            //    // NOTE: We cannot use char.IsLetter check here because we are searching for either a symbol ($) or ISO symbol (USD), also some symbol characters are not recognized by .IsLetter.
+            //    .Where(_ => !string.IsNullOrEmpty(_.Text) && _.Text.Any(char.IsDigit) && _.Text.Count(c => !char.IsWhiteSpace(c) && !char.IsDigit(c)).InRange(1, 10))
+            //    // Get the culture
+            //    .Select(_ =>
+            //    {
+            //        // Get culture from the price currency symbol
+            //        CurrencyHelpers.FindCurrencySymbol(_.Text, out var _, out var result);
 
-                    return new {
-                        SourceText = _.Text,
-                        Culture = result,
-                    };
-                })
-                // Where culture was found
-                .Where(_ => _.Culture != null)
-                // Group by culture identifier
-                .GroupBy(_ => _.Culture.LCID)
-                // Get counts
-                .Select(_ => new { _.First().Culture, Count = _.Count() })
-                // Order by descending count value
-                .OrderByDescending(_ => _.Count)
-                // Get top result
-                .FirstOrDefault();
+            //        return new {
+            //            SourceText = _.Text,
+            //            Culture = result,
+            //        };
+            //    })
+            //    // Where culture was found
+            //    .Where(_ => _.Culture != null)
+            //    // Group by culture identifier
+            //    .GroupBy(_ => _.Culture.LCID)
+            //    // Get counts
+            //    .Select(_ => new { _.First().Culture, Count = _.Count() })
+            //    // Order by descending count value
+            //    .OrderByDescending(_ => _.Count)
+            //    // Get top result
+            //    .FirstOrDefault();
 
-            // If culture was determined...
-            if (topPricesCulture != null)
-            {
-                // Set the culture
-                Culture = topPricesCulture.Culture;
+            //// If culture was determined...
+            //if (topPricesCulture != null)
+            //{
+            //    // Set the culture
+            //    Culture = topPricesCulture.Culture;
 
-                // Success
-                return true;
-            }
+            //    // Success
+            //    return true;
+            //}
 
             #endregion
 
@@ -542,16 +566,17 @@ namespace Janush.Core
             // Attempt to locate website culture in order to find which culture to use for price conversions etc.
 
             // Get the document element
-            var docElem = (HtmlElement)_htmlDocument.DocumentElement;
+            var docLang = await _productPage.GetDocumentLanguageAsync();
 
             // If document has language property, we're good to go,
             // otherwise look for language definition in DOM elements
-            var langValue = !string.IsNullOrWhiteSpace(docElem.Language)
-                ? docElem.Language
-                : docElem.FindContentFromSource(Consts.LANG_SOURCES);
+            var langValue = (!string.IsNullOrWhiteSpace(docLang)
+                ? docLang
+                : await _productPage.FindContentFromSourceAsync(Consts.LANG_SOURCES))
+                .Trim();
 
             // If an attribute was found...
-            if (!string.IsNullOrWhiteSpace(langValue))
+            if (!string.IsNullOrEmpty(langValue))
             {
                 //Debug.WriteLine($"> Found language attribute ({result.Name}) -> [{result.Value}]");
 
@@ -583,25 +608,21 @@ namespace Janush.Core
         /// Attempts to extract and set the displaying product name from the <see cref="_htmlDocument"/>.
         /// </summary>
         /// <returns><see langword="true"/> if the product name was extracted and set successfully, otherwise <see langword="false"/>.</returns>
-        private bool DetectName()
+        private async Task<bool> DetectNameAsync()
         {
             // We assume that the product name is always defined in the page title.
             // Otherwise we are dealing with some badly set e-commerce site, which we don't care about right now.
 
-            // Find the title
-            var titleValue = _htmlDocument.DocumentElement.FindContentFromSource(Consts.TITLE_SOURCES);
-
             // If we have no page title...
-            if (string.IsNullOrWhiteSpace(titleValue))
+            if (string.IsNullOrWhiteSpace(Title))
             {
                 return false;
             }
 
-            // Format the page title properly
-            ParseNodeText(titleValue, out var pageTitle);
+            var ret = Title;
 
             // Get nodes that can potentially contain the product title
-            var contents = _htmlDocument.DocumentElement.Descendents()
+            var contents = (await _productPage.DescendantsAsync())
                 // Only nodes without children, not empty and not longer than product max. length
                 .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent) && _.TextContent.Length <= Consts.PRODUCT_TITLE_MAX_LENGTH)
                 // Select node along with parsed text
@@ -627,19 +648,19 @@ namespace Janush.Core
             // Find title with most occurrences in the document.
 
             // Split the page title
-            var pieces = pageTitle.Split(' ');
+            var pieces = ret.Split(' ');
 
             // If we have title pieces...
             if (pieces.Any())
             {
                 // Find longest text in content that appears in the page title
-                var presentText = contents.Where(val => pageTitle.IndexOf(val.Text) != -1)
+                var presentText = contents.Where(val => ret.IndexOf(val.Text) != -1)
                     .OrderByDescending(_ => _.Text.Length)
                     .FirstOrDefault()?.Text;
 
                 if (!string.IsNullOrWhiteSpace(presentText))
                 {
-                    pageTitle = presentText;
+                    ret = presentText;
                 }
 
                 /*
@@ -668,7 +689,7 @@ namespace Janush.Core
             }
 
             // Set product name
-            Name = pageTitle;
+            Name = ret;
 
             // Leave a message
             Console.WriteLine($"> Detected current product name: {Name}");
@@ -857,12 +878,21 @@ namespace Janush.Core
                     })
                 );
 
+            var testy1 = docDescendants.OfType<IText>().ToList();
+            var testy0 = testy1.Where(_ => !_.Ancestors().OfType<IHtmlAnchorElement>().Any()).ToList();
+            var testy2 = docDescendants.OfType<IElement>().ToList();
+            var werhniugwe = testy1.Where(_ => _.TextContent.Contains("999") && _.TextContent.Contains("8")).ToList();
+            var ergergerge = testy2.Where(_ => _.TextContent.Contains("999") && _.TextContent.Contains("8")).ToList();
+            ;
+
+
+            Debug.WriteLine("> Checking node prices");
             // Extract price values from most nested nodes (displayed values)
             var pricesInNodes = docDescendants
                 // Get text nodes only
                 .OfType<IText>()
-                // Where text length of at least minimum price length and doesn't have link ancestor
-                .Where(_ => _.Length > Consts.PRICE_MIN_LENGTH && !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
+                // Filter elements having a link ancestor
+                .Where(_ => !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
                 // Select price
                 .Select(_ => new {
                     IsPrice = ReadPrice(_.TextContent, out var price),
@@ -1125,12 +1155,12 @@ namespace Janush.Core
             // NOTE: Order of the loading properties is important
 
             // If failed to detect product website culture...
-            if (!DetectCulture())
+            if (!await DetectCultureAsync())
             {
                 result.Error = ProductLoadResultErrorType.ProductUnknownCulture;
             }
             // If failed to detect product name...
-            else if (!DetectName())
+            else if (!await DetectNameAsync())
             {
                 result.Error = ProductLoadResultErrorType.ProductUnknownName;
             }
@@ -1285,7 +1315,7 @@ namespace Janush.Core
                 var preName = Name;
 
                 // Get latest product name
-                if (!DetectName())
+                if (!await DetectNameAsync())
                 {
                     // Set failed result
                     updateResult.Success = false;
@@ -1422,6 +1452,8 @@ namespace Janush.Core
         /// </summary>
         public void Dispose()
         {
+            _productPage?.Dispose();
+            _productPage = null;
             _htmlDocument?.Dispose();
             _htmlDocument = null;
         }
