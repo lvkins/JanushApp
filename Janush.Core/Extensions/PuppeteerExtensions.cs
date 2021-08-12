@@ -14,7 +14,7 @@ namespace Janush.Core
         /// Finds a certain node by a selector or XPath expression and returns it's text or the attribute(s) values, if specified.
         /// </summary>
         /// <param name="node">The node to search.</param>
-        /// <param name="sources">A dictionary of XPath queries along with the attribute names for value.</param>
+        /// <param name="sources">A dictionary of XPath expressions along with the attribute names for value.</param>
         /// <param name="def">The default value.</param>
         /// <returns>The node content or attribute value if found, otherwise <paramref name="def"/> will be returned.</returns>
         public static async Task<string> FindContentFromSourceAsync<T>(this Page page, IDictionary<string, T> sources, string def = null)
@@ -59,7 +59,7 @@ namespace Janush.Core
                     }
 
                     // If we have the value...
-                    if (!string.IsNullOrEmpty(value))
+                    if (!string.IsNullOrWhiteSpace(value))
                     {
                         // We are ready to return
                         return value;
@@ -129,46 +129,6 @@ namespace Janush.Core
         public static Task<ElementAttributes[]> GetAttributesAsync(this ElementHandle handle)
         {
             return handle.EvaluateFunctionAsync<ElementAttributes[]>("e => Array.prototype.map.call(e.attributes, _=> ({Name: _.nodeName, Value: _.nodeValue}))");
-        }
-
-        public static async Task<HtmlElement[]> DescendantsAsync(this ElementHandle handle)
-        {
-            //var res = await handle.QuerySelectorAllAsync("*");
-            //res.ToList().Select(_ =>
-            //{
-            //    var el = await _.EvaluateFunctionAsync<HtmlElement>(@"e => ({
-            //      HasChildNodes: el.hasChildNodes(),
-            //      TagName: el.tagName,
-            //      TextContent: el.innerText,
-            //      Attributes: Array.prototype.map.call(el.attributes, _ => ({Name: _.nodeName, Value: _.nodeValue})),
-            //    })");
-
-            //    el.Nig = _;
-
-            //    return el;
-            //});
-
-            return await handle.EvaluateFunctionAsync<HtmlElement[]>(@"e => Array.prototype.map.call(e.querySelectorAll('*'), el => ({
-              HasChildNodes: el.hasChildNodes(),
-              TagName: el.tagName,
-              TextContent: el.innerText,
-              Attributes: Array.prototype.map.call(el.attributes, _ => ({Name: _.nodeName, Value: _.nodeValue})),
-            }))");
-        }
-
-        public static async Task<HtmlElement[]> DescendantsAsync(this Page page)
-        {
-            return await (await page.GetDocumentHandleAsync()).DescendantsAsync();
-        }
-
-        public static Task<HtmlElement> ToHtmlElement(this ElementHandle handle)
-        {
-            return handle.EvaluateFunctionAsync<HtmlElement>(@"e => ({
-                HasChildNodes: el.hasChildNodes(),
-                TagName: el.tagName,
-                TextContent: el.innerText,
-                Attributes: Array.prototype.map.call(el.attributes, _ => ({Name: _.nodeName, Value: _.nodeValue})),
-            })");
         }
     }
 }

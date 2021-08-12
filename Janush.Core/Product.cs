@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -275,34 +276,19 @@ namespace Janush.Core
                 };
             }
 
-            // Set properties
-            Title = await _productPage.GetTitleAsync();
-            var content = await _productPage.GetContentAsync();
-            var docHandle = await _productPage.GetDocumentHandleAsync();
+            // Parse the document using AngleSharp
+            var parser = new HtmlParser(default, BrowsingContext.New(Configuration.Default.WithXPath()));
+            _htmlDocument = await parser.ParseDocumentAsync(await _productPage.GetContentAsync());
 
-            var parser = new HtmlParser();
-            var parseRes = await parser.ParseDocumentAsync(content);
-            _htmlDocument = parseRes;
+            // Set properties
+            Title = _htmlDocument.Title;
 
             // If we have no page title, attempt to find title in the document
             if (string.IsNullOrWhiteSpace(Title))
             {
-                ParseNodeText(await _productPage.FindContentFromSourceAsync(Consts.TITLE_SOURCES), out var title);
+                ParseNodeText(_htmlDocument.DocumentElement.FindContentFromSource(Consts.TITLE_SOURCES), out var title);
                 Title = title;
             }
-
-            var erg = await _productPage.QuerySelectorOrXPathAsync("#product-upselling > div.product-detail-prices > ul");
-            //var eew0 = await erg?.EvaluateFunctionAsync<string>(@"innerText");
-            //var eew1 = await erg?.EvaluateFunctionAsync<string>(@"e => e.innerText");
-            var eew2 = await erg?.EvaluateFunctionAsync<ElementHandle>(@"e => e.handle", erg);
-            var eew3 = await erg?.EvaluateFunctionHandleAsync(@"e => e.innerText", erg);
-            var t = await _productPage.GetDocumentLanguageAsync();
-            var eruwhigweiur = await _productPage.EvaluateExpressionAsync<object>("document.documentElement");
-            //var arr = await erg.GetAttribute("data-context");
-            //var are = await erg.GetAttributes();
-            //var meh = await erg?.Descendants();
-
-            ;
 
             // Return successful result
             return new ProductLoadResult
@@ -464,8 +450,8 @@ namespace Janush.Core
             output = CurrencyHelpers.ReadPriceValue(result, Culture);
 
             // Ensure length constraint
-            if (output.Raw.Length < Consts.PRICE_MIN_LENGTH ||
-                output.Raw.Length > Consts.PRICE_MAX_LENGTH)
+            if (output.Raw?.Length < Consts.PRICE_MIN_LENGTH ||
+                output.Raw?.Length > Consts.PRICE_MAX_LENGTH)
             {
                 // Not a price
                 output = default;
@@ -481,7 +467,7 @@ namespace Janush.Core
         /// the default culture of <see cref="CultureInfo.CurrentCulture"/> will be set.
         /// </summary>
         /// <returns><see langword="true"/> if the culture was located in the <see cref="_htmlDocument"/> and set, otherwise <see langword="false"/>.</returns>
-        private async Task<bool> DetectCultureAsync()
+        private bool DetectCulture()
         {
             #region Detect Culture By Currency Meta Tag
 
@@ -489,7 +475,7 @@ namespace Janush.Core
             Debug.WriteLine("> Attempt to detect culture by currency meta tag...");
 
             // Find the currency value in the pre-defined node sources
-            var currencyValue = await _productPage.FindContentFromSourceAsync(Consts.CURRENCY_SOURCES);
+            var currencyValue = _htmlDocument.DocumentElement.FindContentFromSource(Consts.CURRENCY_SOURCES);
 
             // If not empty and culture exists...
             if (!string.IsNullOrWhiteSpace(currencyValue) && CurrencyHelpers.FindCultureByCurrencySymbol(currencyValue, out var culture))
@@ -566,13 +552,13 @@ namespace Janush.Core
             // Attempt to locate website culture in order to find which culture to use for price conversions etc.
 
             // Get the document element
-            var docLang = await _productPage.GetDocumentLanguageAsync();
+            var docElem = (HtmlElement)_htmlDocument.DocumentElement;
 
             // If document has language property, we're good to go,
             // otherwise look for language definition in DOM elements
-            var langValue = (!string.IsNullOrWhiteSpace(docLang)
-                ? docLang
-                : await _productPage.FindContentFromSourceAsync(Consts.LANG_SOURCES))
+            var langValue = (!string.IsNullOrWhiteSpace(docElem.Language)
+                ? docElem.Language
+                : docElem.FindContentFromSource(Consts.LANG_SOURCES))
                 .Trim();
 
             // If an attribute was found...
@@ -608,7 +594,7 @@ namespace Janush.Core
         /// Attempts to extract and set the displaying product name from the <see cref="_htmlDocument"/>.
         /// </summary>
         /// <returns><see langword="true"/> if the product name was extracted and set successfully, otherwise <see langword="false"/>.</returns>
-        private async Task<bool> DetectNameAsync()
+        private bool DetectName()
         {
             // We assume that the product name is always defined in the page title.
             // Otherwise we are dealing with some badly set e-commerce site, which we don't care about right now.
@@ -622,7 +608,7 @@ namespace Janush.Core
             var ret = Title;
 
             // Get nodes that can potentially contain the product title
-            var contents = (await _productPage.DescendantsAsync())
+            var contents = _htmlDocument.Descendents()
                 // Only nodes without children, not empty and not longer than product max. length
                 .Where(_ => !_.HasChildNodes && !string.IsNullOrWhiteSpace(_.TextContent) && _.TextContent.Length <= Consts.PRODUCT_TITLE_MAX_LENGTH)
                 // Select node along with parsed text
@@ -755,6 +741,8 @@ namespace Janush.Core
                     // If price read was successful and price is unique...
                     if (price?.Valid == true && !DetectedPrices.Any(_ => _.Value == price.Decimal))
                     {
+                        Debug.WriteLine($"> Found reliable price ({price.Raw}) [source={source.Key}@{source.Value}]");
+
                         // Read from value attribute and store the price source
                         DetectedPrices.Add(new PriceInfo(price.Decimal, Culture)
                         {
@@ -805,7 +793,7 @@ namespace Janush.Core
             //var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost|prize)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // The maximum allowed number of depth between price and the product name price node
-            var MaxNameNodeDistance = 7;
+            const int MaxNameNodeDistance = 8;
 
             // We extract the prices in three ways:
             //
@@ -851,7 +839,7 @@ namespace Janush.Core
                             Source = PriceSourceType.PriceSourceJavascript,
                         }
                     };
-                });
+                }).ToList();
 
             // Get all document descendants
             var docDescendants = _htmlDocument.Descendents();
@@ -876,17 +864,8 @@ namespace Janush.Core
                             AttributeName = a.Attribute.Name,
                         }
                     })
-                );
+                ).ToList();
 
-            var testy1 = docDescendants.OfType<IText>().ToList();
-            var testy0 = testy1.Where(_ => !_.Ancestors().OfType<IHtmlAnchorElement>().Any()).ToList();
-            var testy2 = docDescendants.OfType<IElement>().ToList();
-            var werhniugwe = testy1.Where(_ => _.TextContent.Contains("999") && _.TextContent.Contains("8")).ToList();
-            var ergergerge = testy2.Where(_ => _.TextContent.Contains("999") && _.TextContent.Contains("8")).ToList();
-            ;
-
-
-            Debug.WriteLine("> Checking node prices");
             // Extract price values from most nested nodes (displayed values)
             var pricesInNodes = docDescendants
                 // Get text nodes only
@@ -909,7 +888,10 @@ namespace Janush.Core
                     {
                         Source = PriceSourceType.PriceSourceNode,
                     }
-                });
+                }).ToList();
+
+            Debug.WriteLine($"> Found {pricesInNodes.Count} nodes, {pricesInAttributeValues.Count} attr, {pricesInJavaScript.Count} js prices in total");
+            Debug.WriteLine("Looking for a best price...");
 
             // Get best prices by concatenating three source lists and scoring each price group.
             DetectedPrices = pricesInJavaScript
@@ -954,6 +936,12 @@ namespace Janush.Core
                 })
                 // Group entries by the price and prioritize prices having node sources
                 .GroupBy(_ => _.PriceReadResult.Decimal, (k, g) => new { Key = k, Prices = g.OrderByDescending(p => p.Node != null) })
+                // Since currently tracking prices without source in node
+                // (eg. the Javascript prices, that are used for reference) is 
+                // currently not supported. Exclude groups having no node prices at all.
+                // (Comparing first element is enough, because of the previously
+                // sorted node-first elements)
+                .Where(_ => _.Prices.First()?.Node != null)
                 // Select price & entries count
                 .Select(_ =>
                 {
@@ -987,10 +975,25 @@ namespace Janush.Core
 
                     #endregion
 
+                    Debug.WriteLine($">> Price detected :: {_.Key} [totalCount={totalCount}, " +
+                        $"inAttrCount={inAttrCount}, inJSCount={inJSCount}, " +
+                        $"inNodeCount={inNodeCount}, hasSymbol={hasSymbol}]");
+
                     #region Compute Price Group Score
 
                     // Base score
                     var groupScore = totalCount;
+
+                    // Find if any node price is within, contains price-like attribute name
+                    var hasNodeWithPriceAttr = _.Prices.Any(_ => _.Node?.Attributes.Any(a =>
+                        a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) &&
+                        !a.Name.ContainsAny(Consts.PRICE_BANNED_ATTRIBUTE_KEYWORDS)) == true);
+
+                    if (hasNodeWithPriceAttr)
+                    {
+                        Debug.WriteLine("... has price-like parent attribute");
+                        groupScore += 11;
+                    }
 
                     // We assume, the price appears in either the attributes or the JS code at least once...
                     if (inAttrCount != 0 || inJSCount != 0)
@@ -1012,7 +1015,7 @@ namespace Janush.Core
                         if (inJSCount != totalCount)
                         {
                             // Bonus score for prices found in the JS code...
-                            groupScore += inJSCount * 3;
+                            groupScore += inJSCount * 4;
                         }
                         // Otherwise...
                         else
@@ -1021,7 +1024,7 @@ namespace Janush.Core
                             groupScore -= (inJSCount + 20);
                         }
                     }
-                    // Otherwise if all prices come from the attributes/JS code...
+                    // Otherwise if has no price in attributes or JS code...
                     else
                     {
                         // Weak source penalty
@@ -1047,14 +1050,18 @@ namespace Janush.Core
                         if (closestNameDistance > 0 && closestNameDistance <= MaxNameNodeDistance)
                         {
                             // Add bonus score
-                            groupScore += 10 - (closestNameDistance.Value - 1);
+                            groupScore += (MaxNameNodeDistance * 2) - closestNameDistance.Value;
                         }
                         // Otherwise, if the distance is long...
                         else if (closestNameDistance > MaxNameNodeDistance)
                         {
+
                             // Long distance penalty
-                            // 10 points for each exceeded limit
-                            groupScore -= closestNameDistance.Value / MaxNameNodeDistance * 10;
+                            //var val = closestNameDistance.Value / MaxNameNodeDistance * 10;
+                            var val = closestNameDistance.Value * 2;
+                            groupScore -= val;
+
+                            Debug.WriteLine($"... long node distance ({closestNameDistance}/{MaxNameNodeDistance}) penalty (-{val})");
                         }
                     }
                     else
@@ -1072,10 +1079,7 @@ namespace Janush.Core
 
                     #endregion
 
-                    Debug.WriteLine($">> Price detected :: {_.Key} [" +
-                        $"groupScore={groupScore}, totalCount={totalCount}, " +
-                        $"inAttrCount={inAttrCount}, inJSCount={inJSCount}, " +
-                        $"inNodeCount={inNodeCount}, hasSymbol={hasSymbol}]");
+                    Debug.WriteLine($">>> Total group score: groupScore={groupScore}");
 
                     // Return the anonymous type containing useful data
                     return new {
@@ -1087,12 +1091,6 @@ namespace Janush.Core
                 .OrderByDescending(_ => _.Score)
                 // Take 10 best price groups
                 .Take(10)
-                // Since currently tracking prices without source in node
-                // (eg. the Javascript prices, that are used for reference) is 
-                // currently not supported. Exclude groups having no node prices at all.
-                // (Comparing first element is enough, because of the previously
-                // sorted node-first elements)
-                //.Where(_ => _.Source.First()?.Node != null)
                 // Reduct to the first price in each group and create a selector for each price
                 .Select(_ =>
                 {
@@ -1155,12 +1153,12 @@ namespace Janush.Core
             // NOTE: Order of the loading properties is important
 
             // If failed to detect product website culture...
-            if (!await DetectCultureAsync())
+            if (!DetectCulture())
             {
                 result.Error = ProductLoadResultErrorType.ProductUnknownCulture;
             }
             // If failed to detect product name...
-            else if (!await DetectNameAsync())
+            else if (!DetectName())
             {
                 result.Error = ProductLoadResultErrorType.ProductUnknownName;
             }
@@ -1315,7 +1313,7 @@ namespace Janush.Core
                 var preName = Name;
 
                 // Get latest product name
-                if (!await DetectNameAsync())
+                if (!DetectName())
                 {
                     // Set failed result
                     updateResult.Success = false;

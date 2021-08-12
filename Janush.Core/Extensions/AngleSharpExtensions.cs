@@ -12,10 +12,10 @@ namespace Janush.Core
     public static class AngleSharpExtensions
     {
         /// <summary>
-        /// Finds a certain node by XPath selector and returns it's text or the attribute value, if specified.
+        /// Finds a certain node by a selector or XPath expression and returns it's text or the attribute(s) values, if specified.
         /// </summary>
         /// <param name="node">The node to search.</param>
-        /// <param name="sources">A dictionary of XPath queries along with the attribute names for value.</param>
+        /// <param name="sources">A dictionary of XPath expressions along with the attribute names for value.</param>
         /// <param name="def">The default value.</param>
         /// <returns>The node content or attribute value if found, otherwise <paramref name="def"/> will be returned.</returns>
         public static string FindContentFromSource<T>(this IElement node, IDictionary<string, T> sources, string def = null)
@@ -30,7 +30,7 @@ namespace Janush.Core
                 if (result != null)
                 {
                     // The value to be returned
-                    var value = result.TextContent;
+                    var value = string.Empty;
 
                     // If we have single attribute to check...
                     if (source.Value is string srcVal)
@@ -46,9 +46,14 @@ namespace Janush.Core
                             .Select(_ => node.GetAttribute(_))
                             .FirstOrDefault(_ => !string.IsNullOrWhiteSpace(_));
                     }
+                    else
+                    {
+                        // Simply get the element text
+                        value = result.TextContent;
+                    }
 
                     // If we have the value...
-                    if (!string.IsNullOrEmpty(value))
+                    if (!string.IsNullOrWhiteSpace(value))
                     {
                         // We are ready to return
                         return value;

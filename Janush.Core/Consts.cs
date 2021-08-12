@@ -146,7 +146,7 @@ namespace Janush.Core
         /// <summary>
         /// Banned price attribute keywords
         /// </summary>
-        public static readonly string[] PRICE_BANNED_ATTRIBUTE_KEYWORDS = new string[] { "old", "previous" };
+        public static readonly string[] PRICE_BANNED_ATTRIBUTE_KEYWORDS = new string[] { "old", "previous", "discount" };
 
         /// <summary>
         /// The regex used to detected prices in JS code. Will match following:
