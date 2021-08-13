@@ -194,6 +194,23 @@ namespace Janush.Core
                     // Create product page
                     _productPage = await CoreDI.Browser.Instance.NewPageAsync();
 
+                    // Subscribe to request event to block redundant resources 
+                    // and speed up the page load
+                    await _productPage.SetRequestInterceptionAsync(true);
+                    _productPage.Request += (object sender, RequestEventArgs e) =>
+                    {
+                        if (e.Request.ResourceType == ResourceType.StyleSheet ||
+                            e.Request.ResourceType == ResourceType.Font ||
+                            e.Request.ResourceType == ResourceType.Image)
+                        {
+                            e.Request.AbortAsync();
+                        }
+                        else
+                        {
+                            e.Request.ContinueAsync();
+                        }
+                    };
+
                     // Navigate to the product URL
                     response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
                 }
