@@ -6,7 +6,6 @@ using Janush.Core.Localization;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -549,7 +548,7 @@ namespace Janush
         private void Cleanup()
         {
             StepTwo = false;
-            Product.Dispose();
+            Product?.Dispose();
             Product = null;
             Name = default;
             Url = default;

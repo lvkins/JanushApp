@@ -387,6 +387,7 @@ namespace Janush
         /// <summary>
         /// Shows a children window to the user.
         /// </summary>
+        /// <param name="viewModel">A window context view model.</param>
         /// <param name="onClose">The action to be executed when the window was closed.</param>
         /// <typeparam name="T">The window type to be created.</typeparam>
         public void ShowWindow<T>(BaseViewModel viewModel, Action onClose = null)
@@ -411,6 +412,11 @@ namespace Janush
                 {
                     window.Closed += (s, e) => onClose();
                 }
+                // Otherwise if view model implements window view model interface...
+                else if (viewModel is IWindowViewModel windowViewModel)
+                {
+                    window.Closed += (s, e) => windowViewModel.Close();
+                }
             }
 
             // Show
@@ -422,7 +428,7 @@ namespace Janush
         /// </summary>
         /// <typeparam name="T">The type of a window to be closed.</typeparam>
         public void CloseAllWindow<T>()
-            where T : Window
+    where T : Window
         {
             Application.Current.Windows.OfType<T>().ToList().ForEach(_ => _.Close());
         }
