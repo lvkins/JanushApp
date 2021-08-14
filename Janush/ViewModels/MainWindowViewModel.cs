@@ -148,7 +148,7 @@ namespace Janush
 
             #region Create Commands
 
-            OpenAddProductWindowCommand = new RelayCommand(DI.AddPromotionViewModel.Open);
+            OpenAddProductWindowCommand = new RelayCommand(DI.AddProductViewModel.Open);
             OpenSettingsWindowCommand = new RelayCommand(DI.SettingsViewModel.Open);
             OpenAboutWindowCommand = new RelayCommand(() =>
             {

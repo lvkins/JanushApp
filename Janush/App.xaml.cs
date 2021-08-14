@@ -81,6 +81,9 @@ namespace Janush
             // Save current state on exit
             DI.Application.Save();
 
+            // Exit browser
+            _ = CoreDI.Browser.DisposeAsync();
+
             // Dispose mutex
             Mutex?.Dispose();
 

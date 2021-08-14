@@ -178,6 +178,31 @@ namespace Janush
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="product"></param>
+        public void AddProduct(Product product, string displayName)
+        {
+            // Create setting object
+            var settings = new ProductDataModel
+            {
+                Url = new Uri(product.Url),// new Uri(Product.Url.Replace("://www.", "://")),
+                Name = product.Name,
+                DisplayName = displayName,
+                Price = product.PriceInfo,
+                Culture = product.Culture,
+                LastChecked = DateTime.Now,
+                AutoDetect = product.IsAutoDetect,
+            };
+
+            // Store the product to the settings file
+            CoreDI.SettingsReader.Settings.Products.Add(settings);
+            CoreDI.SettingsReader.Save();
+
+            //Products.Add(product);
+        }
+
+        /// <summary>
         /// Deletes a single product from the application.
         /// </summary>
         /// <param name="productViewModel">The product to delete.</param>

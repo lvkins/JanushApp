@@ -352,7 +352,14 @@ namespace Janush
         /// <summary>
         /// Closes a window.
         /// </summary>
-        public void Close() => DI.Application.CloseAllWindow<AddProductWindow>();
+        public void Close()
+        {
+            // Cleanup any product data
+            Cleanup();
+
+            // Close UI window
+            DI.Application.CloseAllWindow<AddProductWindow>();
+        }
 
         #endregion
 
@@ -455,7 +462,7 @@ namespace Janush
                 {
                     PriceXPathOrSelector = PriceSelector
                 }
-            });
+            }, true);
 
             // Load product and get the result
             var result = await Task.Run(product.LoadAsync);
@@ -529,9 +536,6 @@ namespace Janush
             // Add product
             DI.Application.AddProduct(productSetting);
 
-            // Close product review overlay and cleanup user input
-            Cleanup();
-
             // Close window
             Close();
 
@@ -545,6 +549,7 @@ namespace Janush
         private void Cleanup()
         {
             StepTwo = false;
+            Product.Dispose();
             Product = null;
             Name = default;
             Url = default;

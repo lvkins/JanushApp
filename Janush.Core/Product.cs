@@ -97,6 +97,10 @@ namespace Janush.Core
         /// </summary>
         public bool IsTrackingRunning => _trackingTask != null && !_trackingTask.IsCompleted;
 
+        /// <summary>
+        /// Whether this is a temporary product for testing.
+        /// </summary>
+        public bool IsTestProduct { get; private set; }
         #endregion
 
         #region Public Events
@@ -138,7 +142,8 @@ namespace Janush.Core
         /// object, containing all relevant informations about the product.
         /// </summary>
         /// <param name="settings">The product settings object.</param>
-        public Product(ProductDataModel settings)
+        /// <param name="test">Whether this is a temporary test product.</param>
+        public Product(ProductDataModel settings, bool test = false)
         {
             // Set properties
             Name = settings.Name;
@@ -146,6 +151,7 @@ namespace Janush.Core
             PriceInfo = settings.Price;
             Culture = settings.Culture;
             IsAutoDetect = settings.AutoDetect;
+            IsTestProduct = test;
         }
 
         #endregion
@@ -192,24 +198,7 @@ namespace Janush.Core
                 if (_productPage == null)
                 {
                     // Create product page
-                    _productPage = await CoreDI.Browser.Instance.NewPageAsync();
-
-                    // Subscribe to request event to block redundant resources 
-                    // and speed up the page load
-                    await _productPage.SetRequestInterceptionAsync(true);
-                    _productPage.Request += (object sender, RequestEventArgs e) =>
-                    {
-                        if (e.Request.ResourceType == ResourceType.StyleSheet ||
-                            e.Request.ResourceType == ResourceType.Font ||
-                            e.Request.ResourceType == ResourceType.Image)
-                        {
-                            e.Request.AbortAsync();
-                        }
-                        else
-                        {
-                            e.Request.ContinueAsync();
-                        }
-                    };
+                    _productPage = await CoreDI.Browser.CreatePageAsync();
 
                     // Navigate to the product URL
                     response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
@@ -810,7 +799,7 @@ namespace Janush.Core
             //var PricesInJavaScriptRegex = new Regex(@"[\""\']{1,}(?:[\w\-]+)?(?:price|cost|prize)(?:[\w\-]+)?[\""\']{1,}\s?:\s?[\""\']?(\d{0,6}([\.\,]\d{1,2})?)[\""\']?(?=,|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             // The maximum allowed number of depth between price and the product name price node
-            const int MaxNameNodeDistance = 8;
+            const int MaxNameNodeDistance = 9;
 
             // We extract the prices in three ways:
             //

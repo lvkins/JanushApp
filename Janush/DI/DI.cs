@@ -28,9 +28,9 @@ namespace Janush
         public static ApplicationViewModel Application => GetService<ApplicationViewModel>();
 
         /// <summary>
-        /// A shortcut to access a singleton instance of the <see cref="AddPromotionViewModel"/>.
+        /// A shortcut to access a singleton instance of the <see cref="AddProductViewModel"/>.
         /// </summary>
-        public static AddProductViewModel AddPromotionViewModel => GetService<AddProductViewModel>();
+        public static AddProductViewModel AddProductViewModel => GetService<AddProductViewModel>();
 
         /// <summary>
         /// A shortcut to access a singleton instance of the <see cref="LogsViewModel"/>.
