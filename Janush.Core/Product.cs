@@ -100,7 +100,8 @@ namespace Janush.Core
         /// <summary>
         /// Whether this is a temporary product for testing.
         /// </summary>
-        public bool IsTestProduct { get; private set; }
+        public bool IsTemporary { get; private set; }
+
         #endregion
 
         #region Public Events
@@ -151,7 +152,7 @@ namespace Janush.Core
             PriceInfo = settings.Price;
             Culture = settings.Culture;
             IsAutoDetect = settings.AutoDetect;
-            IsTestProduct = test;
+            IsTemporary = test;
         }
 
         #endregion
@@ -1140,8 +1141,8 @@ namespace Janush.Core
         /// <returns>A task that will finish once auto loading is finished. Task result contains the result of the product load.</returns>
         private async Task<ProductLoadResult> LoadAutoAsync()
         {
-            // Once we have the HTML document, we can parse product properties
-            if (_htmlDocument == null)
+            // Ensure product page so we can parse product properties
+            if (_productPage == null)
             {
                 // Open product website
                 var loadResult = await OpenAsync();
@@ -1193,8 +1194,8 @@ namespace Janush.Core
         /// <returns>A task that will finish once loading is finished. Task result contains the result of the product load.</returns>
         private async Task<ProductLoadResult> LoadManuallyAsync()
         {
-            // Once we have the HTML document, we can parse product properties
-            if (_htmlDocument == null)
+            // Ensure product page so we can parse product properties
+            if (_productPage == null)
             {
                 // Open product website
                 var loadResult = await OpenAsync();
@@ -1456,7 +1457,7 @@ namespace Janush.Core
         /// </summary>
         public void Dispose()
         {
-            _productPage?.Dispose();
+            _ = CoreDI.Browser.ClosePageAsync(_productPage);
             _productPage = null;
             _htmlDocument?.Dispose();
             _htmlDocument = null;

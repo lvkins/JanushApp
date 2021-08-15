@@ -1,5 +1,4 @@
-﻿using AngleSharp;
-using PuppeteerSharp;
+﻿using PuppeteerSharp;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -18,11 +17,6 @@ namespace Janush.Core
         /// A browser instance
         /// </summary>
         public PuppeteerSharp.Browser Instance { get; set; }
-
-        /// <summary>
-        /// The configuration to be used in the context.
-        /// </summary>
-        public IConfiguration Configuration { get; }
 
         #endregion
 
@@ -55,28 +49,7 @@ namespace Janush.Core
             Debug.WriteLine("Browser downloaded...");
             Instance = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = false });
             Instance.Closed += Instance_ClosedAsync;
-        }
-
-        /// <summary>
-        /// Gets a test page used for temporary products - this is initially 'about:blank' browser tab page.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Page> TestPageAsync(bool blockHeavyRequests = true)
-        {
-            // Get initial page
-            var page = (await Instance.PagesAsync())[0];
-
-            // Set page request interception 
-            await page.SetRequestInterceptionAsync(blockHeavyRequests);
-            page.Request -= Page_RequestBlockHeavyResources;
-
-            if (blockHeavyRequests)
-            {
-                // Subscribe to request blocking event
-                page.Request += Page_RequestBlockHeavyResources;
-            }
-
-            return page;
+            Instance.TargetDestroyed += Browser_TargetDestroyedAsync;
         }
 
         /// <summary>
@@ -100,6 +73,28 @@ namespace Janush.Core
             }
 
             return page;
+        }
+
+        /// <summary>
+        /// Handles closing a browser page tab.
+        /// </summary>
+        /// <param name="page">The page to be closed.</param>
+        /// <returns></returns>
+        public async Task ClosePageAsync(Page page)
+        {
+            // Prevent closing the browser when we're about to close last page tab
+            var pages = await Instance.PagesAsync();
+
+            // If we only have one browser tab...
+            if (pages.Length == 1)
+            {
+                // Prevent browser close and navigate to initial URL
+                await page.GoToAsync("about:blank");
+                return;
+            }
+
+            // Otherwise destroy page tab
+            await page.DisposeAsync();
         }
 
         /// <summary>
@@ -135,6 +130,15 @@ namespace Janush.Core
             {
                 e.Request.ContinueAsync();
             }
+        }
+
+        /// <summary>
+        /// Executes when page close event raises.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void Browser_TargetDestroyedAsync(object sender, TargetChangedArgs e)
+        {
         }
 
         #endregion
