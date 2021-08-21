@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Janush.Core
 {
@@ -91,12 +92,20 @@ namespace Janush.Core
                 if (!File.Exists(SettingsPath) || (Settings = JsonConvert.DeserializeObject<UserSettings>(
                     File.ReadAllText(SettingsPath), JsonSerializerSettings)) == null)
                 {
-                    // Temp
-                    Debugger.Break();
-
                     // Use default
                     Settings = new UserSettings();
                     return;
+                }
+
+                // Limit notification count
+                if (Settings?.RecentNotifications.Count > Consts.NOTIFICATION_MAX_COUNT)
+                {
+                    Settings.RecentNotifications = Settings.RecentNotifications
+                    // Ensure the order - newest first
+                    .OrderByDescending(_ => _.Date)
+                    // Take limited amount
+                    .Take(Consts.NOTIFICATION_MAX_COUNT)
+                    .ToList();
                 }
             }
         }

@@ -177,20 +177,30 @@ namespace Janush.Core
         /// <returns></returns>
         public async Task<ProductLoadResult> OpenAsync()
         {
+            Debug.WriteLine($"@OpenAsync(): '{Name}'");
+
             Response response = null;
+
+            // Cleanup existing document
+            if (_htmlDocument != null)
+            {
+                _htmlDocument.Dispose();
+                _htmlDocument = null;
+            }
 
             try
             {
                 // If product page is already created, simply refresh page
                 if (_productPage != null)
                 {
+                    Debug.WriteLine("Reload page");
                     response = await _productPage.ReloadAsync(waitUntil: new[] { WaitUntilNavigation.Networkidle2 });
 
                     // If response status is not within 200-299 range...
-                    if (!response.Ok)
+                    if (response?.Ok != true)
                     {
                         // Try to kill browser tab and continue
-                        await _productPage.DisposeAsync();
+                        await CoreDI.Browser.ClosePageAsync(_productPage);
                         _productPage = null;
                     }
                 }
@@ -198,18 +208,21 @@ namespace Janush.Core
                 // If product page not created...
                 if (_productPage == null)
                 {
+                    Debug.WriteLine("Create page");
+
                     // Create product page
                     _productPage = await CoreDI.Browser.CreatePageAsync();
 
                     // Navigate to the product URL
-                    response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
+                    response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
             {
                 //NavigationException
+
                 // Let developer know
-                Debugger.Break();
+                //Debugger.Break();
 
                 // Log details
                 CoreDI.Logger.Exception(e);
@@ -220,6 +233,13 @@ namespace Janush.Core
             // If failed to load...
             if (response == null)
             {
+                // Dispose product page
+                if (_productPage != null)
+                {
+                    await CoreDI.Browser.ClosePageAsync(_productPage);
+                    _productPage = null;
+                }
+
                 // Return failure
                 return new ProductLoadResult
                 {
@@ -242,21 +262,17 @@ namespace Janush.Core
             // If requested was redirected...
             if (Url != response.Url)
             {
-                Debugger.Break();
-
                 // Handle redirected request
-                Debug.WriteLine("Redirected!", Url, response.Url);
+                Debug.WriteLine($"Redirected! '{Url}' > '{response.Url}'");
 
-                // Get last segments of each URI and compare them to
-                // make sure if wasn't a typical redirect like example.com to www.example.com
-                var lastSegment = new Uri(Url).Segments.LastOrDefault();
-                var newLastSegment = new Uri(response.Url).Segments.LastOrDefault();
+                // Ensure if wasn't a typical redirect like example.com to www.example.com
+                var newUri = new Uri(response.Url);
 
-                // If last segments don't match...
-                if (!lastSegment.Equals(newLastSegment, StringComparison.OrdinalIgnoreCase))
+                // If absolute path is not set, we are confident the product is no longer there
+                if (newUri.AbsolutePath.Length <= 1)
                 {
                     // Leave a log message
-                    CoreDI.Logger.Error($"Redirect mismatch encountered [{lastSegment}, {newLastSegment}]");
+                    CoreDI.Logger.Error($"Redirect mismatch encountered [{newUri}]");
 
                     // Product is probably no longer available
                     // Return failure result
@@ -357,8 +373,8 @@ namespace Janush.Core
                 {
                     // The delay time
                     var delay = randomizeInterval
-                        ? interval.Add(TimeSpan.FromSeconds(random.Next(-5, 5)))
-                        : interval;
+                            ? interval.Add(TimeSpan.FromSeconds(random.Next(-60, 60)))
+                            : interval;
 
                     // Implicitly limit the delay to 5 seconds to prevent flood under any circumstances.
                     if (delay < TimeSpan.FromSeconds(5))
@@ -373,7 +389,7 @@ namespace Janush.Core
                     _trackingCancellation.Token.ThrowIfCancellationRequested();
 
                     // Update
-                    var result = await UpdateAsync();
+                    await UpdateAsync();
                 }
             }, _trackingCancellation.Token)
             // Handle faulted task
@@ -432,7 +448,7 @@ namespace Janush.Core
         /// </summary>
         /// <param name="input">The input to be parsed.</param>
         /// <returns><see langword="true"/> if the <paramref name="input"/> value can be parsed to <see cref="decimal"/> value, otherwise <see langword="false"/>.</returns>
-        private bool ReadPrice(string input, out PriceReadResult output)
+        private bool TryReadPrice(string input, out PriceReadResult output)
         {
             // If the input is empty...
             if (string.IsNullOrEmpty(input))
@@ -697,7 +713,7 @@ namespace Janush.Core
         /// <returns><see cref="true"/> if found any price source, otherwise <see cref="false"/>.</returns>
         private bool DetectPriceSources()
         {
-            // TODO: Detect certain price from the argument passed
+            // TODO: Detect certain price from the argument passed?
 
             // Initialize price sources
             if (DetectedPrices != null)
@@ -714,52 +730,14 @@ namespace Janush.Core
             // Prices from this source are the most eligible
             foreach (var source in Consts.PRICE_SOURCES)
             {
-                // Find a node in the document
-                // If node exists...
-                if (_htmlDocument.DocumentElement.QuerySelectorOrXPath(source.Key) is IElement node)
+                // If price is found and it's unique...
+                if (FindNodePrice(source.Key, source.Value) is PriceInfo price &&
+                    !DetectedPrices.Any(_ => _.Value == price.ReadResult.Decimal))
                 {
-                    // Whether the price is defined within an attribute
-                    var isAttribute = !string.IsNullOrEmpty(source.Value);
+                    Debug.WriteLine($"> Found reliable price ({price.ReadResult.Raw}) [source={source.Key}@{source.Value}, URL={Url}]");
 
-                    // Define price result
-                    PriceReadResult price = null;
-
-                    // If we are dealing with the attribute source...
-                    if (isAttribute)
-                    {
-                        // Read from the attribute
-                        ReadPrice(node.GetAttribute(source.Value), out price);
-                    }
-
-                    // If price wasn't found yet...
-                    if (price?.Valid != true)
-                    {
-                        // NOTE: We do allow to parse node content after failed attribute read.
-                        // This is because some sites not follow good practices and define
-                        // values in the node content
-
-                        // Price wasn't found in the attribute
-                        isAttribute = false;
-
-                        // Read from the content
-                        ReadPrice(node.TextContent, out price);
-                    }
-
-                    // If price read was successful and price is unique...
-                    if (price?.Valid == true && !DetectedPrices.Any(_ => _.Value == price.Decimal))
-                    {
-                        Debug.WriteLine($"> Found reliable price ({price.Raw}) [source={source.Key}@{source.Value}]");
-
-                        // Read from value attribute and store the price source
-                        DetectedPrices.Add(new PriceInfo(price.Decimal, Culture)
-                        {
-                            PriceXPathOrSelector = source.Key, // pre-defined source selector is better than generated
-                            AttributeName = isAttribute ? source.Value : null,
-                            Source = isAttribute
-                                ? PriceSourceType.PriceSourceAttribute
-                                : PriceSourceType.PriceSourceNode,
-                        });
-                    }
+                    // Store the price source
+                    DetectedPrices.Add(price);
                 }
             }
 
@@ -833,7 +811,7 @@ namespace Janush.Core
             var pricesInJavaScript = Consts.PricesInJavaScriptRegex
                 .Matches(_htmlDocument.DocumentElement.TextContent)
                 .Cast<Match>()
-                .Select(m => new { Key = m.Groups[1].Value, IsPrice = ReadPrice(m.Groups[2].Value, out var price), Price = price })
+                .Select(m => new { Key = m.Groups[1].Value, IsPrice = TryReadPrice(m.Groups[2].Value, out var price), Price = price })
                 .Where(_ => _.IsPrice && _.Price.Decimal > 0)
                 .Select(_ =>
                 {
@@ -860,7 +838,7 @@ namespace Janush.Core
                 .SelectMany(_ => _.Attributes
                     .Where(a => a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES)
                         && !a.Name.ContainsAny(Consts.PRICE_BANNED_ATTRIBUTE_KEYWORDS))
-                    .Select(a => new { IsPrice = ReadPrice(a.Value, out var price), Price = price, Attribute = a })
+                    .Select(a => new { IsPrice = TryReadPrice(a.Value, out var price), Price = price, Attribute = a })
                     .Where(a => a.IsPrice && a.Price.Decimal > 0)
                     .Select(a => new {
                         Node = _,
@@ -881,7 +859,7 @@ namespace Janush.Core
                 .Where(_ => !_.Ancestors().OfType<IHtmlAnchorElement>().Any())
                 // Select price
                 .Select(_ => new {
-                    IsPrice = ReadPrice(_.TextContent, out var price),
+                    IsPrice = TryReadPrice(_.TextContent, out var price),
                     Node = _.ParentElement,
                     PriceReadResult = price
                 })
@@ -920,10 +898,10 @@ namespace Janush.Core
 
                         // Find closest product name position
                         var result = _.Node.FindClosest(n =>
-                        {
-                            return ProductNameRegex.IsMatch(n.TextContent);
-                            //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
-                        }, out var node, out var distance);
+                            {
+                                return ProductNameRegex.IsMatch(n.TextContent);
+                                //return n.InnerText.ContainsEx(ProductName, StringComparison.Ordinal);
+                            }, out var node, out var distance);
 
                         // If closest node was found...
                         if (result)
@@ -983,8 +961,8 @@ namespace Janush.Core
                     #endregion
 
                     Debug.WriteLine($">> Price detected :: {_.Key} [totalCount={totalCount}, " +
-                        $"inAttrCount={inAttrCount}, inJSCount={inJSCount}, " +
-                        $"inNodeCount={inNodeCount}, hasSymbol={hasSymbol}]");
+                            $"inAttrCount={inAttrCount}, inJSCount={inJSCount}, " +
+                            $"inNodeCount={inNodeCount}, hasSymbol={hasSymbol}]");
 
                     #region Compute Price Group Score
 
@@ -993,8 +971,8 @@ namespace Janush.Core
 
                     // Find if any node price is within, contains price-like attribute name
                     var hasNodeWithPriceAttr = _.Prices.Any(_ => _.Node?.Attributes.Any(a =>
-                        a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) &&
-                        !a.Name.ContainsAny(Consts.PRICE_BANNED_ATTRIBUTE_KEYWORDS)) == true);
+                            a.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) &&
+                            !a.Name.ContainsAny(Consts.PRICE_BANNED_ATTRIBUTE_KEYWORDS)) == true);
 
                     if (hasNodeWithPriceAttr)
                     {
@@ -1238,11 +1216,11 @@ namespace Janush.Core
             // Find price anywhere in the node (including attributes)
 
             // Try parse node content and if result is not a valid price...
-            if (!ReadPrice(node.TextContent, out var price))
+            if (!TryReadPrice(node.TextContent, out var price))
             {
                 // Try parse attribute values
                 var attribute = node.Attributes
-                    .FirstOrDefault(_ => _.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) && ReadPrice(_.Value, out price));
+                    .FirstOrDefault(_ => _.Name.ContainsAny(Consts.PRICE_ATTRIBUTE_NAMES) && TryReadPrice(_.Value, out price));
 
                 // If failed to find price in the attributes...
                 if (string.IsNullOrEmpty(attribute?.Value))
@@ -1339,6 +1317,8 @@ namespace Janush.Core
             #region Update Price
 
             // Special case for JS price
+            // TODO: remove this, since we no longer allow JS price sources
+            // and use them only for reference
             if (PriceInfo.Source == PriceSourceType.PriceSourceJavascript)
             {
                 // Ensure we have the key to look for
@@ -1348,7 +1328,7 @@ namespace Janush.Core
                     var result = Consts.PricesInJavaScriptRegex
                         .Matches(_htmlDocument.DocumentElement.TextContent)
                         .Cast<Match>()
-                        .Select(m => new { Key = m.Groups[1].Value, IsPrice = ReadPrice(m.Groups[2].Value, out var price), Price = price })
+                        .Select(m => new { Key = m.Groups[1].Value, IsPrice = TryReadPrice(m.Groups[2].Value, out var price), Price = price })
                         .Where(_ => _.IsPrice && _.Price.Decimal > 0 && _.Key.Equals(PriceInfo.AttributeName, StringComparison.Ordinal))
                         .FirstOrDefault()?.Price;
 
@@ -1385,67 +1365,101 @@ namespace Janush.Core
             else
             {
                 // Handle node price source.
+                var nodePrice = FindNodePrice(PriceInfo.PriceXPathOrSelector, PriceInfo.AttributeName);
 
-                // Get latest product price
-                var priceNode = _htmlDocument.DocumentElement.QuerySelectorOrXPath(PriceInfo.PriceXPathOrSelector);
-
-                // If node was selected successfully...
-                if (priceNode != null)
+                // If node price was found...
+                if (nodePrice != null)
                 {
-                    // Read price
-                    var input = priceNode.TextContent;
-
-                    // If price is located within an attribute
-                    if (!string.IsNullOrEmpty(PriceInfo.AttributeName))
-                    {
-                        input = priceNode.Attributes[PriceInfo.AttributeName]?.Value;
-                    }
-
-                    // Read price in the input
-                    var result = ReadPrice(input, out var parseResult);
-
-                    // If the input was parsed and price differs from the current price...
-                    if (result && parseResult.Decimal != PriceInfo.Value)
+                    // If price differs from the current price...
+                    if (nodePrice.ReadResult.Decimal != PriceInfo.Value)
                     {
                         // Update price details
-                        PriceInfo = new PriceInfo(parseResult.Decimal, Culture)
-                        {
-                            AttributeName = PriceInfo.AttributeName,
-                            PriceXPathOrSelector = PriceInfo.PriceXPathOrSelector,
-                            Source = PriceInfo.Source
-                        };
-
+                        PriceInfo = nodePrice;
                         updateResult.HasNewPrice = true;
-                    }
-                    else if (!result)
-                    {
-                        // Let developer know
-                        Debugger.Break();
-
-                        // Set failed result
-                        updateResult.Success = false;
-                        updateResult.Error = Strings.ErrorProductUpdatePriceRead;
                     }
                 }
                 else
                 {
-                    // Price element wasn't located in the DOM
-
+                    // Price wasn't found with existing product price info
                     // TODO: If IsAutoDetect, then attempt to detect new price selector
 
                     // Set failed result
                     updateResult.Success = false;
-                    updateResult.Error = Strings.ErrorProductUpdatePriceElementNotFound;
+                    updateResult.Error = Strings.ErrorProductUpdatePriceRead;
                 }
             }
 
             #endregion
+
+            // Close browser page tab after the update
+            if (_productPage != null)
+            {
+                await CoreDI.Browser.ClosePageAsync(_productPage);
+                _productPage = null;
+            }
 
             // Raise updated event
             Updated(updateResult);
 
             // Return with the result
             return updateResult;
+        }
+
+        /// <summary>
+        /// Attempts to find a price value by querying given <see cref="selectorOrExpression"/>.
+        /// </summary>
+        /// <param name="selectorOrExpression">The CSS selector or the XPath expression.</param>
+        /// <param name="attributeName">A node attribute name to lookup for the price.</param>
+        /// <returns><see cref="PriceInfo"/> if found, null otherwise</returns>
+        private PriceInfo FindNodePrice(string selectorOrExpression, string attributeName = default)
+        {
+            // Find a node in the document
+            // If node exists...
+            if (_htmlDocument.DocumentElement.QuerySelectorOrXPath(selectorOrExpression) is IElement node)
+            {
+                // Whether the price is defined within an attribute
+                var isAttribute = !string.IsNullOrEmpty(attributeName);
+
+                // Define price result
+                PriceReadResult price = null;
+
+                // If we are dealing with the attribute source...
+                if (isAttribute)
+                {
+                    // Read from the attribute
+                    TryReadPrice(node.GetAttribute(attributeName), out price);
+                }
+
+                // If price wasn't found yet...
+                if (price?.Valid != true)
+                {
+                    // NOTE: We do allow to parse node content after failed attribute read.
+                    // This is because some sites not follow good practices and define
+                    // values in the node content
+
+                    // Price wasn't found in the attribute
+                    isAttribute = false;
+
+                    // Read from the content
+                    TryReadPrice(node.TextContent, out price);
+                }
+
+                // If price read was successful...
+                if (price?.Valid == true)
+                {
+                    return new PriceInfo(price.Decimal, Culture)
+                    {
+                        ReadResult = price,
+                        PriceXPathOrSelector = selectorOrExpression, // pre-defined source selector is better than generated
+                        AttributeName = isAttribute ? attributeName : null,
+                        Source = isAttribute
+                            ? PriceSourceType.PriceSourceAttribute
+                            : PriceSourceType.PriceSourceNode,
+                    };
+                }
+            }
+
+            return null;
         }
 
         #endregion

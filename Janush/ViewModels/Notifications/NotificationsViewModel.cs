@@ -222,6 +222,13 @@ namespace Janush
                     Product = notificationItem.Product?.Settings,
                 });
 
+                // Keep max count constraint
+                var notificationCount = CoreDI.SettingsReader.Settings.RecentNotifications.Count;
+                if (notificationCount > Consts.NOTIFICATION_MAX_COUNT)
+                {
+                    CoreDI.SettingsReader.Settings.RecentNotifications.RemoveAt(notificationCount - 1);
+                }
+
                 // Update local data store
                 CoreDI.SettingsReader.Save();
 

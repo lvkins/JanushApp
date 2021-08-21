@@ -49,7 +49,6 @@ namespace Janush.Core
             Debug.WriteLine("Browser downloaded...");
             Instance = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = false });
             Instance.Closed += Instance_ClosedAsync;
-            Instance.TargetDestroyed += Browser_TargetDestroyedAsync;
         }
 
         /// <summary>
@@ -63,6 +62,13 @@ namespace Janush.Core
             var pages = await Instance.PagesAsync();
             // Find unused page
             var page = Enumerable.FirstOrDefault(pages, _ => _.Url == "about:blank");
+
+            // If we found no page...
+            if (page == null)
+            {
+                // Create new page
+                page = await Instance.NewPageAsync();
+            }
 
             // Subscribe to request event to block redundant resources 
             // and speed up the page load
@@ -130,15 +136,6 @@ namespace Janush.Core
             {
                 e.Request.ContinueAsync();
             }
-        }
-
-        /// <summary>
-        /// Executes when page close event raises.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void Browser_TargetDestroyedAsync(object sender, TargetChangedArgs e)
-        {
         }
 
         #endregion

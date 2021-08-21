@@ -55,6 +55,11 @@ namespace Janush.Core
         /// </summary>
         public string CurrencyAmount { get; private set; }
 
+        /// <summary>
+        /// The price read result, if any.
+        /// </summary>
+        public PriceReadResult ReadResult { get; set; }
+
         #endregion
 
         #region Constructor

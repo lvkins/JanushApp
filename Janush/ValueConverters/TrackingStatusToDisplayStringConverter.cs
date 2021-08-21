@@ -9,7 +9,7 @@ using Janush.Core;
 namespace Janush
 {
     /// <summary>
-    /// A converter that takes in a <see cref="ProductTrackingStatusType"/> and the error value, if any and readable product status.
+    /// A converter that takes in a <see cref="ProductTrackingStatusType"/> and returns the error value, if any and readable product status.
     /// </summary>
     public class TrackingStatusToDisplayStringConverter : BaseMultiValueConverter<TrackingStatusToDisplayStringConverter>
     {
