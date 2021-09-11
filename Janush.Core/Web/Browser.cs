@@ -78,6 +78,8 @@ namespace Janush.Core
                 page.Request += Page_RequestBlockHeavyResources;
             }
 
+            //page.Response += Page_Response;
+
             return page;
         }
 
@@ -94,9 +96,15 @@ namespace Janush.Core
             // If we only have one browser tab...
             if (pages.Length == 1)
             {
-                // Prevent browser close and navigate to initial URL
-                await page.GoToAsync("about:blank");
-                return;
+                try
+                {
+                    // Prevent browser close and navigate to initial URL
+                    await page.GoToAsync("about:blank");
+                    return;
+                }
+                catch
+                {
+                }
             }
 
             // Otherwise destroy page tab
@@ -128,15 +136,50 @@ namespace Janush.Core
         {
             if (e.Request.ResourceType == ResourceType.StyleSheet ||
                 e.Request.ResourceType == ResourceType.Font ||
+                e.Request.ResourceType == ResourceType.Media ||
+                e.Request.ResourceType == ResourceType.WebSocket ||
+                e.Request.ResourceType == ResourceType.Img ||
+                e.Request.ResourceType == ResourceType.Fetch ||
+                e.Request.ResourceType == ResourceType.Ping ||
                 e.Request.ResourceType == ResourceType.Image)
+            {
+                e.Request.AbortAsync();
+            }
+            else if (e.Request.Url.ContainsAny(new string[] { "google", "cookie", "geoloc", "gemius", "doubleclick" }))
+            {
+                e.Request.AbortAsync();
+            }
+            else if (e.Request.Url.EndsWith(".gif")) // found some XHR requests with this ext
             {
                 e.Request.AbortAsync();
             }
             else
             {
+                if (e.Request.IsNavigationRequest && e.Request.RedirectChain.Length > 0)
+                {
+                    // TODO: block redirects to different domain than product has
+                    if (e.Request.RedirectChain.Length > 1)
+                    {
+                        Debugger.Break();
+                    }
+                    e.Request.AbortAsync();
+                    return;
+                }
+                Debug.WriteLine($"Request: ${e.Request.ResourceType}, ${e.Request.Url}");
                 e.Request.ContinueAsync();
             }
         }
+
+        //private void Page_Response(object sender, ResponseCreatedEventArgs e)
+        //{
+        //    var status = e.Response.Status;
+        //    var header = e.Response.Headers;
+        //    if ((int)status >= 300 && (int)status <= 399)
+        //    {
+        //        Debugger.Break();
+        //    }
+        //    Debug.WriteLine($"Response: ${e.Response.Status}, ${e.Response.Url}");
+        //}
 
         #endregion
     }

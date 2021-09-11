@@ -78,7 +78,7 @@ namespace Janush.Core
         public string Title { get; private set; }
 
         /// <summary>
-        /// Whether the product has been loaded.
+        /// Whether the product is currently loaded in the browser.
         /// </summary>
         public bool IsLoaded => _productPage != null && !string.IsNullOrEmpty(Title);
 
@@ -193,7 +193,6 @@ namespace Janush.Core
                 // If product page is already created, simply refresh page
                 if (_productPage != null)
                 {
-                    Debug.WriteLine("Reload page");
                     response = await _productPage.ReloadAsync(waitUntil: new[] { WaitUntilNavigation.Networkidle2 });
 
                     // If response status is not within 200-299 range...
@@ -208,18 +207,19 @@ namespace Janush.Core
                 // If product page not created...
                 if (_productPage == null)
                 {
-                    Debug.WriteLine("Create page");
-
                     // Create product page
                     _productPage = await CoreDI.Browser.CreatePageAsync();
 
                     // Navigate to the product URL
-                    response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2).ConfigureAwait(false);
+                    response = await _productPage.GoToAsync(Url, WaitUntilNavigation.Networkidle2);
                 }
             }
             catch (Exception e)
             {
-                //NavigationException
+                if (e is NavigationException)
+                {
+                    Debugger.Break();
+                }
 
                 // Let developer know
                 //Debugger.Break();
@@ -1000,7 +1000,7 @@ namespace Janush.Core
                         if (inJSCount != totalCount)
                         {
                             // Bonus score for prices found in the JS code...
-                            groupScore += inJSCount * 4;
+                            groupScore += inJSCount * 5;
                         }
                         // Otherwise...
                         else
@@ -1043,7 +1043,7 @@ namespace Janush.Core
 
                             // Long distance penalty
                             //var val = closestNameDistance.Value / MaxNameNodeDistance * 10;
-                            var val = closestNameDistance.Value * 2;
+                            var val = (closestNameDistance.Value - MaxNameNodeDistance) * 2;
                             groupScore -= val;
 
                             Debug.WriteLine($"... long node distance ({closestNameDistance}/{MaxNameNodeDistance}) penalty (-{val})");
@@ -1471,8 +1471,11 @@ namespace Janush.Core
         /// </summary>
         public void Dispose()
         {
-            _ = CoreDI.Browser.ClosePageAsync(_productPage);
-            _productPage = null;
+            if (_productPage != null)
+            {
+                _ = CoreDI.Browser.ClosePageAsync(_productPage);
+                _productPage = null;
+            }
             _htmlDocument?.Dispose();
             _htmlDocument = null;
         }
